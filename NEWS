@@ -5,6 +5,13 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in Vregs 1.243 10/30/2003
+
+***	Add before_any_file rule.  
+
+****	Documentation fixes.  [Mike Castle]
+
+
 * Changes in Vregs 1.242 9/4/2003
 
 **	Allow classes to have fields which are expanded from other classes.
@@ -147,13 +154,13 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Revision: #43 $$Date: 2003/09/04 $$Author: wsnyder $
+$Revision: #47 $$Date: 2003/10/30 $$Author: wsnyder $
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2001 Wilson Snyder
-
-   See the README file included with this file for licencing information.
+   Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+   you can redistribute it and/or modify it under the terms of either the GNU
+   General Public License or the Perl Artistic License.
 
 Local variables:
 mode: outline

@@ -1,32 +1,28 @@
-# $Revision: #30 $$Date: 2003/09/04 $$Author: wsnyder $
+# $Revision: #34 $$Date: 2003/10/30 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
+# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
-# MA 02139, USA.
 ######################################################################
 
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.242';
+$VERSION = '1.243';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
 use IO::File;
 use HTML::TableExtract;
+use HTML::Entities ();
 
 %Find_Start_Headers = (Class=>1,
 		       Package=>1,
@@ -57,17 +53,11 @@ sub parse_file {
 
 sub clean_html_text {
     $_ = shift;
-    s/\&nbsp;/ /g;	# Why didn't HTML::TableExtract handle this?
-    s/\&\#8209;/-/g;	# Unicode nonbreaking hyphen (0x2011)
+    # HTML escapes to normal Latin1 ASCII
+    $_ = HTML::Entities::decode($_);
+    # Latin1 decoding
     s/\240/ /g;		# ISO-Latin1 nonbreaking space
     s/\255//g;		# ISO-Latin1 soft hyphen
-    s/[\t\n\r ]+/ /g;
-    s/^\s+//;
-    s/\s+$//;
-    s/\`/\'/g;
-    # HTML escapes
-    s/&ldquo;/\'/g;	# ISO-Latin1 left single-quote
-    s/&rdquo;/\'/g;	# ISO-Latin1 right single-quote
     # Substituting 2 or 3 periods for 'elipses' causes Vspecs to truncate
     # the field description at the periods, so use dashes.
     s/\205/--/g;	# ISO-Latin1 horizontal elipses (0x85)
@@ -78,7 +68,23 @@ sub clean_html_text {
     s/\225/\*/g;	# ISO-Latin1 bullet
     s/\226/-/g;		# ISO-Latin1 en-dash (0x96) (Unicode &#8211;)
     s/\227/--/g;	# ISO-Latin1 em-dash (0x97) (Unicode &#8212;)
+    s/\230/~/g;		# ISO-Latin1 small tilde
+    s/\233/>/g;		# ISO-Latin1 single right angle quote
+    s/\246/\|/g;	# ISO-Latin1 broken vertical bar
+    s/\255//g;		# ISO-Latin1 soft hyphen
+    s/\264/\'/g;	# ISO-Latin1 spacing acute
     s/\267/\*/g;	# ISO-Latin1 middle dot (0xB7)
+    # These are automatically removed by HTML::Entities in Perl 5.7 and greater
+    s/\&\#8209;/-/g;	# Unicode nonbreaking hyphen (0x2011)
+    s/\&mdash;/--/g;	# ISO-Latin1 em-dash (0x97) (Unicode &#8212;)
+    s/\&\#8220;/\"/g;	# ISO-Latin1 left double-quote
+    s/\&ldquo;/\"/g;	# ISO-Latin1 left double-quote
+    s/\&\#8221;/\"/g;	# ISO-Latin1 right double-quote
+    s/\&rdquo;/\"/g;	# ISO-Latin1 right double-quote
+    s/\&\#8212;/--/g;	# ISO-Latin1 em-dash (0x97) (Unicode &#8212;)
+    # Compress spacing
+    s/\`/\'/g;
+    s/[\t\n\r ]+/ /g;
     return $_;
 }
 
@@ -114,8 +120,11 @@ sub text {
 	my $text = clean_html_text($_);
 	if ($text !~ /^\s*$/
 	    && $text !~ /^</) {
+	    my $nosp_text = $text;
+	    $nosp_text =~ s/^\s+//; $nosp_text =~ s/\s+$//;
 	    if ($self->{_vregs_first_word_in_p}
-		&& $Find_Headers{$text}) {
+		&& $Find_Headers{$nosp_text}) {
+		$text = $nosp_text;
 		print "Keyword $text\n" if $Debug;
 		if ($Find_Start_Headers{$text}) {
 		    # Process previous entry, and prepare for next discovery
@@ -147,6 +156,7 @@ sub text {
 		@$row = map {
 		    $_ = clean_html_text($_);
 		    $_ =~ s/<[^>]+>//ig; #$_="" if /SupportEmptyParas/i;  # Microsloth Word junk
+		    $_ =~ s/^[ \t\n\r]+//sig;
 		    $_ =~ s/[ \t\n\r]+$//sig;
 		    $_;
 		} @$row;

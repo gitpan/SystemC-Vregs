@@ -1,21 +1,16 @@
-# $Revision: #34 $$Date: 2003/09/04 $$Author: wsnyder $
+# $Revision: #37 $$Date: 2003/10/30 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
+# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
-# MA 02139, USA.
 ######################################################################
 
 package SystemC::Vregs::Language;
@@ -24,7 +19,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.242';
+$VERSION = '1.243';
 
 ######################################################################
 #### Implementation
@@ -449,10 +444,10 @@ SystemC::Vregs::Language - File processing for various Languages
 
 =head1 SYNOPSIS
 
-    use SystemC::Vregs::Languages;
+    use SystemC::Vregs::Language;
 
-    my $fh = SystemC::Vregs::Languages->new (filename=>"foo.c",
-				    language=>'C',);
+    my $fh = SystemC::Vregs::Language->new (filename=>"foo.c",
+					    language=>'C',);
     $fh->comment ("This file is generated automatically\n");
     $fh->define ("TRUE",1, "Set true");
     $fh->print ("void main();\n");

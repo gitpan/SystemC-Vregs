@@ -1,28 +1,23 @@
-# $Revision: #5 $$Date: 2003/09/04 $$Author: wsnyder $
+# $Revision: #9 $$Date: 2003/10/30 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
+# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
-# MA 02139, USA.
 ######################################################################
 
 package SystemC::Vregs::OutputNamed;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.242';
+$VERSION = '1.243';
 
 use SystemC::Vregs::Outputs;
 use SystemC::Vregs::Number;
@@ -38,7 +33,9 @@ sub named_h_write {
     my $self = shift;
     # Dump headers for class name based accessors
 
-    my $fl = SystemC::Vregs::File->open(language=>'C', @_);
+    my $fl = SystemC::Vregs::File->open(language=>'C',
+					rules => $self->{rules},
+					@_);
     $fl->include_guard();
     $fl->print ("\n");
 
@@ -114,11 +111,11 @@ __END__
 
 =head1 NAME
 
-SystemC::Vregs::OutputDump - Outputting Vregs _dump Code
+SystemC::Vregs::OutputNamed - Outputting Vregs _dump Code
 
 =head1 SYNOPSIS
 
-    use SystemC::Vregs::OutputDump;
+    use SystemC::Vregs::OutputNamed;
 
 =head1 DESCRIPTION
 
@@ -129,11 +126,11 @@ are used to output various types of files.
 
 =over 4
 
-=item dump_h_write
+=item named_h_write
 
 Creates a header file for use with dump_named_write.
 
-=item dump_cpp_write
+=item named_cpp_write
 
 Creates a C++ file which allows textual class names to be mapped
 to appopriate pointer types for dumping to a stream.

@@ -1,6 +1,10 @@
-// $Revision: #1 $$Date: 2003/02/11 $$Author: lab $ -*- Verilog -*-
+// $Revision: #2 $$Date: 2003/09/22 $$Author: wsnyder $ -*- Verilog -*-
 //====================================================================
 // DESCRIPTION: Manual test case showing use of AUTOASCII
+//
+// Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+// you can redistribute it and/or modify it under the terms of either the GNU
+// General Public License or the Perl Artistic License.
 //====================================================================
 
 `include "vregs_spec_defs.v"

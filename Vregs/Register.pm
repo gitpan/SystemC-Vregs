@@ -1,21 +1,16 @@
-# $Revision: #38 $$Date: 2003/09/04 $$Author: wsnyder $
+# $Revision: #40 $$Date: 2003/10/30 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
+# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
-# MA 02139, USA.
 ######################################################################
 
 package SystemC::Vregs::Register;
@@ -26,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.242';
+$VERSION = '1.243';
 
 # Fields:
 #	{name}			Field name (Subclass)

@@ -1,28 +1,23 @@
-# $Revision: #119 $$Date: 2003/09/04 $$Author: wsnyder $
+# $Revision: #123 $$Date: 2003/10/30 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
+# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
-# MA 02139, USA.
 ######################################################################
 
 package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.242';
+$VERSION = '1.243';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -73,6 +68,8 @@ sub open {
 	$self->print("\n");
     }
 
+    $self->{rules}->execute_rule ('any_file_before', 'any_file', $self) if $self->{rules};
+
     return $self;
 }
 
@@ -81,6 +78,9 @@ sub close {
     # General routine for closing output file
 
     $self->close_prep();
+
+    $self->{rules}->execute_rule ('any_file_after', 'any_file', $self) if $self->{rules};
+
     $self->print("\n");
     $self->comment ("DO NOT EDIT -- Generated automatically by vregs\n");
 
@@ -135,8 +135,12 @@ sub SystemC::Vregs::Enum::enum_write {
     
     $fl->print ("    enum en {\n");
     foreach my $fieldref ($self->fields_sorted()) {
-	$fl->printf ("\t%-13s = 0x%x,\t/* %s */\n"
-		     ,$fieldref->{name},$fieldref->{rst_val},$fieldref->{desc});
+	$fl->printf ("\t%-13s = 0x%x,"
+		     ,$fieldref->{name},$fieldref->{rst_val});
+	if ($pack->{comments}) {
+	    $fl->printf ("\t/* %s */\n",$fieldref->{desc});
+	}
+	$fl->printf ("\n");
     }
     # Perhaps this should just be added to the data structures?
     # note no comma to make C happy
@@ -545,7 +549,8 @@ sub defs_write {
     # Dump general register definitions
 
     $self->create_defines(1);
-    my $fl = SystemC::Vregs::File->open(@_);
+    my $fl = SystemC::Vregs::File->open(rules => $self->{rules},
+					@_);
     $fl->include_guard();
     $fl->print("\n");
     $fl->comment("package $self->{name}\n");
@@ -638,7 +643,9 @@ sub param_write {
     # Dump general register definitions
 
     $self->create_defines(1);
-    my $fl = SystemC::Vregs::File->open(language=>'Verilog', @_);
+    my $fl = SystemC::Vregs::File->open(language=>'Verilog',
+					rules => $self->{rules},
+					@_);
 
     #$fl->include_guard();  #no guards-- it may be used in multiple modules
 
@@ -730,7 +737,9 @@ sub info_h_write {
     my $self = shift;
     # Dump headers for pli routines
 
-    my $fl = SystemC::Vregs::File->open(language=>'C', @_);
+    my $fl = SystemC::Vregs::File->open(language=>'C',
+					rules => $self->{rules},
+					@_);
     $fl->include_guard();
     $fl->print ("\n"
 		."class VregsRegInfo;\n"

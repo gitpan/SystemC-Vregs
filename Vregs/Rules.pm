@@ -1,21 +1,16 @@
-# $Revision: #27 $$Date: 2003/09/04 $$Author: wsnyder $
+# $Revision: #30 $$Date: 2003/10/30 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
+# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
-# MA 02139, USA.
 ######################################################################
 
 package SystemC::Vregs::Rules;
@@ -23,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.242';
+$VERSION = '1.243';
 
 ######################################################################
 # Default rules
@@ -77,6 +72,8 @@ sub _default_rules {
 ######################################################################
 # Rules the __rules.pl file calls
 
+sub before_any_file {	 _declare_rule (rule=>'any_file_before', @_); }
+sub  after_any_file {	 _declare_rule (rule=>'any_file_after', @_); }
 sub before_info_cpp_file{_declare_rule (rule=>'info_cpp_file_before', @_); }
 sub  after_info_cpp_file{_declare_rule (rule=>'info_cpp_file_after', @_); }
 sub before_file_body    {_declare_rule (rule=>'file_body_before', @_); }
@@ -101,8 +98,9 @@ sub  after_enum_cpp {	 _declare_rule (rule=>'enum_cpp_after', @_); }
 ######################################################################
 # Functions that rule subroutines may call
 
-sub fprint  { $Default_Self->{filehandle}->print (@_); }
-sub fprintf { $Default_Self->{filehandle}->printf (@_); }
+sub fhandle { return $Default_Self->{filehandle}; }
+sub fprint  { fhandle()->print (@_); }
+sub fprintf { fhandle()->printf (@_); }
 sub protect_rdwr_only { $Default_Self->{protect_rdwr_only} = shift; }
 
 ######################################################################
@@ -238,14 +236,22 @@ parameter.
 
 =over 4
 
+=item after_any_file
+
+Specifies a rule to be invoked at the bottom of any type of file.
+
+=item before_any_file
+
+Specifies a rule to be invoked at the top of any type of file.
+
 =item after_file_body
 
-Specifies a rule to be invoked at the bottom of the file.
+Specifies a rule to be invoked at the bottom of the class.h file.
 
 =item before_file_body
 
 Specifies a rule to be invoked to produce the #include and other text at
-the top of the file.
+the top of the class.h file.
 
 =item after_class_begin
 

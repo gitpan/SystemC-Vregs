@@ -1,6 +1,10 @@
 #!/usr/local/bin/perl -w
-# $Revision: #8 $$Date: 2002/07/16 $$Author: wsnyder $
-#DESCRIPTION: Perl ExtUtils: Common routines required by package tests
+# $Revision: #9 $$Date: 2003/09/22 $$Author: wsnyder $
+# DESCRIPTION: Perl ExtUtils: Common routines required by package tests
+#
+# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 
 use vars qw($PERL $GCC);
 

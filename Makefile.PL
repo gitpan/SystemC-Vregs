@@ -1,5 +1,9 @@
-# $Revision: #13 $$Date: 2002/08/13 $$Author: wsnyder $
+# $Revision: #15 $$Date: 2003/09/22 $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
+#
+# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 
 use ExtUtils::MakeMaker;
 use Carp;
@@ -46,6 +50,7 @@ WriteMakefile(
 	      VERSION_FROM  => 'Vregs.pm',
 	      EXE_FILES => [qw( vreg )],
 	      PREREQ_PM => {'HTML::TableExtract' => 0,
+			    'HTML::Parser' => 0,   # Also needed by TableExtract
 			    'Bit::Vector' => 0,
 			    'Verilog::Language' => 1.12,
 			},
