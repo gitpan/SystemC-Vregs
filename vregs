@@ -1,0 +1,260 @@
+#!/usr/local/bin/perl -w
+#$Id: vregs,v 1.35 2001/06/27 16:10:19 wsnyder Exp $
+######################################################################
+#
+# This program is Copyright 2001 by Wilson Snyder.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of either the GNU General Public License or the
+# Perl Artistic License, with the exception that it cannot be placed
+# on a CD-ROM or similar media for commercial distribution without the
+# prior approval of the author.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# If you do not have a copy of the GNU General Public License write to
+# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
+# MA 02139, USA.
+#                                                                           
+######################################################################
+
+require 5.005;
+use Getopt::Long;
+use IO::File;
+use Pod::Text;
+use Data::Dumper; $Data::Dumper::Indent=1; #Debug
+
+use FindBin qw($RealBin);
+use lib "$RealBin/..";
+use lib "$RealBin/blib/lib";
+use lib "$RealBin/blib/arch";
+use Vregs;
+use SystemC::Vregs::Outputs;
+use SystemC::Vregs::TableExtract;
+
+use strict;
+use vars qw($Debug @Opt_Html_Files);
+
+#======================================================================
+
+#======================================================================
+# main
+
+$Debug = 0;
+my @orig_argv = @ARGV;
+@Opt_Html_Files = ();
+my $opt_output = "";
+my $opt_rm;
+my $opt_package;
+my $opt_headers;
+my $opt_perl = 1;
+my $opt_decode = 1;
+my $opt_rules;
+my $opt_rebuild_comment = "$0 @orig_argv";
+our @opt_library_vregs = ();
+if (! GetOptions (
+		  "help"	=> \&usage,
+		  "debug"	=> \&debug,
+		  "<>"		=> \&parameter,
+		  "headers!"	=> \$opt_headers,
+		  "html=s"	=> sub { shift; push @Opt_Html_Files, shift; },
+		  "library=s"	=> sub { shift; push @opt_library_vregs, shift; },
+		  "output=s"	=> \$opt_output,
+		  "package=s"	=> \$opt_package,
+		  "rebuild-comment=s"	=> \$opt_rebuild_comment,
+		  "rm"		=> \$opt_rm,
+		  "rules=s"	=> \$opt_rules,
+		  #
+		  "perl!"	=> \$opt_perl,
+		  "decode!"	=> \$opt_decode,
+		  )) {
+    usage();
+}
+
+$opt_output.="/" if ($opt_output ne "" && $opt_output !~ m!/$!);
+$opt_package or die "%Error: No --package specified\n";
+
+my @vr_params = (address_bits=>40,
+ 		 rebuild_comment=>$opt_rebuild_comment,);
+
+my @opt_library_vr;
+foreach my $vlib (@opt_library_vregs) {
+    my $vr = new SystemC::Vregs (@vr_params);
+    print "Reading library $vlib.vregs\n" if $Debug;
+    $vr->regs_read ("${opt_output}${vlib}.vregs");
+    $vr->check();
+    $vr->exit_if_error();
+    push @opt_library_vr, $vr;
+}
+
+@vr_params = (@vr_params,
+	      libraries=>\@opt_library_vr);
+
+my $vr = new SystemC::Vregs (@vr_params,
+			     name=>$opt_package,
+			     );
+
+if ($#Opt_Html_Files >= 0) {
+    foreach my $filename (@Opt_Html_Files) {
+	print "Reading $filename\n";
+	$opt_headers = 1 if !defined $opt_headers;
+	if ($opt_rm) {
+	    (my $rm = $filename) =~ s/\.html?$/_files/;
+	    system ("rm -rf $rm") if -d $rm;
+	    SystemC::Vregs::TableExtract::clean_html_file($filename);
+	}
+	$vr->html_read ($filename);
+    }
+    $vr->exit_if_error();
+    $vr->check();
+    $vr->exit_if_error();
+    $vr->regs_write ("${opt_output}${opt_package}.vregs");
+}
+	      
+if ($opt_headers) {
+    my $v2 = new SystemC::Vregs (@vr_params);
+    $v2->regs_read ("${opt_output}${opt_package}.vregs");
+    $v2->exit_if_error();
+    $v2->check();
+    $v2->exit_if_error();
+    (!$opt_rules || -r $opt_rules) or die "%Error: Can't find rules file $opt_rules\n";
+    $v2->rules_read ($opt_rules||"${opt_output}${opt_package}__rules.pl");
+
+    #$v2->regs_write ("${opt_output}${opt_package}.2.vregs");
+    my %p = (keep_timestamp => 1,);	# Don't write if the same
+    $v2->header_write (%p, filename=>"${opt_output}${opt_package}_defs.v", language=>'Verilog',);
+    $v2->header_write (%p, filename=>"${opt_output}${opt_package}_defs.h", language=>'C',);
+    $v2->header_write (%p, filename=>"${opt_output}${opt_package}_defs.pm", language=>'Perl',) if $opt_perl;
+    $v2->parameter_write (%p, filename=>"${opt_output}${opt_package}_param.v", language=>'Verilog',);
+    $v2->h_info_write (%p, filename=>"${opt_output}${opt_package}_info.h")   if $opt_decode;
+    $v2->c_info_write (%p, filename=>"${opt_output}${opt_package}_info.cpp") if $opt_decode;
+    $v2->type_write (%p, filename=>"${opt_output}${opt_package}_class.h");
+}
+
+#----------------------------------------------------------------------
+
+sub usage {
+    print '$Id: vregs,v 1.35 2001/06/27 16:10:19 wsnyder Exp $ ', "\n";
+    $SIG{__WARN__} = sub{};	#pod2text isn't clean.
+    pod2text($0);
+    exit (1);
+}
+
+sub debug {
+    $Debug = 1;
+    #$SystemC::Vregs::TableExtract::Debug = 1;
+    $SystemC::Vregs::Debug = 1;
+}
+
+sub parameter {
+    my $param = shift;
+    die "%Error: Unknown parameter: $param\n";
+}
+ 
+
+#######################################################################
+__END__
+
+=pod
+
+=head1 NAME
+
+vregs - Register configuration utility
+
+=head1 SYNOPSIS
+
+C<vregs> ...
+
+=head1 DESCRIPTION
+
+Vregs has two major uses.  The first vregs converts a HTML document (saved
+via Word or Framemaker) to a vregs file.  The second generates standard
+headers from the .html or from a .vregs file.
+
+=head1 HTML CONVERSION
+
+When the --html switch is used, vregs generates a .vregs file from a .html
+file.  The file format is described in vregs_spec.doc or vregs_spec.htm.
+
+When saving HTML, be sure to change both the filename to .htm and the
+file format to HTML.  If inside Microsoft Word, exit.
+     
+=head1 HEADER CREATION
+
+When the --header switch is used, vregs reads a .vregs file and creates
+definition and class headers in the --output directory.
+
+=head1 ARGUMENTS
+
+=over 4
+
+=item --help
+
+Displays this message and program version and exits.
+
+=item --headers
+
+Creates the header files and other files after the hardware.vregs
+file has changed.  Generally run only by the Hardware team.
+
+=item --html I<html_filename>
+
+Reads the specified filename and creates a .vregs file from the html.
+
+=item --library I<package>
+
+Specifies a package to be used to resolve subclasses.  The library package
+will only be read, not changed in any way.
+
+=item --noperl
+
+Suppresses creating the perl definition file.
+
+=item --nodecode
+
+Suppresses creating the info C++ file.
+
+=item --output
+
+Specifies the directory name to be used for all output files.
+
+=item --package
+
+Specifies the name of the package; used for creating all filenames.
+
+=item --rebuild-comment
+
+Specifies a comment to be placed into output files describing to users how
+to rebuild the file.
+
+=item --rm
+
+When used with the --html switch, remove a directory named
+I<html_name>_files.  (This generally contains images written by Microsoft
+Word that are not needed.)  Also, clean up the HTML file to compress out
+useless style tags that make the file less humanly readable.
+
+=item --rules
+
+Specify the name of the rules file.  (See L<SystemC::Vregs::Rules>.)
+Defaults to the I<out_directory>/I<package>__rules.pl.
+
+=back
+
+=head1 SEE ALSO
+
+L<SystemC::Vregs>, L<SystemC::Vregs::Rules>, L<vregs>
+
+=head1 AUTHORS
+
+Wilson Snyder <wsnyder@wsnyder.org>
+
+=cut
+
+######################################################################
+### Local Variables:
+### compile-command: "make && make test"
+### End:

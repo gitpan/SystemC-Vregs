@@ -1,0 +1,381 @@
+# $Id: Bit.pm,v 1.1 2001/06/27 16:10:22 wsnyder Exp $
+# Author: Wilson Snyder <wsnyder@wsnyder.org>
+######################################################################
+#
+# This program is Copyright 2001 by Wilson Snyder.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of either the GNU General Public License or the
+# Perl Artistic License, with the exception that it cannot be placed
+# on a CD-ROM or similar media for commercial distribution without the
+# prior approval of the author.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# If you do not have a copy of the GNU General Public License write to
+# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge,
+# MA 02139, USA.
+######################################################################
+
+package SystemC::Vregs::Bit;
+use SystemC::Vregs::Number;
+use Bit::Vector::Overload;
+
+use strict;
+use vars qw (@ISA $VERSION);
+@ISA = qw (SystemC::Vregs::Subclass);
+$VERSION = '0.1';
+
+#desc
+#type
+#bits
+#bitlist
+#access
+#rst
+#typeref
+#cast_needed
+
+sub new {
+    my $class = shift;
+    my $self = $class->SUPER::new(overlaps=>'',
+				  @_);
+    return $self;
+}
+
+sub is_overlap_ok {
+    my $self = shift;
+    my $other = shift;
+    # Return true if these two bitrefs can overlap
+    return 1 if !$self || !$other;
+    return 1 if $self->{name} eq $other->{name};
+    return 1 if $self->{overlaps} eq "allowed";
+    return 1 if $other->{overlaps} eq "allowed";
+    return 1 if $self->{overlaps} eq $other->{name};
+    return 1 if $other->{overlaps} eq $self->{name};
+    return 0;
+}
+
+sub check_desc {
+    my $self = shift;
+    $self->{overlaps} = $1 if ($self->{desc} =~ /\boverlaps\s+([a-zA-Z0-9_]+)/i);
+    $self->{desc} = $self->clean_sentence($self->{desc});
+}
+
+sub check_name {
+    my $self = shift;
+    my $field = $self->{name};
+    $field =~ s/^_//g;
+    ($field =~ /^[A-Z][A-Za-z0-9]*$/)
+	or $self->warn ("Bit mnemonics must start with capitals and contain only alphanumerics.\n");
+    $self->{name} = $field;
+    if (my $lang = SystemC::Vregs::Language::is_keyword(lc $field)) {
+	$self->warn ("Name matches a $lang language keyword: ", lc $field, "\n");
+    }
+}
+
+sub compute_type {
+    my $self = shift;
+    my $field = $self->{type};
+    if (!defined $field || $field eq "") {
+	if ($self->{bits} =~ /:/) {
+	    if ($self->{numbits} > 64) {
+		$field = 'uint'.$self->{numbits}.'_t';
+		# probably a compile error, let the user deal with it
+	    } elsif ($self->{numbits} > 32) {
+		$field = 'uint64_t';
+	    } else {
+		$field = 'uint32_t';
+	    }
+	} else {
+	    $field = 'bool';
+	}
+    }
+
+    $self->{cast_needed}=1 if ($field !~ /^(bool|uint\d+_t)$/);
+    #use Data::Dumper; $Data::Dumper::Maxdepth=1; print Dumper($self);
+
+    $self->{type} = $field;
+}
+
+sub check_access {
+    my $bitref = shift;
+    my $field = $bitref->{access};
+
+    my $l = "";
+    $l = "L" if ($field =~ s/L//g);
+    if ($field eq "R" || $field eq "RO" ) {
+	$field = "R";	# Read only, no side effects
+    } elsif ($field eq "RW" || $field eq "R/W") {
+	$field = "RW";	# Read/Write
+    } elsif ($field eq "W" || $field eq "WO") {
+	$field = "W";	# Write only
+    }
+    $field = $field . $l;
+
+    if ($field !~ /$SystemC::Vregs::Bit_Access_Regexp/o) {
+        $bitref->warn ("Bit access must match $SystemC::Vregs::Bit_Access_Regexp\n");
+	$field = 'RW';
+    }
+
+    $bitref->{access} = $field;
+}
+
+sub check_rst {
+    my $bitref = shift;
+    my $typeref = $bitref->{typeref};
+    my $field = $bitref->{rst};
+    $field =~ s/0X/0x/;
+    if ($field =~ /^0?x?[0-9a-f]+$/i) {
+    } elsif ($field =~ /^FW-?0$/i) {
+	$field = "FW0";
+    } elsif ($field =~ /^0-?FW$/i) {
+	$field = "FW0";
+    } elsif ($field =~ /^FW-(\(.*\))$/i) {
+	$field = "FW$1";
+    } elsif ($field =~ /^x$/i || $field =~ /^N\/A$/i) {
+	$field = "X";
+    } elsif ($field =~ /^pin/i) {
+	$field = "X";
+    } elsif ($field =~ /^tbd$/i) {
+	print "-Info: $typeref->{name}_$bitref->{bitmnem} TBD reset field value, assuming not reset.\n";
+	$field = "X";
+    } elsif ($field =~ /^[A-Z0-9_]+$/
+	     && !$typeref->{is_register}) {
+	if (!$bitref->{type}) {
+	    $bitref->warn ("Reset mnemonic, but no type: '$field'\n");
+	} else {
+	    my $mnemref = $bitref->{pack}->find_enum($bitref->{type});
+	    if ($mnemref) {
+		if (!$mnemref->find_value($field)) {
+		    $bitref->warn("Field '$field' not found as member of enum '$bitref->{type}'\n");
+		}
+	    }
+	    #else We could check for a valid enum, but are they all in this document?
+	}
+    } else {
+        $bitref->warn ("Strange reset field definition: '$field'\n");
+	$field = "0";
+    }
+    $bitref->{rst} = $field;
+}
+
+sub check_bits {
+    my $bitref = shift;
+    my $field = $bitref->{bits};
+
+    $field =~ s/[ \t]+//g;  $field = lc $field;
+    $bitref->{bits} = $field;
+
+    (defined $field && $field =~ /^[0-9w]/) or $bitref->warn ("No bit range specified: '$field'\n");
+
+    # Split w[15:0],w[21] into 15,14,13,...
+    $bitref->{bitlist} = [];
+    my $numbits=0;
+    foreach my $subfield (split ",","$field,") {
+	$subfield = "w0[${subfield}]" if $subfield !~ /\[/;
+	foreach my $busbit (Verilog::Language::split_bus ($subfield)) {
+	    if ($busbit !~ /^(w(\d+)|)\[(\d+)\]$/) {
+		$bitref->warn ("Strange bits selection: '$field': $busbit\n");
+		return;
+	    }
+	    my $word=$2; my $bit=$3;
+	    $bit += $word*32 if $word;
+	    push @{$bitref->{bitlist}}, $bit;
+	    $numbits++;
+	}
+    }
+    ($numbits) or $bitref->warn ("Register without bits\n");
+    $bitref->{numbits} = $numbits;
+    #print "bitdecode '$field'=> @{$bitref->{bitlist}}\n";
+
+    # Encode bits back into extents and ranges
+    my $msb = -1;
+    my $lastbit = -1;
+    my $tobit = $bitref->{numbits};
+    $bitref->{bitlist_range} = [];
+    foreach my $bit (@{$bitref->{bitlist}}, -1) {
+	if ($bit != $lastbit-1
+	    || (31==($bit % 32))	# Don't let a range span different 32 bit words
+	    ) {
+	    if ($msb>=0) {
+		#print " rangeadd $msb $lastbit $bit\n";
+		push @{$bitref->{bitlist_range}}, [$msb, $lastbit, $msb-$lastbit+1, $tobit];
+	    }
+	    $msb = $bit;
+	}
+	$lastbit = $bit;
+	$tobit--;
+    }
+}
+
+sub computes {
+    my $bitref = shift;
+    my $typeref = $bitref->{typeref} or die;
+    my $access = $bitref->{access};
+    my $rst = $bitref->{rst};
+
+    $bitref->{fw_reset} = 1 if ($bitref->{rst} =~ /^FW/ && $access =~ /W/);
+
+    # Access fields that affect the register itself
+    $typeref->{lastflg} = 1 if ($access =~ /L/);
+    $typeref->{rdside} = 1 if ($access =~ /R[^W]*S/);
+    $typeref->{wrside} = 1 if ($access =~ /W[^R]*S/);
+
+    my $bitsleft = $bitref->{numbits}-1;
+    foreach my $bit (@{$bitref->{bitlist}}) {
+	#print "Use $bit $bitref->{name}\n";
+
+	my $prevuser = $typeref->{bitarray}[$bit];
+	if ($prevuser) {
+	    $prevuser = $prevuser->{bitref};
+	    if (!$bitref->is_overlap_ok($prevuser)) {
+		$bitref->warn ("Bit $bit defined twice in register ($bitref->{name} and $prevuser->{name})\n"
+			       ."Perhaps you need a 'Overlaps $bitref->{name}.' in $prevuser->{name}'s description\n");
+	    }
+	}
+
+	my $rstvec = undef;	# undef means unknown (x)
+	if ($rst eq "X" || $rst =~ /^FW/) {
+	    $rstvec = undef;
+	} elsif ($rst eq "0") {
+	    $rstvec = 0;
+	} elsif ($rst =~ /^0?x?[0-9a-f]+$/i) {
+	    my $value = hex $rst;
+	    $rstvec = (($value & (1<<($bitsleft))) ? 1:0);
+	} elsif ($rst =~ /^[A-Z0-9_]+$/
+		 && !$typeref->{is_register}) {
+	    # We're not checking anyways
+	    $rstvec = 0;
+	} else {
+	    $bitref->warn ("Odd reset form: $rst\n");
+	}
+
+	# Save info for every bit in the register
+	$typeref->{bitarray}[$bit]
+	    = { bitref=>$bitref,
+		write => (($access =~ /W/)?1:0),
+		read  => (($access =~ /R/)?1:0),
+		write_side => (($access =~ /W[^R]*S/)?1:0),
+		read_side  => (($access =~ /R[^W]*S/)?1:0),
+		rstvec => $rstvec,
+	    };
+	$bitsleft--;
+    } # each bit
+
+    # Comment field
+    $bitref->{comment} = sprintf ("%5s %4s %3s: %s",
+				  $bitref->{bits}, $access, $bitref->{rst}, $bitref->{desc});
+}
+
+sub check {
+    my $self = shift;
+    $self->check_desc();
+    $self->check_name();
+    $self->check_access();
+    $self->check_rst();
+    $self->check_bits();
+    # Computes rely on check() being correct
+    $self->compute_type();
+    $self->computes();
+}
+
+######################################################################
+#### Package return
+1;
+__END__
+=pod
+
+=head1 NAME
+
+SystemC::Vregs::Bit - Bit object
+
+=head1 SYNOPSIS
+
+    use SystemC::Vregs;
+
+=head1 DESCRIPTION
+
+This package contains a blessed hash object for each bit field in a
+SystemC::Vregs::Type.
+
+=item FIELDS
+
+These fields may be specified with the new() function, and accessed
+via the self hash: $self->{field}.
+
+=over 4
+
+=item access
+
+RW/R/W access for the field, from the access column of the field definition.
+
+=item bits
+
+The bits the field occupies, from the bit column in the field definition.
+
+=item desc
+
+Description comment for the object.
+
+=item name
+
+Name of the object.
+
+=item overlaps
+
+A string indicating what bitfields may be overlapped by this field.  From
+parsing the description column of the field for "overlaps allowed" strings.
+
+=item pack
+
+Reference to the package (SystemC::Vregs) object self is a member of.
+
+=item rst
+
+Reset value from the reset column of the field definition.
+
+=item type
+
+Type of the field, from the type column of the field definition.
+
+=back
+
+=item DERRIVED FIELDS
+
+These fields are valid only after check() is called.
+
+=over 4
+
+=item bitarray
+
+A array, with one entry for each bit number (0..31).  Each entry contains a
+hash with the bit field reference and status on that bit.
+
+=back
+
+=item METHODS
+
+=over 4
+
+=item new
+
+Creates a new bit object.
+
+=item check
+
+Checks the object for errors, and parses to create derrived Fields.
+
+=back
+
+=head1 SEE ALSO
+
+C<SystemC::Vregs>
+
+=head1 AUTHORS
+
+Wilson Snyder <wsnyder@wsnyder.org>
+
+=cut

@@ -1,0 +1,95 @@
+   This is the SystemC Vregs Package, aka Vregs.
+
+Copyright
+=========
+
+   This package is Copyright 2001 by Wilson Snyder
+<wsnyder@wsnyder.org>.
+
+   You may distribute under the terms of either the GNU General Public
+License or the Artistic License, as specified in the Perl README file,
+with the exception that it cannot be placed on a CD-ROM or similar
+media for commercial distribution without the prior approval of the
+author.
+
+   This code is provided with no warranty of any kind, and is used
+entirely at your own risk.
+
+Summary
+=======
+
+   The publicly licensed Vregs package provides a means for extracting
+registers, classes, enumerations, and defines from documentation.  Vregs
+then extracts header files for C++, Verilog, and Perl.
+
+   Being very object oriented, the program can easily be extended to
+support additional output languages and output files.  You can download
+Vregs from the link off of http://www.veripool.com/vregs.html
+
+   Vregs does not require SystemC or C++ to be useful, though the class
+functions are only useful in object oriented languages like C++.
+
+Description
+===========
+
+   Vregs converts documentation to C++, Verilog, and perl headers.
+
+   First, you write your specification using the example documentation
+in Microsoft Word format in vregs_spec.doc, or using any editor that can
+produce HTML code.  Vregs only cares about the general table layout, not
+style and font issues; almost any program will do, both Microsoft Word
+and Adobe Framemaker have been used in the past.
+
+   When the document is ready for conversion, save the document as
+HTML.  Microsoft Word annoyingly opens the HTML after saving; be sure
+to exit the HTML version immediately.
+
+   You then run Vregs, which reads the HTML code and writes out a .vspec
+file, which contains a summary of the extracted information.  This file
+can be examined for errors, or edited standalone.  Vregs is then run a
+second time to read the .vspec file and produce headers with #defines
+for all of the constants and magic numbers in the spec.
+
+   Vregs can be customized to change the code it creates using
+templates; see 'man vregs' for details.
+
+Obtaining Distribution
+======================
+
+   The latest version is available at `http://www.perl.org/CPAN/'
+
+   Download the latest package from that site, and decompress.  `gunzip
+SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar'
+
+Supported Systems
+=================
+
+   This version of Vregs has been built and tested on:
+
+   * i386-linux
+
+   It should run on any system with Perl.
+
+Installation
+============
+
+  1. `cd' to the directory containing this INSTALL notice.
+
+  2. Type `perl Makefile.PL' to configure Vregs for your system.
+
+  3. Type `make' to compile.
+
+  4. Type `make test' to check the compilation.
+
+  5. Type `make install' to install the programs and any data files and
+     documentation.
+
+  6. Install `vregs-mode.el' in your Emacs site-lisp directory.
+
+  7. Add the `include' directory to your project's build path, if you
+     wish to use the register information classes produced by Vregs.
+
+  8. Examine the example document under vregs_spec.doc and
+     vregs_spec.html.
+
+

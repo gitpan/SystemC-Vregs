@@ -1,0 +1,25 @@
+SystemC::Vregs NEWS --  history of user-visible changes.
+Copyright (C) 2001 Wilson Snyder.
+
+The contributors that suggested a given feature is shown in [].
+	
+This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
+
+* Changes in SystemC 0.1 6/27/2001
+
+****	Package Released
+
+
+----------------------------------------------------------------------
+$Id: NEWS,v 1.1 2001/06/27 16:10:19 wsnyder Exp $
+----------------------------------------------------------------------
+Copyright information:
+
+Copyright (C) 2001 Wilson Snyder
+
+   See the README file included with this file for licencing information.
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:

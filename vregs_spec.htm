@@ -1,0 +1,1097 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:w="urn:schemas-microsoft-com:office:word"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1252">
+<meta name=ProgId content=Word.Document>
+<meta name=Generator content="Microsoft Word 9">
+<meta name=Originator content="Microsoft Word 9">
+<link rel=File-List href="./vregs_spec_files/filelist.xml">
+<title>Vregs Example Specification</title>
+
+<style>
+
+</style>
+
+</head>
+
+<body lang=EN-US>
+
+<div class=Section1>
+
+<div>
+
+<h1><a name="_Toc509199472"></a><a name="_Toc503876542"><![if !supportLists]>1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<![endif]>Vregs</a></h1>
+
+</div>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<p class=MsoNormal>This document shows example register layouts
+that the SystemC::Vregs package understands. 
+Please see</p>
+
+<p class=MsoNormal>            man
+vregs</p>
+
+<p class=MsoNormal>and</p>
+
+<p class=MsoNormal>            man
+SystemC::Vregs</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<p class=MsoNormal>for information on the program and package.</p>
+
+<div>
+
+<h1><![if !supportLists]>2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<![endif]>Package Attributes</h1>
+
+</div>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>A “package” header specifies an optional
+global header which vregs uses to establish overall information about the
+specification.  This may be put into
+“hidden” text if the word processor supports it.</p>
+
+<p class=RegDescHead><b>Package</b></p>
+
+<p class=RegDescBody>vregs_spec</p>
+
+<p class=RegDescHead><b>Attributes</b></p>
+
+<p class=RegDescBody>-netorder</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<div>
+
+<h1><![if !supportLists]>3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<![endif]>Definitions </h1>
+
+</div>
+
+<h2><![if !supportLists]>3.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Description</h2>
+
+<p class=RegDescBody>A definition section starts with the word
+“Defines” alone on a line.  Vregs will
+create #define statements for each mnemonic/constant pair.</p>
+
+<p class=RegDescBody>There are three columns for each value in
+the enumeration.  Columns can be in any
+order.</p>
+
+<p class=RegDescBody>The constant column is the value for the
+define.  Numeric values are in Verilog
+format, with the width and a h/d/b for hex, decimal and binary,
+respectively.  String and other formats
+are not supported yet.</p>
+
+<p class=RegDescBody>The mnemonic must be all upper case.</p>
+
+<p class=RegDescBody>If constants are being defined for a
+series of values, a enumeration is probably a better way to do it.  </p>
+
+<h2><![if !supportLists]>3.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Example
+Definitions </h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This table shows an example definition
+table.   The information in the header
+below is prepended with a underscore to all mnemonics, to prevent the global
+name space of defines from causing trouble </p>
+
+<p class=RegDescHead><b>Defines</b></p>
+
+<p class=RegDescBody>CMP</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Constant<br>
+  <![if !supportLineBreakNewLine]><br>
+  <![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Definition<br>
+  (header comments in parenthesis)</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>4’d1</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>DEFINED_ONE</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Definition One</i>.  Text up to the first period will be
+  annotated into the output files.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>48’hfeed</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>DEFINED_FOOD</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Definition of Food</i>.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+ </tr>
+</table>
+
+<div>
+
+<h1><![if !supportLists]>4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<![endif]>Enumerations </h1>
+
+</div>
+
+<h2><![if !supportLists]>4.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Description</h2>
+
+<p class=RegDescBody>A enumeration triggers off from the word
+“Enum” alone on a line.  Vregs will
+create a C++ enumeration for the values, and Verilog #defines for each of the
+values in the enumeration.</p>
+
+<p class=RegDescBody>There are three columns for each value in
+the enumeration.  Columns can be in any
+order.</p>
+
+<p class=RegDescBody>The constant column is the value for the
+mnemonic.  Values are in Verilog format,
+with the width and a h/d/b for hex, decimal and binary, respectively.</p>
+
+<p class=RegDescBody>The mnemonic must be all upper case.  Underscores are acceptable, but strongly
+discouraged.</p>
+
+<p class=RegDescBody>A table row may have a empty mnemonic
+column if the definition contains the text “reserved”.  </p>
+
+<h2><![if !supportLists]>4.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Example
+Enumeration (This header is ignored) </h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This table shows an example enumeration
+table.  </p>
+
+<p class=RegDescHead><b>Enum</b></p>
+
+<p class=RegDescBody>ExEnum</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Constant<br>
+  (comments)</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Definition<br>
+  (header comments in parenthesis)</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>4’b0000</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Reserved</i></p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>4’b0001</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>ONE</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Command One</i>.  Text up to the first period will be
+  annotated into the output files.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>4’b0010</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>TWO</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Command Two</i>.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>4’d5</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>FIVE</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Command Five</i>.  Number in decimal.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>4’he</p>
+  </td>
+  
+  <td valign=top>
+  <p class=MsoNormal>FOURTEEN</p>
+  </td>
+  
+  <td valign=top>
+  <p class=MsoNormal><i>Command Fourteen</i>.  Number in hex.</p>
+  </td>
+  
+ </tr>
+</table>
+
+<div>
+
+<h1><![if !supportLists]>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<![endif]>Class Definitions</h1>
+
+</div>
+
+<h2><![if !supportLists]>5.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Description</h2>
+
+<p class=RegDescBody>Class Declarations key off the word
+“Class” alone on a line.  Class names
+must begin with C_.  The C_ prefix will
+be stripped for the real name of the class.</p>
+
+<p class=RegDescBody>A header called “Attributes” before the
+header specifies special actions for the class.<br>
+<![if !supportLineBreakNewLine]><br>
+<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=459>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody><b>Attribute</b></p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody><b>Description</b></p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>-variablelen</p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody>The class is of variable length, with
+  data words appended to the end of the structure.  (Future)</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>-netorder</p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody>The structure longwords are in network
+  order. (Big endian).</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>-noarray</p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody>For register types, declares the region
+  as consisting of raw bytes, rather then a array of memory.  Thus when asking what the name of a
+  address within the space is, the return will be something like “Ram+0x10”
+  rather then “Ram[4]”.</p>
+  </td>
+  
+ </tr>
+</table>
+
+<p class=RegDescBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<p class=RegDescBody>There are five columns for each value in
+the enumeration.  Columns can be in any
+order.</p>
+
+<p class=RegDescBody>The bit column defines which bits the
+field occupies.  Bit numbers are then
+expressed in MSB:LSB order.  Bits can be
+of any width; there is no restriction of their being less then 32.  For readability w#[] indicates the bits in
+the brackets are in a given 32-bit word, 32 times the # will be added to the
+bit numbers in the brackets.  For
+example w3[10] is bit 10 in longword 3, equivelent to writing [106]  (3*32+10 = 106). Fields may consist of
+multiple disjoint segments, separated by commas.  (w0[15:13] or w0[15,14,13] or w0[15],w0[14],w0[13] are all
+equivelent.)</p>
+
+<p class=RegDescBody>The mnemonic must begin with a capital,
+and contain no underscores.</p>
+
+<p class=RegDescBody>The type is the C++ type of the
+field.  If left blank, single bit fields
+will be assumed to be “bool” and multiple bit fields will be unsigned
+integers.  The entire column may be
+deleted if the default is acceptable for all of the fields.</p>
+
+<p class=RegDescBody>The constant column is used to specify the
+given bit range always contains a certain value.  Often it will be expressed as a enumeration, such as when
+specifing a command number field inside the layout of one specific command.</p>
+
+<h2><![if !supportLists]>5.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Example
+Base Class </h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This is an example base class
+definition.  In this example, we’ll define
+ExBase which is a generic format of a message, then we’ll define specific
+messages.</p>
+
+<p class=RegDescHead><b>Class</b></p>
+
+<p class=RegDescBody>ExBase</p>
+
+<p class=RegDescHead><b>Attributes</b></p>
+
+<p class=RegDescBody>-netorder</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=577>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Bit</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Type</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Constant</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Definition</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w0[31:28]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Cmd</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>ExEnum</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Command Number</i>.  Encoding is in the ExMnem table.  You’ll see in later derived classes how
+  this specifies which command this generic class represents.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w0[28]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>CmdAck</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Command Needs Acknowledge.</i>  <i>Overlaps Cmd.</i> This is a Boolean field, since it’s one
+  bit and has no specified type.  The
+  “overlaps Cmd” field turns off the normal warning that bit 28 is used
+  twice.  This is done in this example
+  as one bit of the command always indicates a specific piece of information
+  that we want to extract.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w0[27:24]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>FiveBits</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Five Bits. </i>This field will become a
+  unsigned int.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w0[15:0],<br>
+  w1[31:0]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Address</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Address</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Address.  This field spans two
+  words to make a wide 48-bit field.</p>
+  </td>
+  
+ </tr>
+</table>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<br
+clear=all>
+
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<h2><a
+name="_Toc509118594"><![if !supportLists]>5.3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<![endif]>Example Class </a></h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This
+shows a class which inherits the base class defined earlier. </p>
+
+<p class=RegDescHead><b>Class</b></p>
+
+<p class=RegDescBody>ExClassOne
+: ExBase</p>
+
+<p class=RegDescBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=577>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Bit</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Type</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Constant</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Definition</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w0[31:28]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Cmd</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>ExEnum</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;ONE</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Command Number</i>. This field is a constant, as it indicates that this is message type
+  ONE. </p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+ </tr>
+</table>
+
+<h2><![if !supportLists]>5.4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Another
+Example Class</h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This
+is another example class.  </p>
+
+<p class=RegDescHead><b>Class</b></p>
+
+<p class=RegDescBody>ExClassTwo
+: ExBase</p>
+
+<p class=RegDescBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=577>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Bit</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Type</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Constant</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Definition</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w0[31:28]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Cmd</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>ExEnum</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;TWO</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Command Number</i>.  Indicates the second
+  command.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w0[27:24]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>FiveBits</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Five Bits. </i>You can redeclare fields in the base class, but they must have the
+  same name and mnemonic.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w2[31:0]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Payload</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Another field that this
+  message tacks onto the end of the base class.</p>
+  </td>
+  
+ </tr>
+</table>
+
+
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<div>
+
+<h1><![if !supportLists]>6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<![endif]>Register Declarations</h1>
+
+</div>
+
+<h2><![if !supportLists]>6.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Definition</h2>
+
+<p class=RegDescBody>Register declarations key off the word
+“Mnemonic” alone on a line.  Registers
+always start with R_, then a name beginning with a capital, and containing no
+additional underscores.  They can also
+have attributes like the Class Declarations.</p>
+
+<p class=RegDescBody>The address is specified in hex, with a
+leading 0x.  The maximum width of the
+address is coded into the vregs program; it defaults to 48 bits, which is
+sufficient for most projects.</p>
+
+<p class=RegDescBody>The table indicates the bit layout:</p>
+
+<p class=RegDescBody>The Bit column is the bits the field
+occupies.</p>
+
+<p class=RegDescBody>The Mnemonic is the name of the bit
+field.  It begins with a underscore,
+then a capital.  There must be no other
+underscores in it.</p>
+
+<p class=RegDescBody>Reset indicates the value after chip
+reset.  X or N/A indicates not reset.
+FW0 or FW-(some perl expression) indicates that the value is loaded in by
+firmware during initialization.</p>
+
+<p class=RegDescBody>Access indicates read/write, read-only,
+etc.  Read side effects indicate that
+reading the register can change the value in the register or cause other
+effects.  Write side effects indicate
+that changing the value may change other registers, and is only used to tell
+the register testing to skip writing this register.<br>
+<![if !supportLineBreakNewLine]><br>
+<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=446>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody><b>Access</b></p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody><b>Read Action</b></p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody><b>Write Action</b></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>RO</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Read Only</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Ignored</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>RW</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Read</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Write</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>RWS</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Read</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Write Side Effect</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>RS</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Read Side Effect</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Ignored</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>RSW</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Read Side Effect</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Write</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>RW1C</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Read</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Write 1 to clear</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>WO</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Indeterminate return</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Write</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>WS</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Indeterminate return</p>
+  </td>
+  <td valign=top>
+  <p class=RegDescBody>Write Side Effect</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>L</p>
+  </td>
+  <td colspan=2 valign=top>
+  <p class=RegDescBody>Flag on any other access indicates this
+  field needs to be written after all other registers.  For example a unit “enable” needs to be
+  written after all of the unit’s other registers are written.</p>
+  </td>
+ </tr>
+</table>
+
+<p class=RegDescBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<h2><![if !supportLists]>6.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Example
+Register</h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This is an example register declaration.</p>
+
+<p class=RegDescHead><b>Register</b></p>
+
+<p class=RegDescBody>R_ExReg1</p>
+
+<p class=RegDescHead><b>Address</b></p>
+
+<p class=RegDescBody>0x18_FFFF_0000</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=579>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Bit</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Access</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Reset</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Type</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Definition</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading align=left>31:28</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading align=left>LastCmd</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading align=left>RW</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading align=left>X</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading align=left>ExEnum</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading align=left><i>Enumerated field.  </i>This field has a value represented by a complex type, in this case an
+  enumeration.</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>20</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>ReadOnly</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>RO</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>X</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><i>Read
+  Only Bits.</i>  This field is not writable and is not
+  initialized during reset.</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>3:0</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>LowBits</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>RW</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>0</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><i>Random
+  Low Bits</i>.  This field takes the whole register.  As with Enums and everywhere else, only
+  the first sentence is used to comment the output code.</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<h2><![if !supportLists]>6.3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<![endif]>Another Register, Ranged</h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This is another register, but it consists
+of 8 identical arrayed registers.  The
+special optional comment (Add 0x10 per entry) indicates that each entry is 16
+bytes apart, rather then the default dense packing of 4 bytes.</p>
+
+<p class=RegDescHead><b>Register</b></p>
+
+<p class=RegDescBody>R_ExRegTwo[7:0]</p>
+
+<p class=RegDescHead><b>Address</b></p>
+
+<p class=RegDescBody>0x18_FFFF_1000 – 0x18_FFFF_1100 (Add 0x10
+per entry)</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=579>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Bit</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Access</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Reset</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Type</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Definition</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>31:0</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>WideField</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>RW</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>0</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><i>Wide
+  Field</i>.  This field takes the whole register.</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+</div>
+
+</body>
+
+</html>
