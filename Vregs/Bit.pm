@@ -1,4 +1,4 @@
-# $Id: Bit.pm,v 1.1 2001/06/27 16:10:22 wsnyder Exp $
+# $Id: Bit.pm,v 1.4 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -27,7 +27,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 #desc
 #type
@@ -142,8 +142,7 @@ sub check_rst {
     } elsif ($field =~ /^tbd$/i) {
 	print "-Info: $typeref->{name}_$bitref->{bitmnem} TBD reset field value, assuming not reset.\n";
 	$field = "X";
-    } elsif ($field =~ /^[A-Z0-9_]+$/
-	     && !$typeref->{is_register}) {
+    } elsif ($field =~ /^[A-Z0-9_]+$/) {
 	if (!$bitref->{type}) {
 	    $bitref->warn ("Reset mnemonic, but no type: '$field'\n");
 	} else {
@@ -213,11 +212,18 @@ sub check_bits {
 
 sub computes {
     my $bitref = shift;
-    my $typeref = $bitref->{typeref} or die;
-    my $access = $bitref->{access};
-    my $rst = $bitref->{rst};
 
-    $bitref->{fw_reset} = 1 if ($bitref->{rst} =~ /^FW/ && $access =~ /W/);
+    $bitref->{fw_reset} = 1 if ($bitref->{rst} =~ /^FW/ && $bitref->{access} =~ /W/);
+    $bitref->{comment} = sprintf ("%5s %4s %3s: %s",
+				  $bitref->{bits}, $bitref->{access}, $bitref->{rst}, $bitref->{desc});
+}
+
+sub computes_type {
+    # Computes that associate a bit with a type
+    # These need to be done on any inherited types also
+    my $bitref = shift;
+    my $typeref = shift or die;
+    my $access = $bitref->{access};
 
     # Access fields that affect the register itself
     $typeref->{lastflg} = 1 if ($access =~ /L/);
@@ -238,6 +244,7 @@ sub computes {
 	}
 
 	my $rstvec = undef;	# undef means unknown (x)
+	my $rst = $bitref->{rst};
 	if ($rst eq "X" || $rst =~ /^FW/) {
 	    $rstvec = undef;
 	} elsif ($rst eq "0") {
@@ -245,8 +252,7 @@ sub computes {
 	} elsif ($rst =~ /^0?x?[0-9a-f]+$/i) {
 	    my $value = hex $rst;
 	    $rstvec = (($value & (1<<($bitsleft))) ? 1:0);
-	} elsif ($rst =~ /^[A-Z0-9_]+$/
-		 && !$typeref->{is_register}) {
+	} elsif ($rst =~ /^[A-Z0-9_]+$/) {
 	    # We're not checking anyways
 	    $rstvec = 0;
 	} else {
@@ -264,10 +270,6 @@ sub computes {
 	    };
 	$bitsleft--;
     } # each bit
-
-    # Comment field
-    $bitref->{comment} = sprintf ("%5s %4s %3s: %s",
-				  $bitref->{bits}, $access, $bitref->{rst}, $bitref->{desc});
 }
 
 sub check {

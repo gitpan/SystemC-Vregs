@@ -1,4 +1,4 @@
-# $Id: Subclass.pm,v 1.5 2001/06/27 16:10:22 wsnyder Exp $
+# $Id: Subclass.pm,v 1.7 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -25,7 +25,7 @@ package SystemC::Vregs::Subclass;
 use strict;
 use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 $Errors = 0;
 
@@ -51,6 +51,8 @@ sub warn {
 	$at .= ($self->{name}||$self->{Register}||$self->{Mnemonic}||$self->{at}||"");
 	$at .= ": ";
     }
+
+    $at .= ($self->{at}||"").":" if $SystemC::Vregs::Debug;
 
     # Make a warning based on the bit being processed
     my $atblank = " " x length($at);

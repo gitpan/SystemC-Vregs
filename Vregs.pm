@@ -1,4 +1,4 @@
-# $Id: Vregs.pm,v 1.49 2001/06/27 16:10:19 wsnyder Exp $
+# $Id: Vregs.pm,v 1.61 2001/09/04 02:06:18 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -34,13 +34,13 @@ use Carp;
 use vars qw($Debug $Bit_Access_Regexp @ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 ######################################################################
 #### Constants
 
 # Regexp matching valid bit access
-$Bit_Access_Regexp = '^(R|RW|W|RS|RSW|RWS|RSWS|RW1C|WS)L?'."\$";
+$Bit_Access_Regexp = '^(RS?|)(WS?|W1CS?|)L?'."\$";
 
 ######################################################################
 ######################################################################
@@ -78,21 +78,56 @@ sub addr_const_vec {
 
 sub find_enum {
     my $pack = shift;
-    my $typename = shift;
+    my $name = shift;
     foreach my $packref ($pack, @{$pack->{libraries}}) {
-	my $enumref = $packref->{enums}{$typename};
+	my $enumref = $packref->{enums}{$name};
 	return $enumref if $enumref;
     }
     return undef;
 }
 sub find_type {
     my $pack = shift;
-    my $typename = shift;
+    my $name = shift;
     foreach my $packref ($pack, @{$pack->{libraries}}) {
-	my $enumref = $packref->{types}{$typename};
+	my $enumref = $packref->{types}{$name};
 	return $enumref if $enumref;
     }
     return undef;
+}
+sub find_type_regexp {
+    my $pack = shift;
+    my $regexp = shift;
+    my @list;
+    foreach my $packref ($pack, @{$pack->{libraries}}) {
+	foreach my $matchref (values %{$packref->{types}}) {
+	    if ($matchref->{name} =~ /$regexp/) {
+		push @list, $matchref;
+	    }
+	}
+    }
+    return @list;
+}
+sub find_reg {
+    my $pack = shift;
+    my $name = shift;
+    foreach my $packref ($pack, @{$pack->{libraries}}) {
+	my $enumref = $packref->{regs}{$name};
+	return $enumref if $enumref;
+    }
+    return undef;
+}
+sub find_reg_regexp {
+    my $pack = shift;
+    my $regexp = shift;
+    my @list;
+    foreach my $packref ($pack, @{$pack->{libraries}}) {
+	foreach my $matchref (values %{$packref->{regs}}) {
+	    if ($matchref->{name} =~ /$regexp/) {
+		push @list, $matchref;
+	    }
+	}
+    }
+    return @list;
 }
 
 sub regs_sorted {
@@ -129,6 +164,20 @@ sub html_read {
     $te->parse_file($filename);
 }
 
+sub three_way_replace {
+    my $orig_name = shift;
+    my $orig_inh = shift;
+    my $sub_name = shift;
+    # Take "FOO*", "BAR*", and "BARBAZ" and return "FOOBAZ"
+
+    $orig_name =~ /^([^*]*)[*]$/ or die;
+    my $orig_name_prefix = $1;
+    $orig_inh =~ /^([^*]*)[*]$/ or die;
+    my $orig_inh_prefix = $1;
+    my $new_name = substr($sub_name,length($orig_inh_prefix));
+    return ($orig_name_prefix . $new_name);
+}
+
 ######################################################################
 #### Declaring registers/enums
 
@@ -155,7 +204,7 @@ sub new_item {
     my $bittableref = $_[1];
     my $flagref = $_[2];	# Hash of {heading} = value_of_heading
     #Create a new register/class/enum, called from the html parser
-    #print ::Dumper(\$flagref, $bittableref);
+    print ::Dumper(\$flagref, $bittableref) if $SystemC::Vregs::TableExtract::Debug;
 
     $flagref->{Register} = $flagref->{Class} if $flagref->{Class};
     if ($flagref->{Register}) {
@@ -222,7 +271,6 @@ sub new_enum {
     my $flagref = shift;	# Hash of {heading} = value_of_heading
     # Create a new enumeration
 
-    #print ::Dumper(\$flagref, $bittableref);
     ($flagref->{Enum}) or die;
     my $classname = $flagref->{Enum};
 
@@ -289,6 +337,9 @@ sub new_register {
 	$inherits = $1;
     }
 
+    my $attr = $flagref->{Attributes}||"";
+    return if $attr =~ /noimplementation/;
+
     my $typeref = new SystemC::Vregs::Type
 	(pack => $self,
 	 name => $classname,
@@ -297,7 +348,6 @@ sub new_register {
 	 );
     $typeref->inherits($inherits);
 
-    my $attr = $flagref->{Attributes}||"";
     while ($attr =~ s/-(\w+)//) {
 	$typeref->{attributes}{$1} = $1;
     }
@@ -347,9 +397,9 @@ sub new_register {
 	$rst_col ||= $const_col;
 	defined $bit_col or  return $self->warn ($flagref, "Table is missing column headed 'Bit'\n");
 	defined $mnem_col or return $self->warn ($flagref, "Table is missing column headed 'Mnemonic'\n");
-	defined $rst_col or  return $self->warn ($flagref, "Table is missing column headed 'Reset'\n");
 	defined $def_col or  return $self->warn ($flagref, "Table is missing column headed 'Definition'\n");
 	if ($is_register) {
+	    defined $rst_col or  return $self->warn ($flagref, "Table is missing column headed 'Reset'\n");
 	    defined $acc_col or  return $self->warn ($flagref, "Table is missing column headed 'Access'\n");
 	}
 
@@ -384,7 +434,7 @@ sub new_register {
 		next;	# All blank lines (excl comment) are fine.
 	    }
 
-	    my $rst = $row->[$rst_col];
+	    my $rst = defined $rst_col ? $row->[$rst_col] : "";
 	    $rst = 'X' if ($rst eq "" && !$is_register);
 	    my $bitref = new SystemC::Vregs::Bit
 		(pack => $self,
@@ -414,24 +464,34 @@ sub _choose_columns {
     # Look for the columns with the given headings.  Require them to exist.
 
     my @collist;
-    my $ncol;
+    my @colused = ();
     # The list is short, so this is faster then forming a hash.
     # If things get wide, this may change
     for (my $h=0; $h<=$#{$headref}; $h++) {
-	$headref->[$h] =~ s/\s*\(.*\)//;	# Strip comments in the header
+	if ($headref->[$h] =~ s/\s*\(.*\)//) {
+	    # Strip comments in the header
+	    # Allow ignoring these columns entirely
+	    $colused[$h] = 1 if $headref->[$h] eq "";
+	}
     }
   headchk:
     foreach my $fld (@{$fieldref}) {
 	for (my $h=0; $h<=$#{$headref}; $h++) {
 	    if ($fld eq $headref->[$h]) {
 		push @collist, $h;
-		$ncol++;
+		$colused[$h] = 1;
 		next headchk;
 	    }
 	}
 	push @collist, undef;
     }
-    if ($ncol != $#{$headref}+1) {
+
+    my $ncol = 0;
+    for (my $h=0; $h<=$#{$headref}; $h++) {
+	$ncol = 1 if !$colused[$h];
+    }
+    
+    if ($ncol) {
         SystemC::Vregs::Subclass::warn ($flagref, "Extra columns found:\n");
 	print "Desired column headers: '",join("' '",@{$fieldref}),"'\n";
 	print "Found   column headers: '",join("' '",@{$headref}),"'\n";
@@ -503,7 +563,8 @@ sub regs_read {
 		 );
 	    $typeref->inherits($inh);
 	    $typeref->{attributes}{$1} = 1 while ($flags =~ s/-([a-z]+)\b//);
-	    $regref->{typeref} = $typeref if $regref;
+	    $regref->{typeref} = $typeref if $regref && $typemnem =~ /^R_/;
+	    $regref = undef;
 	    ($flags =~ /^\s*$/) or $typeref->warn("$fileline: Bad flags \"$flags\"\n");
 	}
 	elsif ($line =~ /^bit\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+"(.*)"$/ ) {
@@ -580,6 +641,15 @@ sub rules_read {
 
 sub check {
     my $self = shift;
+
+    # Eliminate wildcarding
+    foreach my $typeref (values %{$self->{types}}) {
+	$typeref->dewildcard();
+    }
+    foreach my $regref (values %{$self->{regs}}) {
+	$regref->dewildcard();
+    }
+
     # Check enums first; type checking requires enums
     foreach my $defref ($self->defines_sorted) {
 	$defref->check();
@@ -680,6 +750,7 @@ sub create_defines {
     return if ($skip_if_done && $pack->{defines_computed});
     $pack->{defines_computed} = 1;
 
+    my $bit4 = $pack->addr_const_vec(0x4);
     my $bit32 = $pack->addr_const_vec(0xffffffff);
 
     my %moddef = ();
@@ -705,6 +776,8 @@ sub create_defines {
 	new_push SystemC::Vregs::Define::Value
 	    (pack => $pack,
 	     name => "RA_".$nor_mnem,
+	     gt32 => ($addr->Lexicompare($bit32) > 0),
+	     val => $addr,
 	     rst_val => $addr->to_Hex, bits => $pack->{address_bits},
 	     desc => "Address of $classname", );
 
@@ -722,6 +795,32 @@ sub create_defines {
 		 bits => (($regref->{range_ents}->Lexicompare($bit32) > 0)
 			  ? $pack->{address_bits} : 32),
 		 desc => "Number of entries", );
+
+	    if (! $regref->{spacing}->equal($bit4)) {
+		new_push SystemC::Vregs::Define::Value
+		    (pack => $pack,
+		     name => "RRP_".$nor_mnem,
+		     rst_val => $regref->{spacing}->to_Hex,
+		     bits => $pack->{address_bits},
+		     desc => "Range spacing", );
+	    }
+
+	    if ($regref->{spacing}->equal($bit4)) {
+		my $val = Bit::Vector->new($regref->{pack}{address_bits});
+		$val->subtract($regref->{addr_end},$addr,0);  #end-start
+		new_push SystemC::Vregs::Define::Value
+		    (pack => $pack,
+		     name => "RRS_".$nor_mnem,
+		     rst_val => $val->to_Hex,
+		     bits => (($val > 0) ? $pack->{address_bits} : 32),
+		     desc => "Range byte size", );
+	    } else {
+		new_push SystemC::Vregs::Define::Value
+		    (pack => $pack,
+		     name => "RRS_".$nor_mnem,
+		     rst_val => "Non_Contiguous",
+		     desc => "Range byte size: This register region contains gaps.");
+	    }
 
 	    my $delta = Bit::Vector->new($regref->{pack}{address_bits});
 	    $delta->subtract($regref->{addr_end},$addr,1);  #end-start-1
@@ -751,8 +850,10 @@ sub create_defines {
 		    new_push SystemC::Vregs::Define::Value
 			(pack => $pack,
 			 name => "RA_".$nor_mnem.$range_val,
+			 val => $range_addr,
 			 rst_val => $range_addr->to_Hex,
 			 bits => $regref->{pack}{address_bits},
+			 gt32 => ($range_addr->Lexicompare($bit32) > 0),
 			 desc => "Address of Entry ${classname}${range_val}", );
 		}
 	    }
@@ -938,6 +1039,11 @@ parameter, or undef if not found.
 
 Returns SystemC::Vregs::Type object with a name matching the passed
 parameter, or undef if not found.
+
+=item find_type_regexp
+
+Returns list of SystemC::Vregs::Type objects with a name matching the
+passed wildcard, or undef if not found.
 
 =item html_read
 

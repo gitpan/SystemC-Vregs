@@ -83,7 +83,10 @@ specification.  This may be put into
 
 <p class=RegDescBody>A definition section starts with the word
 “Defines” alone on a line.  Vregs will
-create #define statements for each mnemonic/constant pair.</p>
+create #define statements for each mnemonic/constant pair.  The name following the Defines header is
+prepended to all defines, thus in the example below CMP_ will be
+prepended.  If this is not desired, use
+a single _ instead of the “CMP” below.</p>
 
 <p class=RegDescBody>There are three columns for each value in
 the enumeration.  Columns can be in any
@@ -92,13 +95,21 @@ order.</p>
 <p class=RegDescBody>The constant column is the value for the
 define.  Numeric values are in Verilog
 format, with the width and a h/d/b for hex, decimal and binary,
-respectively.  String and other formats
-are not supported yet.</p>
+respectively.  Underscores can be used
+to separate digits; they are ignored. String and other formats are not
+supported yet.</p>
 
-<p class=RegDescBody>The mnemonic must be all upper case.</p>
+<p class=RegDescBody>The mnemonic column is the name of the
+define, appended to the Defines prefix. 
+The Mnemonic must be all upper case.</p>
 
-<p class=RegDescBody>If constants are being defined for a
-series of values, a enumeration is probably a better way to do it.  </p>
+<p class=RegDescBody>The definition column is a comment on what
+the define is used for.  The first
+sentence is added as a comment to the output files.  Italizing this first sentence is useful in highlight ing this
+extraction. </p>
+
+<p class=RegDescBody>If constants are being defined for a series
+of values, a enumeration is probably a better way to do it.  </p>
 
 <h2><![if !supportLists]>3.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Example
 Definitions </h2>
@@ -199,10 +210,18 @@ order.</p>
 
 <p class=RegDescBody>The constant column is the value for the
 mnemonic.  Values are in Verilog format,
-with the width and a h/d/b for hex, decimal and binary, respectively.</p>
+with the width and a h/d/b for hex, decimal and binary, respectively.  Underscores can be used to separate digits;
+they are ignored.</p>
 
-<p class=RegDescBody>The mnemonic must be all upper case.  Underscores are acceptable, but strongly
-discouraged.</p>
+<p class=RegDescBody>The mnemonic column is the name of this
+enumeration value.  The Mnemonic must be
+all upper case.  Underscores are
+acceptable, but discouraged.</p>
+
+<p class=RegDescBody>The definition column is a comment on what
+the enumeration value is used for.  The
+first sentence is added as a comment to the output files.  Italizing this first sentence is useful in
+highlight ing this extraction. </p>
 
 <p class=RegDescBody>A table row may have a empty mnemonic
 column if the definition contains the text “reserved”.  </p>
@@ -321,9 +340,8 @@ table.  </p>
 <h2><![if !supportLists]>5.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Description</h2>
 
 <p class=RegDescBody>Class Declarations key off the word
-“Class” alone on a line.  Class names
-must begin with C_.  The C_ prefix will
-be stripped for the real name of the class.</p>
+“Class” alone on a line.  Classes can
+inherit other classes by using C++ syntax: “DerrivedClass : BaseClass”</p>
 
 <p class=RegDescBody>A header called “Attributes” before the
 header specifies special actions for the class.<br>
@@ -394,8 +412,10 @@ example w3[10] is bit 10 in longword 3, equivelent to writing [106]  (3*32+10 = 
 multiple disjoint segments, separated by commas.  (w0[15:13] or w0[15,14,13] or w0[15],w0[14],w0[13] are all
 equivelent.)</p>
 
-<p class=RegDescBody>The mnemonic must begin with a capital,
-and contain no underscores.</p>
+<p class=RegDescBody>The mnemonic column is the name of this
+field.  The Mnemonic must begin with
+upper case, and can contain mixed case. 
+Underscores are not acceptable, use mixed case instead.</p>
 
 <p class=RegDescBody>The type is the C++ type of the
 field.  If left blank, single bit fields
@@ -407,15 +427,20 @@ deleted if the default is acceptable for all of the fields.</p>
 given bit range always contains a certain value.  Often it will be expressed as a enumeration, such as when
 specifing a command number field inside the layout of one specific command.</p>
 
+<p class=RegDescBody>The definition column is a comment on what
+the field is used for.  The first
+sentence is added as a comment to the output files.  Italizing this first sentence is useful in highlight ing this
+extraction.</p>
+
 <h2><![if !supportLists]>5.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Example
 Base Class </h2>
 
 <p class=RegDescHead><b>Description</b></p>
 
 <p class=RegDescBody>This is an example base class
-definition.  In this example, we’ll define
-ExBase which is a generic format of a message, then we’ll define specific
-messages.</p>
+definition.  In this example, we’ll
+define ExBase which is a generic format of a message, then we’ll define
+specific messages.</p>
 
 <p class=RegDescHead><b>Class</b></p>
 
@@ -771,20 +796,29 @@ always start with R_, then a name beginning with a capital, and containing no
 additional underscores.  They can also
 have attributes like the Class Declarations.</p>
 
+<p class=RegDescBody>Registers can also inherit other registers
+using the C++ like “DerrivedReg : BaseReg” format.  This allows a field definition to be shared among many nearly
+identical registers.  If all the fields
+are identical to the base register, the derrived register can completely
+elimintate it’s field table.  As a
+extension of this, you can specify a wildcard “Derrived* : Base*”; which will
+pull all Base registers into the Derrived section; when this is done, the
+address specified is added to the address specified in the Base’s declaration,
+and the end address is checked against the Base’s ending address.</p>
+
 <p class=RegDescBody>The address is specified in hex, with a
 leading 0x.  The maximum width of the
-address is coded into the vregs program; it defaults to 48 bits, which is
+address is coded into the vregs program; it defaults to 40 bits, which is
 sufficient for most projects.</p>
 
-<p class=RegDescBody>The table indicates the bit layout:</p>
+<p class=RegDescBody>A attribute of –noimplementation specifies
+the register has not been implemented, and should be ignored by Vregs.</p>
 
-<p class=RegDescBody>The Bit column is the bits the field
-occupies.</p>
-
-<p class=RegDescBody>The Mnemonic is the name of the bit
-field.  It begins with a underscore,
-then a capital.  There must be no other
-underscores in it.</p>
+<p class=RegDescBody>The table indicates the bit layout, in the
+same format as a Class declaration.  The
+Bit, Mnemonic, Type, and Definition columns are all described in the Class
+declaration chapter.  The other columns
+are as follows:</p>
 
 <p class=RegDescBody>Reset indicates the value after chip
 reset.  X or N/A indicates not reset.

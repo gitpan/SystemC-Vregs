@@ -4,7 +4,7 @@
 use vars qw($PERL $GCC);
 
 $PERL = "$^X -Iblib/arch -Iblib/lib";
-$GCC  = "g++ -Wall -Werror ";
+$GCC  = "g++ -Wall -Werror -I. -I../include ";
 
 mkdir 'test_dir',0777;
 

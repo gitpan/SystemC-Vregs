@@ -1,6 +1,6 @@
 ;; vregs-mode.el --- minor mode for displaying waveform signal values
 ;;
-;; $Id: vregs-mode.el,v 1.3 2001/05/22 13:19:10 wsnyder Exp $
+;; $Id: vregs-mode.el,v 1.4 2001/07/17 17:46:50 wsnyder Exp $
 
 ;; Author          : Wilson Snyder <wsnyder@wsnyder.org>
 ;; Keywords        : languages
@@ -100,11 +100,11 @@
 	(list "^\\s *\\<\\(bit\\|const\\|define\\)\\>\\s *\\([a-zA-Z0-9_]+\\)"
 	      (list 1 font-lock-keyword-face)
 	      (list 2 font-lock-variable-name-face))
-	(list "^\\s *\\<\\(reg\\|cfg\\)\\>\\s *\\([a-zA-Z0-9_]+\\)\\s *\\([a-zA-Z0-9_]+\\)"
+	(list "^\\s *\\<\\(reg\\|cfg\\)\\>\\s *\\([a-zA-Z0-9_*]+\\)\\s *\\([a-zA-Z0-9_*]+\\)"
 	      (list 1 font-lock-keyword-face)
 	      (list 2 font-lock-variable-name-face)
 	      (list 3 font-lock-type-face))
-	(list "^\\s *\\<\\(type\\|enum\\)\\>\\s *\\([a-zA-Z0-9_]+\\)"
+	(list "^\\s *\\<\\(type\\|enum\\)\\>\\s *\\([a-zA-Z0-9_*]+\\)"
 	      (list 1 font-lock-keyword-face)
 	      (list 2 font-lock-type-face))
 	(list "^\\s *\\<\\(use\\|init\\|end\\|checks\\|package\\)\\>"

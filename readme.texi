@@ -45,8 +45,9 @@ Being very object oriented, the program can easily be extended to
 support additional output languages and output files.  You can download
 Vregs from the link off of http://www.veripool.com/vregs.html
 
-Vregs does not require SystemC or C++ to be useful, though the class
-functions are only useful in object oriented languages like C++.
+Vregs does not require SystemC or C++ to be useful, though some of the
+generated header files are only useful in object oriented languages like
+C++.
 
 @node Description, SystemPerl Example, Summary, Top
 @section Description
@@ -65,9 +66,9 @@ the HTML version immediately.
 
 You then run Vregs, which reads the HTML code and writes out a .vspec
 file, which contains a summary of the extracted information.  This file
-can be examined for errors, or edited standalone.  Vregs is then run a
-second time to read the .vspec file and produce headers with #defines
-for all of the constants and magic numbers in the spec.
+can be examined for errors, or edited standalone.  Vregs also produces
+header fields with #defines for all of the constants and magic numbers in
+the spec.  
 
 Vregs can be customized to change the code it creates using templates;
 see 'man vregs' for details.
@@ -97,7 +98,7 @@ It should run on any system with Perl.
 
 @enumerate
 @item
-@code{cd} to the directory containing this INSTALL notice.
+@code{cd} to the directory containing this README notice.
 
 @item
 Type @samp{perl Makefile.PL} to configure Vregs for your system.
@@ -106,7 +107,9 @@ Type @samp{perl Makefile.PL} to configure Vregs for your system.
 Type @samp{make} to compile.
 
 @item
-Type @samp{make test} to check the compilation.
+Type @samp{make test} to check the compilation.  Note that
+vregs_spec.doc with this distribution is converted into the files in the
+test_dir directory.
 
 @item
 Type @samp{make install} to install the programs and any data files and

@@ -1,4 +1,4 @@
-# $Id: Number.pm,v 1.2 2001/06/27 16:10:22 wsnyder Exp $
+# $Id: Number.pm,v 1.3 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw($VERSION @ISA);
 use Bit::Vector;
 
 @ISA = qw (Bit::Vector);	# For now, let Bit::Vector do all the work
-$VERSION = '0.100';
+$VERSION = '1.000';
 
 ######################################################################
 ######################################################################

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#$Id: vregs,v 1.35 2001/06/27 16:10:19 wsnyder Exp $
+#$Id: vregs,v 1.40 2001/08/04 01:45:35 wsnyder Exp $
 ######################################################################
 #
 # This program is Copyright 2001 by Wilson Snyder.
@@ -31,7 +31,7 @@ use FindBin qw($RealBin);
 use lib "$RealBin/..";
 use lib "$RealBin/blib/lib";
 use lib "$RealBin/blib/arch";
-use Vregs;
+use SystemC::Vregs;
 use SystemC::Vregs::Outputs;
 use SystemC::Vregs::TableExtract;
 
@@ -43,6 +43,9 @@ use vars qw($Debug @Opt_Html_Files);
 #======================================================================
 # main
 
+autoflush STDOUT 1;
+autoflush STDERR 1;
+
 $Debug = 0;
 my @orig_argv = @ARGV;
 @Opt_Html_Files = ();
@@ -50,8 +53,13 @@ my $opt_output = "";
 my $opt_rm;
 my $opt_package;
 my $opt_headers;
-my $opt_perl = 1;
-my $opt_decode = 1;
+my $opt_class_h = 1;
+my $opt_class_cpp = 1;
+my $opt_defs_h = 1;
+my $opt_defs_pm = 1;
+my $opt_defs_v = 1;
+my $opt_info_cpp = 1;
+my $opt_param_v = 1;
 my $opt_rules;
 my $opt_rebuild_comment = "$0 @orig_argv";
 our @opt_library_vregs = ();
@@ -67,9 +75,23 @@ if (! GetOptions (
 		  "rebuild-comment=s"	=> \$opt_rebuild_comment,
 		  "rm"		=> \$opt_rm,
 		  "rules=s"	=> \$opt_rules,
-		  #
-		  "perl!"	=> \$opt_perl,
-		  "decode!"	=> \$opt_decode,
+		  # File Enables (if adding one, add to files! also)
+		  "class_h!"	=> \$opt_class_h,
+		  "class_cpp!"	=> \$opt_class_cpp,
+		  "defs_h!"	=> \$opt_defs_h,
+		  "defs_pm!"	=> \$opt_defs_pm,
+		  "defs_v!"	=> \$opt_defs_v,
+		  "info_cpp!"	=> \$opt_info_cpp,
+		  "param_v!"	=> \$opt_param_v,
+		  "files!"	=> sub { shift; my $ena = shift;
+					 $opt_class_h = $ena;
+					 $opt_class_cpp = $ena;
+					 $opt_defs_h = $ena;
+					 $opt_defs_pm = $ena;
+					 $opt_defs_v = $ena;
+					 $opt_info_cpp = $ena;
+					 $opt_param_v = $ena;
+				     },
 		  )) {
     usage();
 }
@@ -125,19 +147,34 @@ if ($opt_headers) {
 
     #$v2->regs_write ("${opt_output}${opt_package}.2.vregs");
     my %p = (keep_timestamp => 1,);	# Don't write if the same
-    $v2->header_write (%p, filename=>"${opt_output}${opt_package}_defs.v", language=>'Verilog',);
-    $v2->header_write (%p, filename=>"${opt_output}${opt_package}_defs.h", language=>'C',);
-    $v2->header_write (%p, filename=>"${opt_output}${opt_package}_defs.pm", language=>'Perl',) if $opt_perl;
-    $v2->parameter_write (%p, filename=>"${opt_output}${opt_package}_param.v", language=>'Verilog',);
-    $v2->h_info_write (%p, filename=>"${opt_output}${opt_package}_info.h")   if $opt_decode;
-    $v2->c_info_write (%p, filename=>"${opt_output}${opt_package}_info.cpp") if $opt_decode;
-    $v2->type_write (%p, filename=>"${opt_output}${opt_package}_class.h");
+    if ($opt_defs_v) {
+	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_defs.v", language=>'Verilog',);
+    }
+    if ($opt_defs_h) {
+	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_defs.h", language=>'C',);
+    }
+    if ($opt_defs_pm) {
+	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_defs.pm", language=>'Perl',);
+    }
+    if ($opt_param_v) {
+	$v2->param_write (%p, filename=>"${opt_output}${opt_package}_param.v", language=>'Verilog',);
+    }
+    if ($opt_info_cpp) {
+	$v2->info_h_write (%p, filename=>"${opt_output}${opt_package}_info.h");
+	$v2->info_cpp_write (%p, filename=>"${opt_output}${opt_package}_info.cpp");
+    }
+    if ($opt_class_h) {
+	$v2->class_h_write (%p, filename=>"${opt_output}${opt_package}_class.h");
+    }
+    if ($opt_class_cpp) {
+	$v2->class_cpp_write (%p, filename=>"${opt_output}${opt_package}_class.cpp");
+    }
 }
 
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Id: vregs,v 1.35 2001/06/27 16:10:19 wsnyder Exp $ ', "\n";
+    print '$Id: vregs,v 1.40 2001/08/04 01:45:35 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);
@@ -187,6 +224,8 @@ file format to HTML.  If inside Microsoft Word, exit.
 When the --header switch is used, vregs reads a .vregs file and creates
 definition and class headers in the --output directory.
 
+Attribute heading
+
 =head1 ARGUMENTS
 
 =over 4
@@ -209,13 +248,41 @@ Reads the specified filename and creates a .vregs file from the html.
 Specifies a package to be used to resolve subclasses.  The library package
 will only be read, not changed in any way.
 
-=item --noperl
+=item --noclass_cpp
 
-Suppresses creating the perl definition file.
+Suppresses creating the _class.cpp file.
 
-=item --nodecode
+=item --noclass_h
 
-Suppresses creating the info C++ file.
+Suppresses creating the _class.h file.
+
+=item --nodefs_h
+
+Suppresses creating the _defs.h file.
+
+=item --nodefs_pm
+
+Suppresses creating the _defs.pl file.
+
+=item --nodefs_v
+
+Suppresses creating the _defs.v file.
+
+=item --noinfo_cpp
+
+Suppresses creating the _info.cpp file.
+
+=item --noparams_v
+
+Suppresses creating the _defs.pm file.
+
+=item --nofiles
+
+Suppresses creating all files. Equivelent to: --noclass_h --noclass_cpp
+--nodefs_h --nodefs_pm --nodefs_v --noinfo_cpp --noparams_v
+
+You can then use specific enables after the --nofiles to turn on the
+desired files, for example: --nofiles --class_h --defs_h
 
 =item --output
 

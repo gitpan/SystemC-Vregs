@@ -1,4 +1,4 @@
-# $Id: TableExtract.pm,v 1.11 2001/06/27 16:10:23 wsnyder Exp $
+# $Id: TableExtract.pm,v 1.14 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -23,7 +23,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -65,9 +65,19 @@ sub clean_html_text {
     return $_;
 }
 
+sub start {
+    my $self = shift;
+    if ($_[0] eq 'p') {
+	#print "<p>\n" if $Debug;
+	$self->{_vregs_first_word_in_p} = 1;
+    }
+    $self->SUPER::start (@_);
+}
+
 sub end {
     my $self = shift;
     if ($_[0] eq 'p') {
+	print "<\/p>\n" if $Debug;
 	if (!$self->{_vregs_first_endp}) {
 	    $self->{_vregs_first_endp} = 1;
 	} else {
@@ -82,10 +92,14 @@ sub text {
     # Don't bother if we are in a table
     if (! $self->{_in_a_table}) {
 	$_ = $_[0];
+	printf "Text %s: %s: %s",$self->{_fh}->tell()
+	    ,($self->{_vregs_first_word_in_p}?"FW":"  "),"$_\n" if $Debug;
 	my $text = clean_html_text($_);
-	if ($text ne ""
+	if ($text !~ /^\s*$/
 	    && $text !~ /^</) {
-	    if ($Find_Headers{$text}) {
+	    if ($self->{_vregs_first_word_in_p}
+		&& $Find_Headers{$text}) {
+		print "Keyword $text\n" if $Debug;
 		if ($Find_Start_Headers{$text}) {
 		    # Process previous entry, and prepare for next discovery
 		    my $pack = $self->{_vregs_pack};
@@ -104,6 +118,7 @@ sub text {
 		$self->{_vregs_next}{$self->{_vregs_next_tag}} .= $text;
 	    }
 	}
+	$self->{_vregs_first_word_in_p} = 0 if ($text !~ /^\s*$/);
 	my @tables = $self->table_states();
 	my $numtables = ();
 	if ($#tables != $self->{_vregs_num_tables}) {
@@ -121,6 +136,7 @@ sub text {
 	    }
 	    # Process this, and prepare for next discovery
 	    my $pack = $self->{_vregs_pack};
+	    print ::Dumper(\@bittable, $self->{_vregs_next}) if $Debug;
 	    $pack->new_item(\@bittable, $self->{_vregs_next});
 	    $self->{_vregs_next} = undef;
 	}

@@ -9,6 +9,9 @@ typedef unsigned long long Address ;
 // Check include guard works
 #include "vregs_spec_class.h"
 
+// Lazyness so don't need to link multiple objects:
+#include "vregs_spec_class.cpp"
+
 #ifndef INSERTED__before_file_body
 #error MISSING  INSERTED__before_file_body
 #endif
@@ -78,5 +81,16 @@ typedef unsigned long long Address ;
 
 // Just enough so we know it compiles and run!
 int main() {
+    ExClassOne base;
+    base.fieldsZero();
+    base.cmd(ExEnum::ONE);
+    base.address(0x1234);
+
+    // Dumping a enum
+    cout << "Cmd = "<<base.cmd()<<endl;
+
+    // Dumping class
+    cout << "Base =\t" <<hex << base.dump() << endl;
+
     return (0);
 }

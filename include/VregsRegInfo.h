@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.h,v 1.6 2001/06/22 19:24:15 wsnyder Exp $ -*- C++ -*-
+// $Id: VregsRegInfo.h,v 1.7 2001/08/01 17:19:00 wsnyder Exp $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -92,10 +92,10 @@ public:
 
     // We don't allow visibility to the uint that gives the value of these fields
     // This allows us to have other then 32 bit registers in the future
-    bool		rdMask(int bit) const { return ((m_rdMask & (1<<(bit)))!=0); }
-    bool		wrMask(int bit) const { return ((m_wrMask & (1<<(bit)))!=0); }
-    bool		rstVal(int bit) const { return ((m_rstVal & (1<<(bit)))!=0); }
-    bool		rstMask(int bit) const { return ((m_rstMask & (1<<(bit)))!=0); }
+    bool		rdMask(int bit) const { return ((m_rdMask & (1UL<<(bit)))!=0); }
+    bool		wrMask(int bit) const { return ((m_wrMask & (1UL<<(bit)))!=0); }
+    bool		rstVal(int bit) const { return ((m_rstVal & (1UL<<(bit)))!=0); }
+    bool		rstMask(int bit) const { return ((m_rstMask & (1UL<<(bit)))!=0); }
     uint32_t		rdMask(void) const { return (m_rdMask); }
     uint32_t		wrMask(void) const { return (m_wrMask); }
     uint32_t		rstVal(void) const { return (m_rstVal); }

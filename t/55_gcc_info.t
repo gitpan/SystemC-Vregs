@@ -12,7 +12,7 @@ run_system ("cp t/55_gcc_info.cpp test_dir/55_gcc_info.cpp");
 ok(1);
 
 print "Compiling\n";
-run_system ("cd test_dir && ${GCC} -I. -I../include 55_gcc_info.cpp -o 55_gcc_info");
+run_system ("cd test_dir && ${GCC} 55_gcc_info.cpp -o 55_gcc_info");
 ok(1);
 
 print "Running\n";

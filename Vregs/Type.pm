@@ -1,4 +1,4 @@
-# $Id: Type.pm,v 1.1 2001/06/27 16:10:23 wsnyder Exp $
+# $Id: Type.pm,v 1.4 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,19 +28,25 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 ######################################################################
 # Accessors
 
 sub new {
-    my $class = shift;
+    my $class = shift;  $class = ref $class if ref $class;
     my $self = $class->SUPER::new(bitarray=>[],
 				  attributes=>{},
 				  @_);
     $self->{pack} or die;  # Should have been passed as parameter
     $self->{pack}{types}{$self->{name}} = $self;
     return $self;
+}
+
+sub delete {
+    my $self = shift;
+    $self->{pack} or die;
+    delete $self->{pack}{types}{$self->{name}};
 }
 
 sub inherits {
@@ -54,6 +60,30 @@ sub inherits {
 	$self->{inherits_level}++ while ($self->{inherits} =~ /:/g);
     }
     return $self->{inherits};
+}
+
+######################################################################
+
+sub dewildcard {
+    my $self = shift;
+    #print ::Dumper($self);
+    return if (($self->{name}||"") !~ /\*/);
+    print "Type Wildcard ",$self->inherits(),"\n" if $SystemC::Vregs::Debug;
+    (my $regexp = $self->inherits()) =~ s/[*]/\.\*/g;
+    my $gotone;
+    foreach my $matchref ($self->{pack}->find_type_regexp("^$regexp")) {
+	$gotone = 1;
+	my $newname = SystemC::Vregs::three_way_replace
+	    ($self->{name}, $self->inherits(), $matchref->{name});
+	print "  Wildcarded $matchref->{name} to $newname\n"  if $SystemC::Vregs::Debug;
+	my $newref = $self->new (pack=>$self->{pack},
+				 name=>$newname,
+				 at => $matchref->{at},
+				 );
+	$newref->inherits($matchref->{name});
+    }
+    $gotone or $self->warn ("No types matching wildcarded type: ",$self->inherits(),"\n");
+    $self->delete();
 }
 
 ######################################################################
@@ -106,6 +136,9 @@ sub check {
 	$fieldref->check();
     }
     $self->check_inherit();
+    foreach my $fieldref ($self->fields_sorted_inherited) {
+	$fieldref->computes_type($self);
+    }
     $self->computes();
 }
 
@@ -145,6 +178,16 @@ sub fields_sorted {
     my $typeref = shift;
     return (sort {$b->{bitlist}[0] <=> $a->{bitlist}[0]}
 	    (values %{$typeref->{fields}}));
+}
+
+sub fields_sorted_inherited {
+    my $typeref = shift;
+    my @flds = (values %{$typeref->{fields}});
+    if ($typeref->{inherits_typeref}) {
+	push @flds, (values %{$typeref->{inherits_typeref}->{fields}});
+    }
+    return (sort {$b->{bitlist}[0] <=> $a->{bitlist}[0]}
+	    @flds);
 }
 
 ######################################################################

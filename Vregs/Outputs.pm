@@ -1,4 +1,4 @@
-# $Id: Outputs.pm,v 1.51 2001/06/27 16:10:22 wsnyder Exp $
+# $Id: Outputs.pm,v 1.67 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -24,7 +24,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -143,17 +143,9 @@ sub SystemC::Vregs::Enum::enum_write {
     $fl->print ("    inline ${clname} () {};\n");
     $fl->print ("    inline ${clname} (en _e) : m_e(_e) {};\n");
     $fl->print ("    explicit inline ${clname} (int _e) : m_e(static_cast<en>(_e)) {};\n");
-    $fl->print ("    operator const char * (void) const { return ascii(); };\n");
-    $fl->print ("    operator en (void) const { return m_e; };\n");
-    $fl->print ("    const char * ascii (void) const {\n");
-    $fl->print ("	switch (m_e) {\n");
-    foreach my $fieldref ($self->fields_sorted()) {
-	$fl->printf ("\tcase %s: return(\"%s\");\n"
-		     ,$fieldref->{name},$fieldref->{name});
-    }
-    $fl->print ("	default: return (\"%E\");\n");
-    $fl->print ("	}\n");
-    $fl->print ("    };\n");
+    $fl->print ("    operator const char * () const { return ascii(); };\n");
+    $fl->print ("    operator en () const { return m_e; };\n");
+    $fl->print ("    const char * ascii () const;\n");
     
     $pack->{rules}->execute_rule ('enum_end_before', $clname, $self);
     $fl->print ("  };\n");
@@ -170,6 +162,25 @@ sub SystemC::Vregs::Enum::enum_write {
 		);
 }
 
+sub SystemC::Vregs::Enum::enum_cpp_write {
+    my $self = shift;
+    my $pack = shift;
+    my $fl = shift;
+
+    my $clname = $self->{name} || "x";
+
+    $fl->print("//${clname}\n",);
+    $fl->print ("const char* ${clname}::ascii () const {\n");
+    $fl->print ("    switch (m_e) {\n");
+    foreach my $fieldref ($self->fields_sorted()) {
+	$fl->printf ("\tcase %s: return(\"%s\");\n"
+		     ,$fieldref->{name},$fieldref->{name});
+    }
+    $fl->print ("  default: return (\"%E\");\n");
+    $fl->print ("  }\n");
+    $fl->print ("}\n\n");
+}
+
 ######################################################################
 ######################################################################
 ######################################################################
@@ -184,7 +195,7 @@ sub attribute_value {
     return undef;
 }
 
-sub SystemC::Vregs::Type::_type_write {
+sub SystemC::Vregs::Type::_class_h_write {
     my $self = shift;
     my $pack = shift;
     my $fl = shift;
@@ -213,7 +224,6 @@ sub SystemC::Vregs::Type::_type_write {
     $fl->print("struct $clname$inh {\n");
     $fl->set_private(0);	# struct implies public:
     $pack->{rules}->execute_rule ('class_begin_after', $clname, $self);
-    $fl->printf("    const static size_t SIZE = %d;\n", $words*4);
 
     if ($inh ne "") {
 	$fl->print("    // w() inherited from $self->{inherits}::\n");
@@ -222,12 +232,26 @@ sub SystemC::Vregs::Type::_type_write {
 		   "    inline uint32_t w(int b) const { return (${ntohl}(m_w[b])); };\n",
 		   "    inline void w(int b, uint32_t val) { m_w[b] = ${htonl}(val); };\n",);
     }
+    if ($clname =~ /^R_/) {
+	# Write only those bits that are marked access writable
+	my $wr_mask = 0;
+	for (my $bit=0; $bit<$self->{pack}->{data_bits}; $bit++) {
+	    my $bitent = $self->{bitarray}[$bit];
+	    next if !$bitent;
+	    $wr_mask  |= (1<<$bit) if ($bitent->{write});
+	}
+	$fl->printf("    static const uint32_t BITMASK_WRITABLE = 0x%08x;\n",
+		    $wr_mask);
+	$fl->printf("    inline void wWritable(int b, uint32_t val) {"
+		    ." w(b,(val&BITMASK_WRITABLE)|(w(b)&~BITMASK_WRITABLE)); };\n");
+    }
 
     my @resets=();
     push @resets, sprintf("\t%s::fieldsReset();\n",$self->{inherits}) if $self->{inherits};
+    my @dumps = ();
+
     foreach my $bitref ($self->fields_sorted()) {
-	my $lc_mnem = $bitref->{name};
-	$lc_mnem =~ s/^(.)/lc $1/xe;
+	(my $lc_mnem = $bitref->{name}) =~ s/^(.)/lc $1/xe;
 	my $typecast = "";
 	$typecast = "($bitref->{type})" if $bitref->{cast_needed};
 	$typecast = "(void*)" if $bitref->{type} eq 'void*';	# Damn C++
@@ -276,7 +300,7 @@ sub SystemC::Vregs::Type::_type_write {
 
 	# Mask after shifting on reads, so the mask is a smaller constant.
 	$fl->private_not_public ($bitref->{access} !~ /R/);
-	$fl->printf("\tinline %s\t%-13s (void) const ", $bitref->{type}, $lc_mnem);
+	$fl->printf("\tinline %s\t%-13s () const ", $bitref->{type}, $lc_mnem);
 	$fl->print("{ return (${typecast}(${extract})); };");
 	#printf $fl "\t//%s", $bitref->{desc};
 	$fl->printf("\n");
@@ -286,23 +310,43 @@ sub SystemC::Vregs::Type::_type_write {
 	$fl->print("{ ${deposit} };");
 	#printf $fl "\t//%s", $bitref->{desc};
 	$fl->printf("\n");
+
+	push @dumps, "\"$bitref->{name}=\"<<$lc_mnem()"
     }
 
     $fl->private_not_public (0);
-    $fl->print("    void fieldsReset (void) {\n",
-	       @resets,
-	       "    };\n");
-    $fl->print("    void fieldsZero (void) {\n",
+    $fl->print("    void fieldsZero () {\n",
 	       "\tfor (int i=0; i<${words}; i++) w(i,0);\n",
 	       "    };\n");
+    $fl->print("    void fieldsReset () {\n",
+	       "\tfieldsZero();\n",
+	       @resets,
+	       "    };\n");
+    $fl->print("    inline bool operator== (const ${clname}& rhs) const {\n",
+	       "\tfor (int i=0; i<${words}; i++) { if (m_w[i]!=rhs.m_w[i]) return false; }\n",
+	       "\treturn true;\n",
+	       "    };\n");
+    # The dump functions are in a .cpp file (no inline), as there was too much code
+    # bloat, and it was taking a lot of compile time.
+    $fl->print("    typedef VregsOstream<${clname}> DumpOstream;\n",
+	       "    DumpOstream dump(const char* prefix=\"\\n\\t\") const;\n",
+	       "    ostream& _dump(ostream& lhs, const char* pf) const;\n",
+	       "    void dumpCout() const; // For GDB\n",);
+    
+    # Put const's last to avoid GDB stupidity
+    $fl->private_not_public (0);
+    $fl->printf("    const static size_t SIZE = %d;\n", $words*4);
 
     $pack->{rules}->execute_rule ('class_end_before', $clname, $self);
     $fl->print("};\n");
     $pack->{rules}->execute_rule ('class_end_after', $clname, $self);
+
+    $fl->print("  ostream& operator<< (ostream& lhs, const ${clname}::DumpOstream rhs);\n",);
+
     $fl->print("\n");
 }
 
-sub type_write {
+sub class_h_write {
     # Dump type definitions
     my $self = shift;
 
@@ -321,16 +365,6 @@ sub type_write {
 	$fl->print("#include \"$packref->{name}_class.h\"\n");
     }
 
-    $fl->print("// Types:\n",
-	       "#ifndef _NINT32_T_\n",
-	       "#define _NINT32_T_ 1\n",
-	       "typedef uint8_t  nint8_t;   // Always identical\n",
-	       "typedef uint16_t nint16_t;  // Uint stored in network order\n",
-	       "typedef uint32_t nint32_t;  // Uint stored in network order\n",
-	       "typedef uint64_t nint64_t;  // Uint stored in network order\n",
-	       "#endif\n",
-	       "\n",);
-
     $fl->print("\n\n");
 
     foreach my $classref ($self->enums_sorted) {
@@ -343,7 +377,7 @@ sub type_write {
 
     # Sorted first does base classes, then children
     foreach my $typeref ($self->types_sorted) {
-	$typeref->_type_write($self, $fl);
+	$typeref->_class_h_write($self, $fl);
     }
 
     $self->{rules}->execute_rule ('file_body_after', 'file_body', $self);
@@ -352,8 +386,72 @@ sub type_write {
 }
 
 ######################################################################
+######################################################################
+######################################################################
 
-sub header_write {
+sub SystemC::Vregs::Type::_class_cpp_write {
+    my $self = shift;
+    my $pack = shift;
+    my $fl = shift;
+    my $clname = $self->{name} || "x";
+
+    my @dumps = ();
+
+    foreach my $bitref ($self->fields_sorted()) {
+	(my $lc_mnem = $bitref->{name}) =~ s/^(.)/lc $1/xe;
+	push @dumps, "\"$bitref->{name}=\"<<$lc_mnem()"
+    }
+
+    $fl->print("//${clname}\n",);
+    $fl->print("${clname}::DumpOstream ${clname}::dump(const char* prefix) const {\n",
+	       "    return DumpOstream(this,prefix);\n",
+	       "}\n");
+    $fl->print("ostream& operator<< (ostream& lhs, const ${clname}::DumpOstream rhs) {\n",
+	       "    return ((${clname}*)rhs.obj())->_dump(lhs,rhs.prefix());\n",
+	       "}\n");
+    $fl->print("ostream& ${clname}::_dump (ostream& lhs, const char* pf) const {\n",);
+    unshift @dumps, "(($self->{inherits}*)(this))->dump(pf)" if $self->{inherits};
+    if ($#dumps<0) {
+	$fl->print("    return lhs;\n");
+    } else {
+	$fl->print("    return lhs<<", join("\n\t<<pf<<",@dumps), ";\n",
+		   "}\n");
+    }
+
+    # For usage in GDB
+    $fl->print("void ${clname}::dumpCout () const { cout<<this->dump(\"\\n\\t\")<<endl; }\n",);
+    
+    $fl->print("\n");
+}
+
+sub class_cpp_write {
+    # Dump type definitions
+    my $self = shift;
+
+    my $fl = SystemC::Vregs::File->open(rules => $self->{rules},
+					language=>'C', @_);
+
+    $fl->print("\n");
+    $fl->print("#include \"$self->{name}_class.h\"\n");
+    $fl->print("\n");
+
+    foreach my $classref ($self->enums_sorted) {
+	$classref->enum_cpp_write ($self, $fl);
+    }
+
+    # Sorted first does base classes, then children
+    foreach my $typeref ($self->types_sorted) {
+	$typeref->_class_cpp_write($self, $fl);
+    }
+
+    $fl->close();
+}
+
+######################################################################
+######################################################################
+######################################################################
+
+sub defs_write {
     my $self = shift;
     # Dump general register definitions
 
@@ -370,6 +468,8 @@ sub header_write {
 		 ."     RAE_{regname}         Register ending address + 1\n"
 		 ."     RAC_{regname}         Number of entries in register\n"
 		 ."     RAM_{regname}         Register region address mask\n"
+		 ."     RRP_{regname}         Register RANGE spacing\n"
+		 ."     RRS_{regname}         Register RANGE size\n"
 		 ."     CB_{class}_{field}    Class field starting bit\n"
 		 ."     CE_{class}_{field}    Class field ending bit\n"
 		 ."     CR_{class}_{field}    Class field range\n"
@@ -405,7 +505,7 @@ sub header_write {
 
 ######################################################################
 
-sub parameter_write {
+sub param_write {
     my $self = shift;
     # Dump general register definitions
 
@@ -429,14 +529,21 @@ sub parameter_write {
 		."\n"
 		."//Verilint 175 off //WARNING: Unused parameter\n\n");
 
+    my $bit32 = $self->addr_const_vec(0xffffffff);
     foreach my $defref ($self->defines_sorted) {
 	my $define  = $defref->{name};
-	my $value   = $defref->{rst_val};
+	my $value   = $defref->{val};
 	my $comment = $defref->{desc};
-	$value = $fl->sprint_hex_value ($value,$defref->{bits}) if (defined $defref->{bits});
+	my $bits    = $defref->{bits};
+	    
 	if ($define =~ s/^RA_/RAP_/) {
+	    if (defined $bits) {
+		$bits = 32 if ($value->Lexicompare($bit32) <= 0);
+		$value = Bit::Vector->new_Hex($bits, $value->to_Hex);
+	    }
+	    my $rst_val = $fl->sprint_hex_value ($value->to_Hex,$bits);
 	    $fl->printf ("   parameter %-26s %12s\t// ${comment}\n",
-			 $define . " =", $value.";", 
+			 $define . " =", $rst_val.";", 
 			 "Address of Module Base");
 	}
     }
@@ -446,11 +553,12 @@ sub parameter_write {
 
 ######################################################################
 
-sub h_info_write {
+sub info_h_write {
     my $self = shift;
     # Dump headers for pli routines
 
     my $fl = SystemC::Vregs::File->open(language=>'C', @_);
+    $fl->include_guard();
     $fl->print ("\n"
 		."class VregsRegInfo;\n"
 		."\n");
@@ -463,7 +571,7 @@ sub h_info_write {
     $fl->close();
 }
 
-sub c_info_write {
+sub info_cpp_write {
     my $self = shift;
     # Dump c pli routines
 
@@ -530,7 +638,7 @@ sub c_info_write {
 	}
 	$fl->printf ("\t0x%08lx, 0x%08lx, 0x%08lx, 0x%08lx, 0",
 		     $rd_mask, $wr_mask, $rst_val, $rst_mask);
-	$fl->printf ("|RFDSIDE") if $rd_side;
+	$fl->printf ("|RFRDSIDE") if $rd_side;
 	$fl->printf ("|RFWRSIDE") if $wr_side;
 	$fl->printf (");\n",);
     }
@@ -601,25 +709,25 @@ are used to output various types of files.
 
 =over 4
 
-=item type_write
+=item class_h_write
 
 Creates a C++ header file with class definitions.
 
-=item header_write
+=item defs_write
 
 Creates a C++, Verilog, or Perl header file with defines.  The language
 parameter is used along with SystemC::Vregs::Language to produce the
 definitions in a language appropriate way.
 
-=item parameter_write
+=item param_write
 
 Creates a Verilog header file with parameters in place of defines.
 
-=item h_info_write
+=item info_h_write
 
 Creates a header file for use with c_info_write.
 
-=item c_info_write
+=item info_cpp_write
 
 Creates a C++ file with information on each register.  The information is
 then added to a map which may be used during runtime to decode register

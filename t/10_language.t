@@ -4,7 +4,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 5 }
+BEGIN { plan tests => 6 }
 
 use SystemC::Vregs::Language;
 ok(1);
@@ -20,6 +20,9 @@ test_common (filename=>"test_dir/foo.v",
 	     );
 test_common (filename=>"test_dir/foo.pl",
 	     language=>'Perl',
+	     );
+test_common (filename=>"test_dir/foo.tcl",
+	     language=>'Tcl',
 	     );
 
 sub test_common {

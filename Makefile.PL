@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.8 2001/06/27 16:10:19 wsnyder Exp $
+# $Id: Makefile.PL,v 1.10 2001/08/10 20:01:31 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 
 use ExtUtils::MakeMaker;
@@ -10,9 +10,6 @@ README: readme.texi
 	-rm \$@
 	makeinfo \$< --output \$@ --no-headers --no-validate
 
-maintainer-clean: distclean
-	-rm README Makefile
-
 dist: distcheck README
 
 install::
@@ -22,8 +19,20 @@ install-local: manifypods
 	cp -R blib/man* /usr/local/common/man
 	cp vregs-mode.el /usr/local/common/site-lisp
 
+clean::
+	-rm -rf test_dir
+
+## Maintainer use:
 tag:
 	cvs tag -F \$(DISTNAME)_\$(VERSION_SYM) .
+
+maintainer-clean: distclean
+	-rm README Makefile
+
+maintainer-dist: dist tag
+	cp \$(DISTVNAME).tar.gz \$(HOME)/src/kits
+	mv \$(DISTVNAME).tar.gz \$(HOME)/backpack
+
 ";
 }
 

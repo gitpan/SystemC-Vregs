@@ -1,4 +1,4 @@
-# $Id: Language.pm,v 1.14 2001/06/27 16:10:22 wsnyder Exp $
+# $Id: Language.pm,v 1.18 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -26,7 +26,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 ######################################################################
 #### Implementation
@@ -123,7 +123,8 @@ sub is_keyword {
     return (SystemC::Vregs::Language::C::is_keyword($sym) && "C"
 	    || SystemC::Vregs::Language::Perl::is_keyword($sym) && "Perl"
 	    || SystemC::Vregs::Language::Verilog::is_keyword($sym) && "Verilog"
-	    || SystemC::Vregs::Language::Assembler::is_keyword($sym) && "Assembler"); 
+	    || SystemC::Vregs::Language::Assembler::is_keyword($sym) && "Assembler"
+	    || SystemC::Vregs::Language::Tcl::is_keyword($sym) && "Tcl"); 
 }
 
 ######################################################################
@@ -221,13 +222,16 @@ use vars qw(@ISA %Keywords);
 #Made by super::New: @ISA = qw(SystemC::Vregs::Language);
 use strict;
 
+#Includes some stdlib functions at the end.
 foreach my $kwd (qw( asm auto break case catch cdecl char class const
 		     continue default delete do double else enum extern far
 		     float for friend goto huge if inline int interrupt
 		     long near new operator pascal private protected public
 		     register short signed sizeof static struct switch
 		     template this throw try typedef union unsigned virtual
-		     void volatile while))
+		     void volatile while
+
+		     abort))
 { $Keywords{$kwd} = 1; }
 
 sub is_keyword {
@@ -349,6 +353,34 @@ sub comment {
 }
 
 ######################################################################
+######################################################################
+######################################################################
+#### Tcl
+
+package SystemC::Vregs::Language::Tcl;
+use vars qw(@ISA);
+@ISA = qw(SystemC::Vregs::Language);
+use strict;
+
+sub is_keyword {
+    my $sym = shift;
+    return undef;
+}
+
+sub comment_start_char {
+    return "\#";
+}
+sub comment_end_char {
+    return "";
+}
+sub comment {
+    my $self = shift;
+    my $strg = join ('', @_);
+    $strg =~ s!\n(.)!\n;$1!g;
+    $self->print ("\#".$strg);
+}
+
+######################################################################
 package SystemC::Vregs::Language;
 #### Package return
 1;
@@ -395,7 +427,7 @@ from the present file contents.
 
 =item language
 
-The language for the file.  May be C, Perl, Assembler, or Verilog.  A new
+The language for the file.  May be C, Perl, Assembler, Tcl, or Verilog.  A new
 language Foo may be defined by making a SystemC::Vregs::Language::Foo class
 which is an @ISA of SystemC::Vregs::Language.
 

@@ -3,7 +3,6 @@ MANIFEST
 Makefile.PL
 NEWS
 README
-Vregs.bs
 Vregs.pm
 Vregs/Bit.pm
 Vregs/Define.pm
@@ -16,6 +15,7 @@ Vregs/Rules.pm
 Vregs/Subclass.pm
 Vregs/TableExtract.pm
 Vregs/Type.pm
+include/VregsClass.h
 include/VregsRegInfo.cpp
 include/VregsRegInfo.h
 readme.texi

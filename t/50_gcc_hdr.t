@@ -12,7 +12,7 @@ run_system ("cp t/50_gcc_hdr.cpp test_dir/50_gcc_hdr.cpp");
 ok(1);
 
 print "Compiling\n";
-run_system ("cd test_dir && ${GCC} -I. 50_gcc_hdr.cpp -o 50_gcc_hdr");
+run_system ("cd test_dir && ${GCC} 50_gcc_hdr.cpp -o 50_gcc_hdr");
 ok(1);
 
 print "Running\n";

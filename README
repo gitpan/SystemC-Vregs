@@ -26,8 +26,9 @@ then extracts header files for C++, Verilog, and Perl.
 support additional output languages and output files.  You can download
 Vregs from the link off of http://www.veripool.com/vregs.html
 
-   Vregs does not require SystemC or C++ to be useful, though the class
-functions are only useful in object oriented languages like C++.
+   Vregs does not require SystemC or C++ to be useful, though some of
+the generated header files are only useful in object oriented languages
+like C++.
 
 Description
 ===========
@@ -46,9 +47,9 @@ to exit the HTML version immediately.
 
    You then run Vregs, which reads the HTML code and writes out a .vspec
 file, which contains a summary of the extracted information.  This file
-can be examined for errors, or edited standalone.  Vregs is then run a
-second time to read the .vspec file and produce headers with #defines
-for all of the constants and magic numbers in the spec.
+can be examined for errors, or edited standalone.  Vregs also produces
+header fields with #defines for all of the constants and magic numbers
+in the spec.
 
    Vregs can be customized to change the code it creates using
 templates; see 'man vregs' for details.
@@ -73,13 +74,15 @@ Supported Systems
 Installation
 ============
 
-  1. `cd' to the directory containing this INSTALL notice.
+  1. `cd' to the directory containing this README notice.
 
   2. Type `perl Makefile.PL' to configure Vregs for your system.
 
   3. Type `make' to compile.
 
-  4. Type `make test' to check the compilation.
+  4. Type `make test' to check the compilation.  Note that
+     vregs_spec.doc with this distribution is converted into the files
+     in the test_dir directory.
 
   5. Type `make install' to install the programs and any data files and
      documentation.

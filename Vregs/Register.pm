@@ -1,4 +1,4 @@
-# $Id: Register.pm,v 1.22 2001/06/27 16:10:22 wsnyder Exp $
+# $Id: Register.pm,v 1.25 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,18 +28,55 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 # mnem
 # addr
 
 sub new {
-    my $class = shift;
+    my $class = shift;  $class = ref $class if ref $class;
     my $self = $class->SUPER::new(@_);
     $self->{pack} or die;  # Should have been passed as parameter
     $self->{pack}{regs}{$self->{name}} = $self;
     return $self;
 }
+
+sub delete {
+    my $self = shift;
+    $self->{pack} or die;
+    delete $self->{pack}{regs}{$self->{name}};
+}
+
+######################################################################
+
+sub dewildcard {
+    my $self = shift;
+    #print ::Dumper($self);
+    return if (($self->{name}||"") !~ /\*/);
+    my $inh = $self->{typeref}->inherits();
+    print "Reg Wildcard $self->{name} $inh\n" if $SystemC::Vregs::Debug;
+    (my $regexp = $inh) =~ s/[*]/\.\*/g;
+    my $gotone;
+    foreach my $matchref ($self->{pack}->find_reg_regexp("^$regexp")) {
+	$gotone = 1;
+	my $newname = SystemC::Vregs::three_way_replace
+	    ($self->{name}, $inh, $matchref->{name});
+	my $typeref = $self->{pack}->find_type($newname) or die;
+	my $addr = $self->{addrtext} ."|". $matchref->{addrtext};
+	print "  Wildcarded $matchref->{name} to $newname\n" if $SystemC::Vregs::Debug;
+	$self->new (name=>$newname,
+		    pack=>$self->{pack},
+		    addrtext => $addr,
+		    spacingtext => $matchref->{spacingtext},
+		    range =>  $matchref->{range},
+		    typeref => $typeref,
+		    );
+    }
+    $gotone or $self->warn ("No types matching wildcarded type: ",$self->inherits(),"\n");
+    $self->delete();
+}
+
+######################################################################
 
 sub check_name {
     my $regref = shift;
@@ -54,6 +91,24 @@ sub check_addrtext {
     my $regref = shift;
     my $addrtext = $regref->{addrtext};
 
+    my $inher_min;
+    if ($addrtext =~ s/\s*[|]\s*\b(R_[0-9a-zA-Z_]+)\b//) {
+	my $orin_name = $1;
+	my $orin_ref = $regref->{pack}->find_reg($orin_name);
+	if (!$orin_ref) {
+	    $regref->warn ("Address contains | of unknown register: $addrtext\n");
+	} else {
+	    my $text = $orin_ref->{addrtext};
+	    $inher_min = $regref->{pack}->addr_text_to_vec($text);
+	}
+    }
+    if ($addrtext =~ s/^.*(0x[0-9a-f_]+)\s*-\s*(0x[0-9a-f_]+)\s*[|]\s*//i) {
+	my $mintext = $1;  my $maxtext = $2;
+	$inher_min = $regref->{pack}->addr_text_to_vec($mintext);
+	$regref->{addr_end_wildcard} = $regref->{pack}->addr_text_to_vec($maxtext);
+    }
+    ($addrtext !~ /[|]/) or $regref->warn ("Address cannot contain |'s, or needs complete range: ", $addrtext,"\n");
+
     my $endtext = "";
     if ($addrtext =~ s/^(0x[0-9a-f_]+)\s*-\s*(0x[0-9a-f_]+)$/$1/i) {
 	$endtext = $2;
@@ -64,6 +119,10 @@ sub check_addrtext {
 	or $regref->warn ("Strange address format '$addrtext'\n");
 
     $regref->{addr} = $regref->{pack}->addr_text_to_vec($addrtext);
+    if ($inher_min) {
+	$regref->{addr}->add(      $regref->{addr},  $inher_min, 0);
+	$regref->{addr_end}->add(  $regref->{addr},  $inher_min, 0) if $regref->{addr_end};
+    }
 }
 
 sub check_range_spacing {
@@ -109,6 +168,7 @@ sub check {
     $regref->check_range_spacing();
     # Computes after all checks
     $regref->computes();
+    $regref->check_end();
 }
 
 sub computes {
@@ -122,6 +182,14 @@ sub computes {
 	$inc->add($inc, $regref->{pack}->addr_const_vec(4), 0);
 	$inc->add($regref->{addr}, $inc, 0);
 	$regref->{addr_end} = $inc;
+    }
+}
+
+sub check_end {
+    my $regref = shift;
+    if ($regref->{addr_end_wildcard}) {
+	($regref->{addr_end}->Lexicompare($regref->{addr_end_wildcard}) < 0)
+	    or $regref->warn ("Register exceeds upper boundary in wildcarded declaration: ", $regref->{addr_end}," ", $regref->{addr_end_wildcard}, "\n");
     }
 }
 

@@ -1,4 +1,4 @@
-# $Id: Rules.pm,v 1.6 2001/06/27 16:10:22 wsnyder Exp $
+# $Id: Rules.pm,v 1.8 2001/09/04 02:06:21 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -25,7 +25,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '0.1';
+$VERSION = '1.000';
 
 ######################################################################
 # Default rules
@@ -36,6 +36,7 @@ sub _default_rules {
 	 "#include <iostream>\n"
 	 ."#include <netinet/in.h>  /*ntoh*/\n"
 	 ."#include <stdint.h>      /*uint32_t*/\n"
+	 ."#include <VregsClass.h>\n"
 	 );
 }
 
