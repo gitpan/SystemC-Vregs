@@ -1,4 +1,4 @@
-# $Revision: #114 $$Date: 2004/07/22 $$Author: ws150726 $
+# $Revision: #118 $$Date: 2004/10/26 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw($Debug @ISA $VERSION
 	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.245';
+$VERSION = '1.246';
 
 ######################################################################
 #### Constants
@@ -70,6 +70,8 @@ sub new {
 		@_};
     bless $self, $class;
     $self->{rules} = new SystemC::Vregs::Rules (package => $self, );
+    # Calculations
+    $self->{data_bytes} = $self->{data_bits}/8;
     return $self;
 }
 
@@ -393,7 +395,7 @@ sub new_register {
 
 	my $addr = $flagref->{Address};
 	my $spacingtext = 0;
-	$spacingtext = 4 if $range;
+	$spacingtext = $self->{data_bytes} if $range;
 	if (!$addr) {
 	    $self->warn ($flagref, "No 'Address' Heading Found\n");
 	    return;
@@ -799,7 +801,7 @@ sub SystemC::Vregs::Type::_create_defines {
     new_push SystemC::Vregs::Define::Value
 	(pack => $typeref->{pack},
 	 name => "CSIZE_".$nor_mnem,
-	 rst_val  => $typeref->{words}*4,
+	 rst_val  => $typeref->{words}*$typeref->{pack}{data_bytes},
 	 is_verilog => 1,	# In C++ use Class::SIZE
 	 is_perl => 1,
 	 desc => "Class Size", );
@@ -955,7 +957,7 @@ sub create_defines {
     return if ($skip_if_done && $pack->{defines_computed});
     $pack->{defines_computed} = 1;
 
-    my $bit4 = $pack->addr_const_vec(0x4);
+    my $bit4 = $pack->addr_const_vec($pack->{data_bytes});
     my $bit32 = $pack->addr_const_vec(0xffffffff);
 
     foreach my $regref ($pack->regs_sorted()) {
@@ -1350,26 +1352,35 @@ Returns list of SystemC::Vregs::Type objects.
 
 =back
 
-=head1 SEE ALSO
+=head1 DISTRIBUTION
 
-C<vreg>
-C<SystemC::Vregs::Rules>
-C<SystemC::Vregs::Outputs>
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Low level objects:
-
-C<SystemC::Vregs::Bit>
-C<SystemC::Vregs::Define>
-C<SystemC::Vregs::Enum>
-C<SystemC::Vregs::Language>
-C<SystemC::Vregs::Number>
-C<SystemC::Vregs::Register>
-C<SystemC::Vregs::Subclass>
-C<SystemC::Vregs::TableExtract>
-C<SystemC::Vregs::Type>
+Copyright 2001-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<vreg>,
+L<SystemC::Vregs::Rules>
+
+Low level objects:
+
+L<SystemC::Vregs::Bit>,
+L<SystemC::Vregs::Define>,
+L<SystemC::Vregs::Enum>,
+L<SystemC::Vregs::Language>,
+L<SystemC::Vregs::Number>,
+L<SystemC::Vregs::OutputNamed>
+L<SystemC::Vregs::Outputs>
+L<SystemC::Vregs::Register>,
+L<SystemC::Vregs::Subclass>,
+L<SystemC::Vregs::TableExtract>,
+L<SystemC::Vregs::Type>
 
 =cut

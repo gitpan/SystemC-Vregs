@@ -1,4 +1,4 @@
-# $Revision: #41 $$Date: 2004/07/22 $$Author: ws150726 $
+# $Revision: #44 $$Date: 2004/10/26 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.245';
+$VERSION = '1.246';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -252,12 +252,20 @@ callbacks as Vregs sections are encountered.
 
 It is designed to be used by SystemC::Vregs only.
 
-=head1 SEE ALSO
+=head1 DISTRIBUTION
 
-HTML::TableExtract
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 2001-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<HTML::TableExtract>
 
 =cut

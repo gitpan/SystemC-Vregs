@@ -1,4 +1,4 @@
-# $Revision: #41 $$Date: 2004/07/22 $$Author: ws150726 $
+# $Revision: #44 $$Date: 2004/10/26 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -19,7 +19,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.245';
+$VERSION = '1.246';
 
 ######################################################################
 #### Implementation
@@ -528,12 +528,20 @@ Output printf text.
 
 =back
 
-=head1 SEE ALSO
+=head1 DISTRIBUTION
 
-C<IO::File>
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 2001-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<SystemC::Vregs>, L<IO::File>
 
 =cut

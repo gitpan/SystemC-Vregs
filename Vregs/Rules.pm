@@ -1,4 +1,4 @@
-# $Revision: #34 $$Date: 2004/07/22 $$Author: ws150726 $
+# $Revision: #37 $$Date: 2004/10/26 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.245';
+$VERSION = '1.246';
 
 ######################################################################
 # Default rules
@@ -332,12 +332,20 @@ Formatted print to the file.
 
 =back
 
-=head1 SEE ALSO
+=head1 DISTRIBUTION
 
-C<vreg>, C<SystemC::Vregs>
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 2001-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<vreg>, L<SystemC::Vregs>
 
 =cut

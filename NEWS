@@ -5,6 +5,10 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in Vregs 1.246 10/23/2004
+
+***	Support Star Office documents.
+
 * Changes in Vregs 1.245 7/22/2004
 
 ***	Add operator!= to enum classes for GCC 3.0
@@ -156,7 +160,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Revision: #52 $$Date: 2004/07/22 $$Author: ws150726 $
+$Revision: #53 $$Date: 2004/10/26 $$Author: ws150726 $
 ----------------------------------------------------------------------
 Copyright information:
 
