@@ -1,13 +1,11 @@
-// $Id: VregsRegInfo.cpp,v 1.8 2001/10/23 19:53:44 wsnyder Exp $ -*- C++ -*-
+// $Revision: #2 $$Date: 2002/10/04 $$Author: lab $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of either the GNU General Public License or the
-// Perl Artistic License, with the exception that it cannot be placed
-// on a CD-ROM or similar media for commercial distribution without the
-// prior approval of the author.
+// Perl Artistic License.
 // 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +25,7 @@
 //======================================================================
 // VregsRegEntry
 
-void VregsRegEntry::dump (void) const
+void VregsRegEntry::dump () const
 {
     COUT << "  REnt: Address "
 	 << hex << address() << " - " << (address() + size() - 1)
@@ -56,13 +54,13 @@ void VregsRegInfo::add_register (
 	// Single register
 	add_register (new VregsRegEntry (addr, size, name, 0, 0,
 					 rdMask,wrMask,rstVal,rstMask,
-					 flags | VregsRegEntry::REGFL_TEST));
+					 flags));
     } else if (spacing == size) {
 	// The registers abut one another, so just add them to the range.
 	add_register (new VregsRegEntry (addr, (rangeHigh-rangeLow)*size,
 					 name, spacing, rangeLow,
 					 rdMask,wrMask,rstVal,rstMask,
-					 flags | VregsRegEntry::REGFL_TEST));
+					 flags));
     } else {
 	for (uint32_t ent=0; ent < (rangeHigh-rangeLow); ent++) {
 	    // Mark the register for test if it's a small region,
@@ -73,12 +71,12 @@ void VregsRegInfo::add_register (
 	    add_register (new VregsRegEntry (addr + ent*spacing, size,
 					     name, size, ent+rangeLow,
 					     rdMask,wrMask,rstVal,rstMask,
-					     flags | (test?VregsRegEntry::REGFL_TEST:0)));
+					     flags | (test?0:VregsRegEntry::REGFL_NOBIGTEST)));
 	}
     }
 }
 
-void VregsRegInfo::dump (void)
+void VregsRegInfo::dump()
 {
     COUT << "VregsRegInfo dump\n";
     
@@ -88,8 +86,9 @@ void VregsRegInfo::dump (void)
     }
 }
 
-VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr)
+VregsRegEntry* VregsRegInfo::find_by_next_addr (address_t addr)
 {
+    // Return register at given address, or the next register at slightly greater address
     ByAddrMap::iterator iter = m_byAddr.lower_bound(addr);
     VregsRegEntry* re1p = iter->second;
     if (!re1p) {
@@ -100,10 +99,24 @@ VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr)
     if (!re1p) return NULL;
     if (iter != m_byAddr.begin() && re1p->address() > addr) --iter;
     VregsRegEntry *rep = iter->second;
-    if ((addr < rep->address()) || (addr >= rep->addressEnd() )) {
-	return NULL;
+    if (addr >= rep->address() && addr < rep->addressEnd() ) {
+	return rep;
     }
-    return rep;
+    iter++;
+    if (iter != m_byAddr.end()) {
+	return iter->second;
+    }
+    return NULL;
+}
+
+VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr)
+{
+    // Return register at given address, or NULL
+    VregsRegEntry* rep = find_by_next_addr(addr);
+    if (addr >= rep->address() && addr < rep->addressEnd() ) {
+	return rep;
+    }
+    return NULL;
 }
 
 const char* VregsRegInfo::addr_name (

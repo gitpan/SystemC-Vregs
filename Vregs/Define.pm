@@ -1,4 +1,4 @@
-# $Id: Define.pm,v 1.9 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +26,19 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.210';
+$VERSION = '1.240';
+
+#Fields:
+#	{name}			Field name (Subclass)
+#	{at}			File/line number (Subclass)
+#	{pack}			Parent SystemC::Vregs ref
+#	{class}			Parent SystemC::Vregs::Type ref
+#	{bits}			Width or undef for unsized
+#	{desc}			Description
+#	{rst}			Reset value or 'X'
+#	{rst_val}		{rst} as a hex value	
+#	{sort_key}		Order to output into file
+#	{is_manual}		Created by user (vs from program)
 
 ######################################################################
 ######################################################################
@@ -40,8 +50,6 @@ package SystemC::Vregs::Define::Value;
 use strict;
 use vars qw (@ISA);
 @ISA = qw (SystemC::Vregs::Subclass);
-
-# Fields: 	name, at, pack, desc, rst, sort_key, is_manual
 
 sub new {
     my $class = shift;
@@ -65,6 +73,7 @@ sub new_push {
 sub clean_desc {
     my $self = shift;
     $self->{desc} = $self->clean_sentence($self->{desc});
+    ($self->{desc}) or $self->info("(Soon warn) Empty description, please document it.\n");
 }
 
 sub clean_rst {
@@ -89,10 +98,9 @@ sub clean_rst {
 sub check_name {
     my $self = shift;
     my $field = $self->{name};
-    my $class = $self->{class};
     if ($self->{is_manual}
-	&& $field !~ /^[A-Z][A-Z0-9_]+$/) {
-	return $self->warn ("Define field names must match [capital][capitalnumerics_]: $field'\n");
+	&& $field !~ /^[A-Z][A-Z0-9_]*$/) {
+	return $self->warn ("Define field names must match [capital][capitalnumerics_]: $field\n");
     }
 }
 
@@ -101,6 +109,17 @@ sub check {
     $self->clean_desc();
     $self->clean_rst();
     $self->check_name();
+}
+
+sub dump {
+    my $self = shift;
+    my $fh = shift || \*STDOUT;
+    my $indent = shift||"  ";
+    print $fh +($indent,"Def: ",$self->{name},
+		"  width:",$self->{bits}||'',
+		"  rst:",$self->{rst}||'', 
+		"  rst_val:",$self->{rst_val}||'',
+		"\n");
 }
 
 ######################################################################

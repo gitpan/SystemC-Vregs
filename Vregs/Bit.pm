@@ -1,4 +1,4 @@
-# $Id: Bit.pm,v 1.11 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,34 +25,55 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.210';
+$VERSION = '1.240';
 
-#desc
-#type
-#bits
-#bitlist
-#access
-#rst
-#typeref
-#cast_needed
+#Fields:
+#	{name}			Field name (Subclass)
+#	{at}			File/line number (Subclass)
+#	{pack}			Parent SystemC::Vregs ref
+#	{typeref}		Parent SystemC::Vregs::Type ref
+#	{desc}			Description
+#	{bits}			Textlist of bits
+#	{bitlist}[]		Array of each bit being set		
+#	{access}		RW/R/W etc
+#	{overlaps}		What fields can overlap
+#	{type}			C++ type
+#	{rst}			Reset value or 'x'
+#	{rst_val}		{rst} as hex
+# After check
+#	{cast_needed}		True if C++ needs a cast to convert
+#	{bitarray}[bit]{...}	Per bit info		
+
+######################################################################
 
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new(overlaps=>'',
 				  @_);
+    ($self->{typeref}) or die "%Error: No typeref,";
+    # Enter each bit into the table
+    $self->{typeref}{fields}{ $self->{name} } = $self;
     return $self;
 }
+
+sub DESTROY {
+    my $self = shift;
+    if ($self->{typeref}) {
+	delete $self->{typeref}{fields}{$self->{name}};
+    }
+}
+sub delete { $_[0]->DESTROY(); }
 
 sub is_overlap_ok {
     my $self = shift;
     my $other = shift;
     # Return true if these two bitrefs can overlap
     return 1 if !$self || !$other;
-    return 1 if $self->{name} eq $other->{name};
-    return 1 if $self->{overlaps} eq "allowed";
-    return 1 if $other->{overlaps} eq "allowed";
-    return 1 if $self->{overlaps} eq $other->{name};
-    return 1 if $other->{overlaps} eq $self->{name};
+    return 1 if lc $self->{name} eq lc $other->{name};
+    return 1 if lc $self->{overlaps} eq "allowed";
+    return 1 if lc $other->{overlaps} eq "allowed";
+    return 1 if lc $self->{overlaps} eq lc $other->{name};
+    return 1 if lc $other->{overlaps} eq lc $self->{name};
     return 0;
 }
 
@@ -62,6 +81,7 @@ sub check_desc {
     my $self = shift;
     $self->{overlaps} = $1 if ($self->{desc} =~ /\boverlaps\s+([a-zA-Z0-9_]+)/i);
     $self->{desc} = $self->clean_sentence($self->{desc});
+    ($self->{desc}) or $self->info("(Soon warn) Empty description, please document it.\n");
 }
 
 sub check_name {
@@ -113,6 +133,7 @@ sub check_access {
     } elsif ($field eq "W" || $field eq "WO") {
 	$field = "W";	# Write only
     }
+    $field =~ s/V//g;	# Volitile - for testing access only -- currently ignored
     $field = $field . $l;
 
     if ($field !~ /$SystemC::Vregs::Bit_Access_Regexp/o) {
@@ -142,6 +163,10 @@ sub check_rst {
     } elsif ($field =~ /^tbd$/i) {
 	print "-Info: $typeref->{name}_$bitref->{bitmnem} TBD reset field value, assuming not reset.\n";
 	$field = "X";
+    } elsif ($field eq 'true') {
+	$field = "1";
+    } elsif ($field eq 'false') {
+	$field = "0";
     } elsif ($field =~ /^[A-Z0-9_]+$/) {
 	if (!$bitref->{type}) {
 	    $bitref->warn ("Reset mnemonic, but no type: '$field'\n");
@@ -241,6 +266,7 @@ sub computes_type {
 
     # Access fields that affect the register itself
     $typeref->{lastflg} = 1 if ($access =~ /L/);
+    $typeref->{rd} = 1     if ($access =~ /R/);
     $typeref->{rdside} = 1 if ($access =~ /R[^W]*S/);
     $typeref->{wrside} = 1 if ($access =~ /W[^R]*S/);
     $typeref->{wrside} = 1 if ($access =~ /W1C/);
@@ -264,10 +290,16 @@ sub computes_type {
 	    $rstvec = undef;
 	} elsif ($rst eq "0") {
 	    $rstvec = 0;
-	} elsif ($rst =~ /^0?x?[0-9a-f]+$/i) {
+	    $bitref->{rst_val} = 0;
+	} elsif ($rst =~ /^0x[0-9a-f]+$/i) {
 	    my $value = hex $rst;
+	    $bitref->{rst_val} = $value;
 	    $rstvec = (($value & (1<<($bitsleft))) ? 1:0);
-	} elsif ($rst =~ /^[A-Z0-9_]+$/) {
+	} elsif ($rst =~ /^[0-9_]+$/i) {
+	    (my $value = $rst) =~ s/_//g;
+	    $bitref->{rst_val} = $value;
+	    $rstvec = (($value & (1<<($bitsleft))) ? 1:0);
+	} elsif ($rst =~ /^[A-Z][A-Z0-9_]*$/) {
 	    $rstvec = 0;
 	    my $mnemref = $bitref->{pack}->find_enum($bitref->{type});
 	    if ($mnemref) {
@@ -275,6 +307,7 @@ sub computes_type {
 		if (!$vref) {
 		    $bitref->warn("Field '$rst' not found as member of enum '$bitref->{type}'\n");
 		}
+		$bitref->{rst_val} = $vref->{rst_val};
 		$rstvec = 1 if ($vref->{rst_val} & (1<<$bitsleft));
 	    }
 	} else {
@@ -304,6 +337,17 @@ sub check {
     # Computes rely on check() being correct
     $self->compute_type();
     $self->computes();
+}
+
+sub dump {
+    my $self = shift;
+    my $fh = shift || \*STDOUT;
+    my $indent = shift||"  ";
+    print $fh +($indent,"Bit: ",$self->{name},
+		"  bits:",$self->{bits}||'',
+		"  rst:",$self->{rst}||'', 
+		"  rst_val:",$self->{rst_val}||'',
+		"\n");
 }
 
 ######################################################################

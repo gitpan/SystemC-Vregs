@@ -9,6 +9,7 @@ Vregs/Define.pm
 Vregs/Enum.pm
 Vregs/Language.pm
 Vregs/Number.pm
+Vregs/OutputNamed.pm
 Vregs/Outputs.pm
 Vregs/Register.pm
 Vregs/Rules.pm
@@ -29,7 +30,7 @@ t/50_gcc_hdr.t
 t/55_gcc_info.cpp
 t/55_gcc_info.t
 t/test_utils.pl
-vregs
+vreg
 vregs-mode.el
 vregs_spec.doc
 vregs_spec.htm

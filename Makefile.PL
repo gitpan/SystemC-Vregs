@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.10 2001/08/10 20:01:31 wsnyder Exp $
+# $Revision: #1 $$Date: 2002/09/16 $$Author: lab $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 
 use ExtUtils::MakeMaker;
@@ -24,7 +24,10 @@ clean::
 
 ## Maintainer use:
 tag:
-	cvs tag -F \$(DISTNAME)_\$(VERSION_SYM) .
+	p4 label -d     \$(DISTNAME)_\$(VERSION_SYM) || true
+	p4 label        \$(DISTNAME)_\$(VERSION_SYM)
+	p4 labelsync -l \$(DISTNAME)_\$(VERSION_SYM) ...
+#	cvs tag -F \$(DISTNAME)_\$(VERSION_SYM) .
 
 maintainer-clean: distclean
 	-rm README Makefile
@@ -41,7 +44,7 @@ WriteMakefile(
 	      AUTHOR	=> 'Wilson Snyder <wsnyder@wsnyder.org>',
 	      ABSTRACT  => 'Extract C++/Verilog Enum and Classes from html documents',
 	      VERSION_FROM  => 'Vregs.pm',
-	      EXE_FILES => [qw( vregs )],
+	      EXE_FILES => [qw( vreg )],
 	      PREREQ_PM => {'HTML::TableExtract' => 0,
 			    'Bit::Vector' => 0,
 			    'Verilog::Language' => 1.12,

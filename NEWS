@@ -1,11 +1,49 @@
 SystemC::Vregs NEWS --  history of user-visible changes.
-Copyright (C) 2001 Wilson Snyder.
+Copyright (C) 2002 Wilson Snyder.
 
 The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-* Changes in Vregs 1.210 3/11/2002
+* Changes in Vregs 1.240 12/13/2002
+
+**	Added subclassing of enumerations.  
+	A enumeration can now reference another enumeration, and all values under the
+	lower enumeration will be included in the upper enumeration.
+
+**	Added a castHBytep() or castNBytep() method to each structure.
+	For safety, use it in place of reinterpret_cast<uint8_t*>(&struct)
+	to avoid endian-ness mistakes.
+
+**	Added support for registers wider then 32 bits.
+
+**	Renamed "vregs" executable to "vreg" to avoid Win2K conflict
+	with uppercase directory by the same name.
+
+**	Allow -descfunc attribute on enums to create a function to get description name
+
+***	Added error when a struct of one endian-ness inherits a struct of
+	opposite endian-ness.  Use "-[no]netorder" on derived type to fix it.
+
+****	Fixed propagation of attributes across wildcarded classes.
+
+****	Fixed decimal reset values in VregsRegInfo classes.
+
+* Changes in Vregs 1.230 8/8/2002
+
+**	Added --noregtest attribute to registers, for suppressing testing.
+
+***	Added _hash.pm output file, for easy conversion of enum
+	values to/from text descriptions.
+
+***	Make m_w data storage protected.  Use w() accessors instead.
+
+****	Warn about empty bit descriptions.
+
+****	Added dump() methods for internal debugging.
+
+
+* Changes in Vregs 1.240 3/11/2002
 
 ***	Allow duplicate enumeration values.  The ascii() method will
 	print the first sorted enumeration text.
@@ -78,7 +116,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.19 2002/03/11 15:53:27 wsnyder Exp $
+$Revision: #6 $$Date: 2002/12/13 $$Author: wsnyder $
 ----------------------------------------------------------------------
 Copyright information:
 

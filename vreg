@@ -1,14 +1,12 @@
 #!/usr/local/bin/perl -w
-#$Id: vregs,v 1.41 2001/09/18 14:21:35 wsnyder Exp $
+#$Revision: #1 $$Date: 2002/09/16 $$Author: lab $
 ######################################################################
 #
 # This program is Copyright 2001 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,6 +31,7 @@ use lib "$RealBin/blib/lib";
 use lib "$RealBin/blib/arch";
 use SystemC::Vregs;
 use SystemC::Vregs::Outputs;
+use SystemC::Vregs::OutputNamed;
 use SystemC::Vregs::TableExtract;
 
 use strict;
@@ -58,8 +57,11 @@ my $opt_class_cpp = 1;
 my $opt_defs_h = 1;
 my $opt_defs_pm = 1;
 my $opt_defs_v = 1;
+my $opt_named_cpp = 1;
 my $opt_info_cpp = 1;
 my $opt_param_v = 1;
+my $opt_hash_pm = 1;
+my $opt_comments = 1;
 my $opt_rules;
 my $opt_rebuild_comment = "$0 @orig_argv";
 our @opt_library_vregs = ();
@@ -72,6 +74,7 @@ if (! GetOptions (
 		  "library=s"	=> sub { shift; push @opt_library_vregs, shift; },
 		  "output=s"	=> \$opt_output,
 		  "package=s"	=> \$opt_package,
+		  "comments!"	=> \$opt_comments,
 		  "rebuild-comment=s"	=> \$opt_rebuild_comment,
 		  "rm"		=> \$opt_rm,
 		  "rules=s"	=> \$opt_rules,
@@ -81,7 +84,9 @@ if (! GetOptions (
 		  "defs_h!"	=> \$opt_defs_h,
 		  "defs_pm!"	=> \$opt_defs_pm,
 		  "defs_v!"	=> \$opt_defs_v,
+		  "named_cpp!"	=> \$opt_named_cpp,
 		  "info_cpp!"	=> \$opt_info_cpp,
+		  "hash_pm!"	=> \$opt_hash_pm,
 		  "param_v!"	=> \$opt_param_v,
 		  "files!"	=> sub { shift; my $ena = shift;
 					 $opt_class_h = $ena;
@@ -89,6 +94,8 @@ if (! GetOptions (
 					 $opt_defs_h = $ena;
 					 $opt_defs_pm = $ena;
 					 $opt_defs_v = $ena;
+					 $opt_hash_pm = $ena;
+					 $opt_named_cpp = $ena;
 					 $opt_info_cpp = $ena;
 					 $opt_param_v = $ena;
 				     },
@@ -100,11 +107,13 @@ $opt_output.="/" if ($opt_output ne "" && $opt_output !~ m!/$!);
 $opt_package or die "%Error: No --package specified\n";
 
 my @vr_params = (address_bits=>40,
+		 comments=>$opt_comments,
  		 rebuild_comment=>$opt_rebuild_comment,);
 
 my @opt_library_vr;
 foreach my $vlib (@opt_library_vregs) {
-    my $vr = new SystemC::Vregs (@vr_params);
+    my $vr = new SystemC::Vregs (@vr_params,
+				 libraries=>\@opt_library_vr,);
     print "Reading library $vlib.vregs\n" if $Debug;
     $vr->regs_read ("${opt_output}${vlib}.vregs");
     $vr->check();
@@ -157,12 +166,19 @@ if ($opt_headers) {
     if ($opt_defs_pm) {
 	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_defs.pm", language=>'Perl',);
     }
+    if ($opt_hash_pm) {
+	$v2->hash_write (%p, filename=>"${opt_output}${opt_package}_hash.pm", language=>'Perl',);
+    }
     if ($opt_param_v) {
 	$v2->param_write (%p, filename=>"${opt_output}${opt_package}_param.v", language=>'Verilog',);
     }
     if ($opt_info_cpp) {
 	$v2->info_h_write (%p, filename=>"${opt_output}${opt_package}_info.h");
 	$v2->info_cpp_write (%p, filename=>"${opt_output}${opt_package}_info.cpp");
+    }
+    if ($opt_named_cpp) {
+	$v2->named_h_write (%p, filename=>"${opt_output}${opt_package}_named.h");
+	$v2->named_cpp_write (%p, filename=>"${opt_output}${opt_package}_named.cpp");
     }
     if ($opt_class_h) {
 	$v2->class_h_write (%p, filename=>"${opt_output}${opt_package}_class.h");
@@ -175,7 +191,7 @@ if ($opt_headers) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Id: vregs,v 1.41 2001/09/18 14:21:35 wsnyder Exp $ ', "\n";
+    print '$Revision: #1 $$Date: 2002/09/16 $$Author: lab $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);
@@ -200,21 +216,22 @@ __END__
 
 =head1 NAME
 
-vregs - Register configuration utility
+vreg - Register configuration utility
 
 =head1 SYNOPSIS
 
-C<vregs> ...
+C<vreg> --help
+C<vreg> ...
 
 =head1 DESCRIPTION
 
-Vregs has two major uses.  The first vregs converts a HTML document (saved
-via Word or Framemaker) to a vregs file.  The second generates standard
+Vreg has two major uses.  The first vreg converts a HTML document (saved
+via Word or Framemaker) to a vreg file.  The second generates standard
 headers from the .html or from a .vregs file.
 
 =head1 HTML CONVERSION
 
-When the --html switch is used, vregs generates a .vregs file from a .html
+When the --html switch is used, vreg generates a .vregs file from a .html
 file.  The file format is described in vregs_spec.doc or vregs_spec.htm.
 
 When saving HTML, be sure to change both the filename to .htm and the
@@ -222,7 +239,7 @@ file format to HTML.  If inside Microsoft Word, exit.
      
 =head1 HEADER CREATION
 
-When the --header switch is used, vregs reads a .vregs file and creates
+When the --header switch is used, vreg reads a .vregs file and creates
 definition and class headers in the --output directory.
 
 Attribute heading
@@ -238,7 +255,7 @@ Displays this message and program version and exits.
 =item --headers
 
 Creates the header files and other files after the hardware.vregs
-file has changed.  Generally run only by the Hardware team.
+file has changed.
 
 =item --html I<html_filename>
 
@@ -248,6 +265,12 @@ Reads the specified filename and creates a .vregs file from the html.
 
 Specifies a package to be used to resolve subclasses.  The library package
 will only be read, not changed in any way.
+
+=item --nocomments
+
+Add minimal comment to the header files, to save disk space and time.
+Users of the file will have to then look at the .vregs file to determine
+what bits represent.
 
 =item --noclass_cpp
 
@@ -280,10 +303,10 @@ Suppresses creating the _defs.pm file.
 =item --nofiles
 
 Suppresses creating all files. Equivelent to: --noclass_h --noclass_cpp
---nodefs_h --nodefs_pm --nodefs_v --noinfo_cpp --noparams_v
+--nodefs_h --nodefs_pm --nodefs_v --noinfo_cpp --nohash_pm --noparams_v
 
 You can then use specific enables after the --nofiles to turn on the
-desired files, for example: --nofiles --class_h --defs_h
+desired files, for example: --nofiles --class_h --defs_h --hash_pm 
 
 =item --output
 
@@ -314,7 +337,7 @@ Defaults to the I<out_directory>/I<package>__rules.pl.
 
 =head1 SEE ALSO
 
-L<SystemC::Vregs>, L<SystemC::Vregs::Rules>, L<vregs>
+L<SystemC::Vregs>, L<SystemC::Vregs::Rules>, L<vreg>
 
 =head1 AUTHORS
 

@@ -31,8 +31,11 @@ xmlns="http://www.w3.org/TR/REC-html40">
 <p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
 
 <p class=MsoNormal>This document shows example register layouts
-that the SystemC::Vregs package understands. 
-Please see</p>
+that the SystemC::Vregs package understands.</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<p class=MsoNormal>Please see</p>
 
 <p class=MsoNormal>            man
 vregs</p>
@@ -204,6 +207,37 @@ name space of defines from causing trouble </p>
 create a C++ enumeration for the values, and Verilog #defines for each of the
 values in the enumeration.</p>
 
+<p class=RegDescBody>A header called “Attributes” before the
+header specifies special actions for the enum.<br>
+<![if !supportLineBreakNewLine]><br>
+<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=459>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody><b>Attribute</b></p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody><b>Description</b></p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>-descfunc</p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody>Create a C++ function to retrieve the
+  description given the enumeration value.</p>
+  </td>
+  
+ </tr>
+</table>
+
+<p class=RegDescBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
 <p class=RegDescBody>There are three columns for each value in
 the enumeration.  Columns can be in any
 order.</p>
@@ -213,10 +247,10 @@ mnemonic.  Values are in Verilog format,
 with the width and a h/d/b for hex, decimal and binary, respectively.  Underscores can be used to separate digits;
 they are ignored.</p>
 
-<p class=RegDescBody>The mnemonic column is the name of this
-enumeration value.  The Mnemonic must be
-all upper case.  Underscores are
-acceptable, but discouraged.</p>
+<p class=RegDescBody>The mnemonic column is the name of this enumeration
+value.  The Mnemonic must be all upper
+case.  Underscores are acceptable, but
+discouraged.</p>
 
 <p class=RegDescBody>The definition column is a comment on what
 the enumeration value is used for.  The
@@ -231,12 +265,15 @@ Enumeration (This header is ignored) </h2>
 
 <p class=RegDescHead><b>Description</b></p>
 
-<p class=RegDescBody>This table shows an example enumeration
-table.  </p>
+<p class=RegDescBody>This table shows an example enumeration table.  </p>
 
 <p class=RegDescHead><b>Enum</b></p>
 
 <p class=RegDescBody>ExEnum</p>
+
+<p class=RegDescHead><b>Attributes</b></p>
+
+<p class=RegDescBody>-descfunc</p>
 
 <p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
 
@@ -330,6 +367,135 @@ table.  </p>
  </tr>
 </table>
 
+<h2><![if !supportLists]>4.3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Another
+Enumeration</h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This table shows an enumberation that
+references another enumeration.  </p>
+
+<p class=RegDescHead><b>Enum</b></p>
+
+<p class=RegDescBody>ExSuperEnum</p>
+
+<p class=RegDescHead><b>Attributes</b></p>
+
+<p class=RegDescBody>-descfunc</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Constant<br>
+  (comments)</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Definition<br>
+  (header comments in parenthesis)</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>8’h0_0</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Reserved.</i></p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>8’h2_0</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>A</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Sub Enum A 
+  ENUM:ExEnum</i>.  References that values
+  under the enumeration ExEnum should be included here, starting at 8’h2_0 upto
+  8’h2_F.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>(8’h2_F)</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>(Just a comment so users know that the previous enum extends up
+  through 2F.)</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>8’h3_0</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>B</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Sub Enum B 
+  ENUM:ExEnum</i>.  References that values
+  under the enumeration ExEnum should be included here, starting at 8’h3_0 upto
+  8’h3_F.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>(8’h3_F)</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>(Just a comment so users know that the previous enum extends up
+  through 3F.)</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>8’hF_E</p>
+  </td>
+  
+  <td valign=top>
+  <p class=MsoNormal>PRELAST</p>
+  </td>
+  
+  <td valign=top>
+  <p class=MsoNormal><i>Simple values</i>.  Simple values are fine too.</p>
+  </td>
+  
+ </tr>
+</table>
+
 <div>
 
 <h1><![if !supportLists]>5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -398,8 +564,8 @@ header specifies special actions for the class.<br>
 
 <p class=RegDescBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
 
-<p class=RegDescBody>There are five columns for each value in
-the enumeration.  Columns can be in any
+<p class=RegDescBody>There are five columns for each bitfield
+in the class.  Columns can be in any
 order.</p>
 
 <p class=RegDescBody>The bit column defines which bits the
@@ -413,8 +579,8 @@ multiple disjoint segments, separated by commas.  (w0[15:13] or w0[15,14,13] or 
 equivelent.)</p>
 
 <p class=RegDescBody>The mnemonic column is the name of this
-field.  The Mnemonic must begin with
-upper case, and can contain mixed case. 
+field.  The Mnemonic must begin with upper
+case, and can contain mixed case. 
 Underscores are not acceptable, use mixed case instead.</p>
 
 <p class=RegDescBody>The type is the C++ type of the
@@ -674,7 +840,8 @@ Example Class</h2>
 <p class=RegDescHead><b>Description</b></p>
 
 <p class=RegDescBody>This
-is another example class.  </p>
+is another example class.  Note it
+extends the size of the base class.</p>
 
 <p class=RegDescHead><b>Class</b></p>
 
@@ -812,7 +979,8 @@ address is coded into the vregs program; it defaults to 40 bits, which is
 sufficient for most projects.</p>
 
 <p class=RegDescBody>A attribute of –noimplementation specifies
-the register has not been implemented, and should be ignored by Vregs.</p>
+the register has not been implemented, and should be ignored by Vregs.  A attribute of –noregtest specifies testing
+for the register should be suppressed.</p>
 
 <p class=RegDescBody>The table indicates the bit layout, in the
 same format as a Class declaration.  The
@@ -822,8 +990,8 @@ are as follows:</p>
 
 <p class=RegDescBody>Reset indicates the value after chip
 reset.  X or N/A indicates not reset.
-FW0 or FW-(some perl expression) indicates that the value is loaded in by
-firmware during initialization.</p>
+FW0 or FW-(some perl expression) indicates that the value is loaded in by firmware
+during initialization.</p>
 
 <p class=RegDescBody>Access indicates read/write, read-only,
 etc.  Read side effects indicate that
@@ -1116,6 +1284,118 @@ per entry)</p>
   <td valign=top>
   <p class=TableBody><i>Wide
   Field</i>.  This field takes the whole register.</p>
+  </td>
+ </tr>
+</table>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<h2><![if !supportLists]>6.4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Another
+Register, 64 bits</h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This is another register, but it consists
+of a 64 bit wide register.  The special
+optional comment (Add 0x8 per entry) indicates that each entry is 8 bytes
+apart, rather then the default dense packing of 4 bytes.</p>
+
+<p class=RegDescHead><b>Register</b></p>
+
+<p class=RegDescBody>R_ExRegQuad[7:0]</p>
+
+<p class=RegDescHead><b>Address</b></p>
+
+<p class=RegDescBody>0x18_FFFF_2000 – 0x18_FFFF_1100 (Add 0x8
+per entry)</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=579>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Bit</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Access</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Reset</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Type</p>
+  </td>
+  <td valign=top>
+  <p class=TableHeading>Definition</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>31:0</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>WideField</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>RW</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>0</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><i>Wide
+  Field</i>.  This field takes the whole register.</p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>63</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>Bit63</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>RW</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>0</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><i>Bit
+  63.</i></p>
+  </td>
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w1[30]</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>Bit62</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>RW</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody>0</p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+  </td>
+  <td valign=top>
+  <p class=TableBody><i>Bit
+  62.  </i>Using alternate syntax to
+  indicate bit 30 in word number 1.<i></i></p>
   </td>
  </tr>
 </table>

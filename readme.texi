@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: readme.texi,v 1.6 2002/03/11 14:07:22 wsnyder Exp $
+@c $Revision: #1 $$Date: 2002/09/16 $$Author: lab $
 @c %**start of header
 @setfilename readme.info
 @settitle Perl SystemC::Vregs Installation
@@ -28,9 +28,7 @@ This is the SystemC Vregs Package, aka Vregs.
 This package is Copyright 2001 by Wilson Snyder @email{wsnyder@@wsnyder.org}.
 
 You may distribute under the terms of either the GNU General Public License
-or the Artistic License, as specified in the Perl README file, with the
-exception that it cannot be placed on a CD-ROM or similar media for commercial
-distribution without the prior approval of the author.
+or the Artistic License, as specified in the Perl README file.
 
 This code is provided with no warranty of any kind, and is used entirely at
 your own risk.
@@ -72,7 +70,7 @@ header fields with #defines for all of the constants and magic numbers in
 the spec.  
 
 Vregs can be customized to change the code it creates using templates;
-see 'man vregs' for details.
+see 'man vreg' for details.
 
 @node Obtaining Distribution, Supported Systems, SystemPerl Example, Top
 @section Obtaining Distribution

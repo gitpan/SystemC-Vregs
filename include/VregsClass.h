@@ -1,13 +1,11 @@
-// $Id: VregsClass.h,v 1.7 2001/11/16 20:46:23 jdutton Exp $ -*- C++ -*-
+// $Revision: #1 $$Date: 2002/09/16 $$Author: lab $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of either the GNU General Public License or the
-// Perl Artistic License, with the exception that it cannot be placed
-// on a CD-ROM or similar media for commercial distribution without the
-// prior approval of the author.
+// Perl Artistic License.
 // 
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of

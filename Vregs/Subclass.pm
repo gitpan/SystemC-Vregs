@@ -1,4 +1,4 @@
-# $Id: Subclass.pm,v 1.11 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #2 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +23,7 @@ package SystemC::Vregs::Subclass;
 use strict;
 use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.210';
+$VERSION = '1.240';
 
 $Errors = 0;
 
@@ -37,7 +35,7 @@ sub new {
     return $self;
 }
 
-sub warn {
+sub at_text {
     my $self = shift;
     if (ref $_[0]) { $self = shift; }   # Use the class provided, if passed
 
@@ -53,8 +51,27 @@ sub warn {
     }
 
     $at .= ($self->{at}||"").":" if $SystemC::Vregs::Debug;
+    return $at;
+}
+
+sub info {
+    my $self = shift;
+    if (ref $_[0]) { $self = shift; }   # Use the class provided, if passed
 
     # Make a warning based on the bit being processed
+    my $at = at_text($self);
+    my $atblank = " " x length($at);
+    my $text = join('',@_);
+    $text =~ s/\n(.)/\n-Info: $atblank$1/g;
+    CORE::warn "-Info: $at$text";
+}
+
+sub warn {
+    my $self = shift;
+    if (ref $_[0]) { $self = shift; }   # Use the class provided, if passed
+
+    # Make a warning based on the bit being processed
+    my $at = at_text($self);
     my $atblank = " " x length($at);
     my $text = join('',@_);
     $text =~ s/\n(.)/\n%Warning: $atblank$1/g;

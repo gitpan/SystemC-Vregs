@@ -1,4 +1,4 @@
-# $Id: Language.pm,v 1.23 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #2 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,7 +24,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.210';
+$VERSION = '1.240';
 
 ######################################################################
 #### Implementation
@@ -171,7 +169,11 @@ sub comment {
 sub define {
     my $self = shift; ($self && ref($self)) or croak 'Not a hash reference';
     # Assume C++ define
-    $self->printf ("#define\t%-26s %16s\t/* %s */\n", @_);
+    if ($_[2]) {
+	$self->printf ("#define\t%-26s %16s\t/* %s */\n", @_);
+    } else {
+	$self->printf ("#define\t%-26s %16s\n", @_);
+    }
 }
 
 sub preproc_char {
@@ -233,6 +235,10 @@ foreach my $kwd (qw( asm auto break case catch cdecl char class const
 		     template this throw try typedef union unsigned virtual
 		     void volatile while
 
+		     bool false NULL string true
+
+		     sensitive sensitive_pos sensitive_neg
+
 		     abort))
 { $Keywords{$kwd} = 1; }
 
@@ -282,7 +288,11 @@ sub preproc {
 
 sub define {
     my $self = shift;
-    $self->printf ("use constant %-26s => %16s;\t# %s\n", @_);
+    if ($_[2]) {
+	$self->printf ("use constant %-26s => %16s;\t# %s\n", @_);
+    } else {
+	$self->printf ("use constant %-26s => %16s;\n", @_);
+    }
 }    
 
 sub sprint_hex_value {
@@ -318,7 +328,11 @@ sub preproc_char {
 
 sub define {
     my $self = shift;
-    $self->printf ("`define\t%-26s %16s\t// %s\n", @_);
+    if ($_[2]) {
+	$self->printf ("`define\t%-26s %16s\t// %s\n", @_);
+    } else {
+	$self->printf ("`define\t%-26s %16s\n", @_);
+    }
 }
 
 sub sprint_hex_value {
@@ -416,13 +430,13 @@ package SystemC::Vregs::Language;
 
 =head1 NAME
 
-SystemC::Vregs::Lanugage - File processing for various Languages
+SystemC::Vregs::Language - File processing for various Languages
 
 =head1 SYNOPSIS
 
-    use SystemC::Vregs::Lanugages;
+    use SystemC::Vregs::Languages;
 
-    my $fh = SystemC::Vregs::Lanugages->new (filename=>"foo.c",
+    my $fh = SystemC::Vregs::Languages->new (filename=>"foo.c",
 				    language=>'C',);
     $fh->comment ("This file is generated automatically\n");
     $fh->define ("TRUE",1, "Set true");

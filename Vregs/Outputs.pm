@@ -1,4 +1,4 @@
-# $Id: Outputs.pm,v 1.93 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #6 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -24,7 +22,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.210';
+$VERSION = '1.240';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -155,22 +153,31 @@ sub SystemC::Vregs::Enum::enum_cpp_write {
 
     $fl->print("//${clname}\n",);
     $pack->{rules}->execute_rule ('enum_cpp_before', $clname, $self);
-    $fl->print ("const char* ${clname}::ascii () const {\n");
-    $fl->print ("    switch (m_e) {\n");
-    my %did_values;
-    foreach my $fieldref ($self->fields_sorted()) {
-	if ($did_values{$fieldref->{rst_val}}) {
-	    $fl->printf ("\t//DUPLICATE: ");
-	} else {
-	    $fl->printf ("\t");
+
+    for my $desc (0..1) {
+	next if $desc && !$self->{attributes}{descfunc};
+
+	$fl->printf ("const char* ${clname}::%s () const {\n",
+		     ($desc ? 'description':'ascii'));
+	$fl->print ("    switch (m_e) {\n");
+	my %did_values;
+	foreach my $fieldref ($self->fields_sorted()) {
+	    next if $fieldref->{omit_description};
+	    if ($did_values{$fieldref->{rst_val}}) {
+		$fl->printf ("\t//DUPLICATE: ");
+	    } else {
+		$fl->printf ("\t");
+	    }
+	    $fl->printf ("case %s: return(\"%s\");\n"
+			 ,$fieldref->{name}
+			 ,($desc ? $fieldref->{desc} : $fieldref->{name}));
+	    $did_values{$fieldref->{rst_val}} = 1;
 	}
-	$fl->printf ("case %s: return(\"%s\");\n"
-		     ,$fieldref->{name},$fieldref->{name});
-	$did_values{$fieldref->{rst_val}} = 1;
+	$fl->print ("  default: return (\"?E\");\n");
+	$fl->print ("  }\n");
+	$fl->print ("}\n\n");
     }
-    $fl->print ("  default: return (\"?E\");\n");
-    $fl->print ("  }\n");
-    $fl->print ("}\n\n");
+
     $pack->{rules}->execute_rule ('enum_cpp_after', $clname, $self);
 }
 
@@ -184,6 +191,9 @@ sub attribute_value {
     my $regref = shift;
     my $attr = shift;
     return $regref->{attributes}{$attr} if defined $regref->{attributes}{$attr};
+    return $regref->{inherits_typeref}{attributes}{$attr}
+        if (defined $regref->{inherits_typeref}
+	    && defined $regref->{inherits_typeref}{attributes}{$attr});
     return $pack->{attributes}{$attr} if defined $pack->{attributes}{$attr};
     return undef;
 }
@@ -194,10 +204,12 @@ sub SystemC::Vregs::Type::_class_h_write {
     my $fl = shift;
     my $clname = $self->{name} || "x";
 
-    my $netorder = attribute_value($pack,$self,'netorder');
+    my $netorder = attribute_value($pack, $self, 'netorder') || 0;
     my $ntohl = ($netorder ? "ntohl" : "");
     my $htonl = ($netorder ? "htonl" : "");
     my $uint  = ($netorder ? "nint32_t" : "uint32_t");
+    my $uchar = ($netorder ? "nint8_t" : "uint8_t");
+    my $toBytePtr = ($netorder ? "castNBytep" : "castHBytep");
 
     my $inh = "";
     $inh = " : $self->{inherits}" if $self->{inherits};
@@ -209,30 +221,60 @@ sub SystemC::Vregs::Type::_class_h_write {
     $pack->{rules}->execute_rule ('class_begin_after', $clname, $self);
 
     if ($inh ne "") {
-	$fl->print("    // w() inherited from $self->{inherits}::\n");
+	my $inhType = $self->{inherits_typeref} or
+	    die "%Error: Missing typeref for inherits${inh}.\n";
+	# Verify same byte ordering.
+	my $inh_netorder = attribute_value($inhType->{pack}, $inhType, 'netorder') || 0;
+	if ($inh_netorder ne $netorder) {
+	    die ("%Error: $clname netorder=$netorder doesn't match $inh_netorder"
+		 ." inherited from $inhType->{name}.\n");
+	}
+	$fl->print("    // w() and $toBytePtr() inherited from $self->{inherits}::\n");
 	# Correct for any size difference
-	(defined $self->{inherits_typeref}->{words}) or die "%Error: Missed words compute()\n";
-	if (($self->{words}||0) > $self->{inherits_typeref}->{words}) {
-	    $fl->printf("    uint32_t m_wStretch[%d];   // Bring base size up\n",
+	(defined $inhType->{words}) or die "%Error: Missed words compute()\n";
+	if (($self->{words}||0) > $inhType->{words}) {
+	    $fl->printf("  protected: uint32_t m_wStretch[%d];   // Bring base size up\n"
+			."  public:\n",
 			$self->{words} - $self->{inherits_typeref}->{words});
 	}
     } else {
-	$fl->print("    ${uint} m_w[${words}];\n",
-		   "    inline uint32_t w(int b) const { return (${ntohl}(m_w[b])); };\n",
-		   "    inline void w(int b, uint32_t val) { m_w[b] = ${htonl}(val); };\n",);
+	$fl->print("  protected: ${uint} m_w[${words}];\n"
+		   ."  public:\n"
+		   ."    inline uint32_t w(int b) const { return (${ntohl}(m_w[b])); };\n"
+		   ."    inline void w(int b, uint32_t val) { m_w[b] = ${htonl}(val); };\n");
+	$fl->print("    inline ${uchar}* ${toBytePtr}() {\n"
+		   ."\treturn reinterpret_cast<${uchar}*>(&m_w[0]); };\n"
+		   ."    inline const ${uchar}* ${toBytePtr}() const {\n"
+		   ."\treturn reinterpret_cast<const ${uchar}*>(&m_w[0]); };\n");
     }
     if ($clname =~ /^R_/) {
 	# Write only those bits that are marked access writable
-	my $wr_mask = 0;
-	for (my $bit=0; $bit<$self->{pack}->{data_bits}; $bit++) {
-	    my $bitent = $self->{bitarray}[$bit];
-	    next if !$bitent;
-	    $wr_mask  |= (1<<$bit) if ($bitent->{write});
+	my @wr_masks;
+	for (my $word=0; $word<$self->{words}; $word++) {
+	    $wr_masks[$word] = 0;
+	    for (my $bit=$word*$self->{pack}->{data_bits};
+		 $bit<(($word+1)*$self->{pack}->{data_bits});
+		 $bit++) {
+		my $bitent = $self->{bitarray}[$bit];
+		next if !$bitent;
+		$wr_masks[$word] |= (1<<$bit) if ($bitent->{write});
+	    }
 	}
-	$fl->printf("    static const uint32_t BITMASK_WRITABLE = 0x%08x;\n",
-		    $wr_mask);
-	$fl->printf("    inline void wWritable(int b, uint32_t val) {"
-		    ." w(b,(val&BITMASK_WRITABLE)|(w(b)&~BITMASK_WRITABLE)); };\n");
+	if ($self->{words}<2) {
+	    $fl->printf("    static const uint32_t BITMASK_WRITABLE = 0x%08x;\n", $wr_masks[0]);
+	    $fl->printf("    inline void wWritable(int b, uint32_t val) {"
+			." w(b,(val&BITMASK_WRITABLE)|(w(b)&~BITMASK_WRITABLE)); };\n");
+	} else {
+	    # Idiots at Greenhills Compilers don't allow
+	    # static const uint32_t BITMASK_WRITABLE[] = {...};
+	    $fl->printf("    inline uint32_t wBitMaskWritable(int b) {\n");
+	    for (my $word=0; $word<$self->{words}; $word++) {
+		$fl->printf("\tif (b==$word) return 0x%08x;\n", $wr_masks[$word]);
+	    }
+	    $fl->printf("\treturn 0; }\n");
+	    $fl->printf("    inline void wWritable(int b, uint32_t val) {"
+			." w(b,(val&wBitMaskWritable(b))|(w(b)&~wBitMaskWritable(b))); };\n");
+	}
     }
 
     my @resets=();
@@ -406,26 +448,37 @@ sub SystemC::Vregs::Type::_class_cpp_write {
 
     my @dumps = ();
 
+    my $fields_lcFirst = $self->{attributes}{lcfirst} || 0;
     foreach my $bitref ($self->fields_sorted()) {
 	(my $lc_mnem = $bitref->{name}) =~ s/^(.)/lc $1/xe;
-	push @dumps, "\"$bitref->{name}=\"<<$lc_mnem()"
+	if ($self->{inherits_typeref}
+	    && $self->{inherits_typeref}->find_bit($bitref->{name})) {
+	    # It's printed by the base class.
+	} elsif ($fields_lcFirst) {
+	    push @dumps, "\"$lc_mnem=\"<<$lc_mnem()";
+	} else {
+	    push @dumps, "\"$bitref->{name}=\"<<$lc_mnem()";
+	}
     }
 
     $fl->print("//${clname}\n",);
     $pack->{rules}->execute_rule ('class_cpp_before', $clname, $self);
+    my $dumpName = $SystemC::Vregs::Dump_Routine_Name || "_dump";
     $fl->print("${clname}::DumpOstream ${clname}::dump(const char* prefix) const {\n",
 	       "    return DumpOstream(this,prefix);\n",
 	       "}\n");
     $fl->print("OStream& operator<< (OStream& lhs, const ${clname}::DumpOstream rhs) {\n",
-	       "    return ((${clname}*)rhs.obj())->_dump(lhs,rhs.prefix());\n",
+	       "    return ((${clname}*)rhs.obj())->${dumpName}(lhs,rhs.prefix());\n",
 	       "}\n");
-    $fl->printf("OStream& ${clname}::_dump (OStream& lhs, const char*%s) const {\n",((($#dumps>0) || $self->{inherits}) ? ' pf':''));
-    unshift @dumps, "(($self->{inherits}*)(this))->dump(pf)" if $self->{inherits};
-    if ($#dumps<0) {
-	$fl->print("    return lhs;\n");
-    } else {
-	$fl->print("    return lhs<<", join("\n\t<<pf<<",@dumps), ";\n",
-		   "}\n");
+
+    $SystemC::Vregs::Do_Dump = 0;
+    $pack->{rules}->execute_rule ('class_dump_before', $clname, $self);
+    if ($SystemC::Vregs::Do_Dump) {
+	$fl->printf("OStream& ${clname}::_dump (OStream& lhs, const char*%s) const {\n",
+		    ((($#dumps>0) || $self->{inherits}) ? ' pf':''));
+	$pack->{rules}->execute_rule ('class_dump_after', $clname, $self, \@dumps);
+	$fl->print("    return lhs;\n"
+		   ."}\n");
     }
 
     # For usage in GDB
@@ -445,6 +498,8 @@ sub class_cpp_write {
     $fl->print("\n");
     $fl->print("#include \"$self->{name}_class.h\"\n");
     $fl->print("\n");
+
+    $self->{rules}->execute_rule ('class_cpp_file_before', 'file_body', $self);
 
     foreach my $classref ($self->enums_sorted) {
 	$classref->enum_cpp_write ($self, $fl);
@@ -475,17 +530,19 @@ sub defs_write {
 
     $fl->comment(("*"x70)."\n"
 		 ."   General convention:\n"
-		 ."     RA_{regname}     Register address\n"
+		 ."     RA_{regname}     Register beginning address\n"
 		 ."     RAE_{regname}    Register ending address + 1\n"
 		 ."     RAC_{regname}    Number of entries in register\n"
 		 ."     RAM_{regname}    Register region address mask\n"
-		 ."     RRP_{regname}    Register RANGE spacing\n"
-		 ."     RRS_{regname}    Register RANGE size\n"
-		 .""
+		 ."     RRP_{regname}    Register RANGE spacing in bytes, if arrayed\n"
+		 ."     RRS_{regname}    Register RANGE size, if arrayed\n"
+		 ."\n"
 		 ."     RBASEA_{regs}    Register common-prefix starting address\n"
 		 ."     RBASEAE_{regs}   Register common-prefix ending address + 1\n"
 		 ."     RBASEAM_{regs}   Register common-prefix bit mask\n"
-		 .""
+		 ."\n"
+		 ."     E_{enum}_{alias}           Value of enumeration encoding\n"
+		 ."\n"
 		 ."     CM{w}_{class}_WRITABLE     Mask of all writable bits\n"
 		 ."     CB{w}_{class}_{field}_{f}  Class field starting bit\n"
 		 ."     CE{w}_{class}_{field}_{f}  Class field ending bit\n"
@@ -519,7 +576,7 @@ sub defs_write {
 	if (($defref->{is_verilog} && $fl->{Verilog})
 	    || ($defref->{is_perl} && $fl->{Perl})
 	    || (!$defref->{is_verilog} && !$defref->{is_perl})) {
-	    $fl->define ($define, $value, $comment);
+	    $fl->define ($define, $value, ($self->{comments}?$comment:""));
 	}
     }
 
@@ -560,20 +617,52 @@ sub param_write {
 	my $comment = $defref->{desc};
 	my $bits    = $defref->{bits};
 	    
+	my $cmt = "";
+	$cmt = "\t// ${comment}" if $self->{comments};
+
 	if ($define =~ s/^(RA|CM)_/${1}P_/) {
 	    my $rst_val = $defref->{rst_val};
-	    if (defined $bits && $value && ref $value) {
+	    if (defined $bits && defined $value && ref $value) {
 		$bits = 32 if ($bits==32
 			       || $self->{param_always_32bits}
-			       || $value->Lexicompare($bit32));
+			       || ($value->Lexicompare($bit32)<=0));  # value<32 bits
 		$value = Bit::Vector->new_Hex($bits, $value->to_Hex);
 		$rst_val = $value->to_Hex;
 	    }
 	    $rst_val = $fl->sprint_hex_value ($rst_val,$bits);
-	    $fl->printf ("   parameter %-26s %12s\t// ${comment}\n",
-			 $define . " =", $rst_val.";", 
-			 "Address of Module Base");
+	    $fl->printf ("   parameter %-26s %12s%s\n",
+			 $define . " =", $rst_val.";",
+			 $cmt
+			 );
 	}
+    }
+
+    $fl->close();
+}
+
+######################################################################
+
+sub hash_write {
+    my $self = shift;
+    # Dump hashes for perl
+
+    my $fl = SystemC::Vregs::File->open(@_);
+    $fl->include_guard();
+    $fl->print("\n");
+    $fl->print("package $self->{name};\n");
+    $fl->print("\n");
+
+    foreach my $eref ($self->enums_sorted) {
+	$fl->print ('%'.$eref->{name}." = (\n");
+	foreach my $fieldref ($eref->fields_sorted()) {
+	    my $cmt = "";
+	    $cmt = "\t# $fieldref->{desc}" if $self->{comments};
+	    $fl->printf ("  0x%-4x => '%-20s%s\n"
+			 ,$fieldref->{rst_val}
+			 ,$fieldref->{name}."',"
+			 ,$cmt);
+	}
+	$fl->print ("  );\n\n");
     }
 
     $fl->close();
@@ -622,15 +711,18 @@ sub info_cpp_write {
 		,"{\n");
 
     $fl->printf ("    // Shorten the register info lines\n");
-    $fl->printf ("#   define RFRDSIDE VregsRegEntry::REGFL_RDSIDE\n");
-    $fl->printf ("#   define RFWRSIDE VregsRegEntry::REGFL_WRSIDE\n");
-    $fl->printf ("    //rip->add_register( address,      spacing,  name,\n");
+    $fl->printf ("#   define RFRDSIDE  VregsRegEntry::REGFL_RDSIDE\n");
+    $fl->printf ("#   define RFWRSIDE  VregsRegEntry::REGFL_WRSIDE\n");
+    $fl->printf ("#   define RFNORTEST VregsRegEntry::REGFL_NOREGTEST\n");
+    $fl->printf ("#   define RFNORDUMP VregsRegEntry::REGFL_NOREGDUMP\n");
+    $fl->printf ("    //rip->add_register( address,       size,   name,     rangeLow, rangeHi, spacing,\n");
     $fl->printf ("    //  rdMask,     wrMask,     rstVal,     rstMask,    flags);\n");
 
     foreach my $regref ($self->regs_sorted()) {
-	#reginfop->add_register (0x1010, 4, "Reg_at_0x1010", 4, 1);
-	my $size = $self->addr_const_vec(4);	## FIX?
+	my $size = $self->addr_const_vec($regref->{typeref}{words}*4);
 	my $noarray =  attribute_value($self,$regref->{typeref},'noarray');
+	my $noregtest = attribute_value($self,$regref->{typeref}, 'noregtest');
+	my $noregdump = attribute_value($self,$regref->{typeref}, 'noregdump');
 	if ($noarray) {
 	    # User wants to treat it as a bulk region without [] subscripts in info
 	    # This munging should probably be done in Register instead.
@@ -672,12 +764,15 @@ sub info_cpp_write {
 		     $rd_mask, $wr_mask, $rst_val, $rst_mask);
 	$fl->printf ("|RFRDSIDE") if $rd_side;
 	$fl->printf ("|RFWRSIDE") if $wr_side;
+	$fl->printf ("|RFNORTEST") if $noregtest;
+	$fl->printf ("|RFNORDUMP") if $noregdump;
 	$fl->printf (");\n",);
     }
 
-    $fl->printf ("#   undef RFTEST\n");
     $fl->printf ("#   undef RFRDSIDE\n");
     $fl->printf ("#   undef RFWRSIDE\n");
+    $fl->printf ("#   undef RFNORTEST\n");
+    $fl->printf ("#   undef RFNORDUMP\n");
     $fl->print ("};\n\n");
 
     $self->{rules}->execute_rule ('info_cpp_file_after', 'file_body', $self);

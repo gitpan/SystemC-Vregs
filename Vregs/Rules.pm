@@ -1,4 +1,4 @@
-# $Id: Rules.pm,v 1.17 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,7 +23,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.210';
+$VERSION = '1.240';
 
 ######################################################################
 # Default rules
@@ -48,7 +46,23 @@ sub _default_rules {
 		    ."    operator const char * () const { return ascii(); }\n"
 		    ."    operator en () const { return m_e; }\n"
 		    ."    const char * ascii () const;\n"
-		    );});
+		    );
+	    if ($self->{attributes}{descfunc}) {
+		fprint ("    const char * description () const;\n");
+	    }
+	});
+    before_class_dump
+	(prog => sub {
+	    $SystemC::Vregs::Do_Dump = 1;
+	});
+    after_class_dump
+	(prog => sub {
+	    my ($self,$name,$dumparef) = @_;  my @dumps = @{$dumparef};
+	    unshift @dumps, "(($self->{inherits}*)(this))->dump(pf)" if $self->{inherits};
+	    if ($#dumps>=0) {
+		fprint("    lhs<<", join("\n\t<<pf<<",@dumps), ";\n");
+	    }
+	});
     after_enum_end
 	(prog=> sub {
 	    my ($self,$name) = @_;
@@ -67,12 +81,16 @@ sub before_info_cpp_file{_declare_rule (rule=>'info_cpp_file_before', @_); }
 sub  after_info_cpp_file{_declare_rule (rule=>'info_cpp_file_after', @_); }
 sub before_file_body    {_declare_rule (rule=>'file_body_before', @_); }
 sub  after_file_body    {_declare_rule (rule=>'file_body_after', @_); }
+sub before_class_cpp_file{_declare_rule (rule=>'class_cpp_file_before', @_); }
+sub  after_class_cpp_file{_declare_rule (rule=>'class_cpp_file_after', @_); }
 sub before_class_begin { _declare_rule (rule=>'class_begin_before', @_); }
 sub  after_class_begin { _declare_rule (rule=>'class_begin_after', @_); }
 sub before_class_end {	 _declare_rule (rule=>'class_end_before', @_); }
 sub  after_class_end {	 _declare_rule (rule=>'class_end_after', @_); }
 sub before_class_cpp {	 _declare_rule (rule=>'class_cpp_before', @_); }
 sub  after_class_cpp {	 _declare_rule (rule=>'class_cpp_after', @_); }
+sub before_class_dump {	 _declare_rule (rule=>'class_dump_before', @_); }
+sub  after_class_dump {	 _declare_rule (rule=>'class_dump_after', @_); }
 sub before_enum_begin {	 _declare_rule (rule=>'enum_begin_before', @_); }
 sub  after_enum_begin {	 _declare_rule (rule=>'enum_begin_after', @_); }
 sub before_enum_end {	 _declare_rule (rule=>'enum_end_before', @_); }
@@ -88,6 +106,10 @@ sub fprintf { $Default_Self->{filehandle}->printf (@_); }
 
 ######################################################################
 # Functions called by rest of vregs program
+
+sub set_default_self {
+    $Default_Self = shift;
+}
 
 sub new {
     my $class = shift;
@@ -132,6 +154,7 @@ sub execute_rule {
     my $rule = shift;
     my $name = shift;
     my $invoke_self = shift;
+    my @rest = @_;
     $Default_Self = $ruleself;
 
     print "exec_rule $rule, $name\n" if $SystemC::Vregs::Debug;
@@ -141,7 +164,7 @@ sub execute_rule {
 	    {
 		use vars qw ($self $name);
 		local $self = $invoke_self;
-		&{$rvec->{prog}}($invoke_self, $name);
+		&{$rvec->{prog}}($invoke_self, $name, @rest);
 	    }
 	    if ($rvec->{replace}) {
 		print "  Last rule (replace)\n" if $SystemC::Vregs::Debug;
@@ -301,7 +324,7 @@ Formatted print to the file.
 
 =head1 SEE ALSO
 
-C<vregs>, C<SystemC::Vregs>
+C<vreg>, C<SystemC::Vregs>
 
 =head1 AUTHORS
 

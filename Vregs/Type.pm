@@ -1,4 +1,4 @@
-# $Id: Type.pm,v 1.8 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #4 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +26,19 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.210';
+$VERSION = '1.240';
+
+# Fields:
+#	{name}			Field name (Subclass)
+#	{nor_name}		Field name 
+#	{at}			File/line number (Subclass)
+#	{pack}			Parent SystemC::Vregs ref
+#	{bits}			Width of structure
+#	{words}			Width of structure
+#	{inherits}		Text inherits description
+#	{inherits_typeref}	Inherits SystemC::Vregs::Type
+#	{inherits_level}	Depth of inheritance
+#	{fields}{<fieldname>}	SystemC::Vregs::Bit
 
 ######################################################################
 # Accessors
@@ -37,6 +47,7 @@ sub new {
     my $class = shift;  $class = ref $class if ref $class;
     my $self = $class->SUPER::new(bitarray=>[],
 				  attributes=>{},
+				  inherits_level=>0,
 				  @_);
     $self->{pack} or die;  # Should have been passed as parameter
     $self->{pack}{types}{$self->{name}} = $self;
@@ -62,6 +73,11 @@ sub inherits {
     return $self->{inherits};
 }
 
+sub find_bit {
+    my $self = shift;
+    my $name = shift;
+    return $self->{fields}{$name};
+}
 ######################################################################
 
 sub dewildcard {
@@ -80,6 +96,9 @@ sub dewildcard {
 				 name=>$newname,
 				 at => $matchref->{at},
 				 );
+	foreach my $key (keys %{$self->{attributes}}) {
+	    $newref->{attributes}{$key} = $self->{attributes}{$key};
+	}
 	$newref->inherits($matchref->{name});
     }
     $gotone or $self->warn ("No types matching wildcarded type: ",$self->inherits(),"\n");
@@ -91,7 +110,7 @@ sub dewildcard {
 sub check_name {
     my $self = shift;
     my $field = $self->{name};
-    ($field =~ /^[A-Z][a-zA-Z0-9_]+$/)
+    ($field =~ /^[A-Z][a-zA-Z0-9_]*$/)
 	or $self->warn ("Type names must match [capitals][alphanumerics]: $field\n");
     ($self->{nor_name} = $field);
 }
@@ -145,10 +164,11 @@ sub check {
 sub computes {
     my $typeref = shift;
     # Create vector describing bit layout of the word
+    $typeref->_computes_words();
     my $mnem_vec = "";
     my $last_bitref = 0;
     my $x = 0;
-    for (my $bit=$typeref->{pack}{data_bits}-1; $bit>=0; $bit--) {
+    for (my $bit=($typeref->{words}*$typeref->{pack}{data_bits})-1; $bit>=0; $bit--) {
 	my $bitent = $typeref->{bitarray}[$bit];
 	if (!defined $bitent) {
 	    $x++;
@@ -172,8 +192,6 @@ sub computes {
     $mnem_vec .= sprintf "X[%d:%d], ", $bit+$x, $bit+1 if $x>1;
     $mnem_vec =~ s/, $//;
     $typeref->{mnem_vec} = $mnem_vec;
-
-    $typeref->_computes_words();
 }
 
 sub _computes_words {
@@ -192,6 +210,11 @@ sub _computes_words {
     $self->{words} = $words;
 }
 
+sub fields {
+    my $typeref = shift;
+    return (values %{$typeref->{fields}});
+}
+
 sub fields_sorted {
     my $typeref = shift;
     return (sort {$b->{bitlist}[0] <=> $a->{bitlist}[0]}
@@ -202,10 +225,25 @@ sub fields_sorted_inherited {
     my $typeref = shift;
     my @flds = (values %{$typeref->{fields}});
     if ($typeref->{inherits_typeref}) {
-	push @flds, (values %{$typeref->{inherits_typeref}->{fields}});
+	foreach my $fld (values %{$typeref->{inherits_typeref}->{fields}}) {
+	    next if $typeref->{fields}{$fld->{name}};  # Inherited, but redefined in class.
+	    push @flds, $fld;
+	}
     }
     return (sort {$b->{bitlist}[0] <=> $a->{bitlist}[0]}
 	    @flds);
+}
+
+sub dump {
+    my $self = shift;
+    my $fh = shift || \*STDOUT;
+    my $indent = shift||"  ";
+    print $fh +($indent,"Type: ",$self->{name},
+		"  bits:",$self->{bits}||'',
+		"\n");
+    foreach my $fieldref (values %{$self->{fields}}) {
+	$fieldref->dump($fh,$indent."  ");
+    }
 }
 
 ######################################################################

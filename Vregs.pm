@@ -1,4 +1,4 @@
-# $Id: Vregs.pm,v 1.82 2002/03/11 15:53:27 wsnyder Exp $
+# $Revision: #5 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,7 +32,7 @@ use Carp;
 use vars qw($Debug $Bit_Access_Regexp @ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.210';
+$VERSION = '1.240';
 
 ######################################################################
 #### Constants
@@ -48,12 +46,27 @@ $Bit_Access_Regexp = '^(RS?|)(WS?|W1CS?|)L?'."\$";
 ######################################################################
 #### Creation
 
+#Fields:
+#	{name}			Field name (Subclass)
+#	{at}			File/line number (Subclass)
+#	{address_bits}
+#	{data_bits}
+#	{rebuild_comment}
+#	{attributes}{<attr>}{<value>}
+#	{libraries}[]		SystemC::Vregs ref
+#	{rules}			SystemC::Vregs::Rules ref
+#	{enums}{<enum>}		SystemC::Vregs::Enum ref
+#	{types}{<enum>}		SystemC::Vregs::Type ref
+#	{regs}{<enum>}		SystemC::Vregs::Regs ref
+#	{defines}{<enum>}	SystemC::Vregs::Define ref
+
 sub new {
     my $class = shift;
     my $self = {address_bits => 32,
 		data_bits => 32,	# Changing this isn't verified
 		rebuild_comment => undef,
 		attributes => {},
+		comments => 1,
 		@_};
     bless $self, $class;
     $self->{rules} = new SystemC::Vregs::Rules (package => $self, );
@@ -89,8 +102,8 @@ sub find_type {
     my $pack = shift;
     my $name = shift;
     foreach my $packref ($pack, @{$pack->{libraries}}) {
-	my $enumref = $packref->{types}{$name};
-	return $enumref if $enumref;
+	my $typeref = $packref->{types}{$name};
+	return $typeref if $typeref;
     }
     return undef;
 }
@@ -111,8 +124,8 @@ sub find_reg {
     my $pack = shift;
     my $name = shift;
     foreach my $packref ($pack, @{$pack->{libraries}}) {
-	my $enumref = $packref->{regs}{$name};
-	return $enumref if $enumref;
+	my $regref = $packref->{regs}{$name};
+	return $regref if $regref;
     }
     return undef;
 }
@@ -289,6 +302,12 @@ sub new_enum {
 	 at => $flagref->{at},
 	 );
 
+    my $attr = $flagref->{Attributes}||"";
+    while ($attr =~ s/-(\w+)//) {
+	$classref->{attributes}{$1} = $1;
+    }
+    ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
+
     foreach my $row (@bittable) {
 	print "  Row:\n" if $Debug;
 	foreach my $col (@$row) {
@@ -301,6 +320,8 @@ sub new_enum {
 
 	my $val_mnem = $row->[$mnem_col];
 	my $desc     = $row->[$def_col];
+	$val_mnem =~ s/\([^\)]*\)\s*//;	# Strip (comment)
+	$desc =~ s/\([^\)]*\)\s*//;	# Strip (comment)
 
 	# Skip blank/reserved values
 	next if ($val_mnem eq "" && ($desc eq "" || $desc =~ /^reserved/i));
@@ -349,6 +370,7 @@ sub new_register {
 	 );
     $typeref->inherits($inherits);
 
+    # See also $typeref->{attributes}{lcfirst}, below.
     while ($attr =~ s/-(\w+)//) {
 	$typeref->{attributes}{$1} = $1;
     }
@@ -421,6 +443,7 @@ sub new_register {
 		my $bit_mnem = $row->[$mnem_col] or next;
 		$row->[$mnem_col] = ucfirst $bit_mnem;
 	    }
+	    $typeref->{attributes}{lcfirst} = 1;
 	}
 
 	foreach my $row (@bittable) {
@@ -478,9 +501,6 @@ sub new_register {
 		    $bitref->{attributes}{$1} = $row->[$colnum];
 		}
 	    }
-
-	    # Enter each bit into the table
-	    $typeref->{fields}{$bit_mnem} = $bitref;
 	}
     }
 }
@@ -598,7 +618,7 @@ sub regs_read {
 		 at => "${filename}:$.",
 		 );
 	    $typeref->inherits($inh);
-	    $typeref->{attributes}{$1} = 1 while ($flags =~ s/-([a-z]+)\b//);
+	    $typeref->{attributes}{$1} = 1 while ($flags =~ s/-([a-z][a-z0-9_]*)\b//);
 	    $regref->{typeref} = $typeref if $regref && $typemnem =~ /^R_/;
 	    $regref = undef;
 	    ($flags =~ /^\s*$/) or $typeref->warn("$fileline: Bad flags \"$flags\"\n");
@@ -619,15 +639,15 @@ sub regs_read {
 		 desc => $desc,
 		 type => $type,
 	     );
-	    $typeref->{fields}{$bit_mnem} = $bitref;
 	}
-	elsif ($line =~ /^enum\s+(\S+)$/) {
-	    my $name = $1;
+	elsif ($line =~ /^enum\s+(\S+)\s*(.*)$/) {
+	    my $name = $1; my $flags = $2;
 	    $classref = new SystemC::Vregs::Enum
 		(pack => $self,
 		 name => $name,
 		 at => "${filename}:$.",
 		 );
+	    $classref->{attributes}{$1} = 1 while ($flags =~ s/-([a-z][a-z0-9_]*)\b//);
 	}
 	elsif ($line =~ /^const\s+(\S+)\s+(\S+)\s+"(.*)"$/ ) {
 	    my $name = $1;  my $rst=$2;  my $desc=$3;
@@ -664,6 +684,13 @@ sub regs_read {
     ($got_a_line) or die "%Error: File empty or cpp error in $filename\n";
 
     $fh->close();
+}
+
+sub regs_read_check {
+    my $self = shift;
+    $self->regs_read(@_);
+    $self->check();
+    $self->exit_if_error();
 }
 
 sub rules_read {
@@ -760,19 +787,24 @@ sub SystemC::Vregs::Type::_create_defines {
 	 desc => "Class Size", );
 
     if ($typeref->{name} =~ /^R_/) {
-	my $wr_mask = 0;
-	for (my $bit=0; $bit<$typeref->{pack}->{data_bits}; $bit++) {
-	    my $bitent = $typeref->{bitarray}[$bit];
-	    next if !$bitent;
-	    $wr_mask  |= (1<<$bit) if ($bitent->{write});
+	for (my $word=0; $word<$typeref->{words}; $word++) {
+	    my $wr_mask = 0;
+	    for (my $bit=$word*$typeref->{pack}->{data_bits};
+		 $bit<(($word+1)*$typeref->{pack}->{data_bits});
+		 $bit++) {
+		my $bitent = $typeref->{bitarray}[$bit];
+		next if !$bitent;
+		$wr_mask  |= (1<<$bit) if ($bitent->{write});
+	    }
+	    my $wd=""; $wd=$word if $word;
+	    new_push SystemC::Vregs::Define::Value
+		(pack => $typeref->{pack},
+		 name => "CM${wd}_".$nor_mnem."_WRITABLE",
+		 rst_val  => sprintf("%08X",$wr_mask,),
+		 bits=>$typeref->{pack}->{data_bits},
+		 is_verilog => 1,	# In C++ use Class::BITMASK_WRITABLE
+		 desc => "Writable mask", );
 	}
-	new_push SystemC::Vregs::Define::Value
-	    (pack => $typeref->{pack},
-	     name => "CM_".$nor_mnem."_WRITABLE",
-	     rst_val  => sprintf("%08X",$wr_mask,),
-	     bits=>$typeref->{pack}->{data_bits},
-	     is_verilog => 1,	# In C++ use Class::BITMASK_WRITABLE
-	     desc => "Writable mask", );
     }
 
     # Make bit alias
@@ -845,6 +877,31 @@ sub SystemC::Vregs::Bit::_create_defines_range {
 		 name => "CE${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
 		 rst_val  => $wmsb,
 		 desc => "Field End Bit:   $comment", );
+	    if ($wstr eq "" && $typeref->{attributes}{macros_32_bits}) {
+		new_push SystemC::Vregs::Define::Value
+		    (pack => $typeref->{pack},
+		     name => "CBSZ${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
+		     rst_val => $wmsb - $wlsb + 1,
+		     desc => "Field Bit Size: $comment", );
+	    }
+	}
+    }
+    for (my $bitwidth=8; $bitwidth<=256; $bitwidth *=2) {
+	my $bitword = int($lsb/$bitwidth);
+	my $wlsb = $lsb - $bitword*$bitwidth;
+	my $wmsb = $msb - $bitword*$bitwidth;
+	if ($typeref->{attributes}{"macros_${bitwidth}_bits"}) {
+	    new_push SystemC::Vregs::Define::Value
+		(pack => $typeref->{pack},
+		 name => "CRW${bitwidth}_".$nor_mnem."_".$bit_mnem.$rstr,
+		 rst_val => $wmsb.":".$wlsb,
+		 is_verilog => 1,
+		 desc => "Field Bit Range for ${bitwidth}-bit extracts", );
+	    new_push SystemC::Vregs::Define::Value
+		(pack => $typeref->{pack},
+		 name => "CAW${bitwidth}_".$nor_mnem."_".$bit_mnem.$rstr,
+		 rst_val => $bitword,
+		 desc => "Field Word Number for ${bitwidth}-bit extracts", );
 	}
     }
 }
@@ -913,8 +970,11 @@ sub create_defines {
 		     bits => $pack->{address_bits},
 		     desc => "Range spacing", );
 	    }
+	}
 
-	    if ($regref->{spacing}->equal($bit4)) {
+	if ($range ne "" || $regref->{typeref}{words}>1) {
+	    my $wordspace = $regref->{pack}->addr_const_vec($regref->{typeref}{words}*4);
+	    if ($regref->{spacing}->equal($wordspace)) {
 		my $val = Bit::Vector->new($regref->{pack}{address_bits});
 		$val->subtract($regref->{addr_end},$addr,0);  #end-start
 		new_push SystemC::Vregs::Define::Value
@@ -949,21 +1009,22 @@ sub create_defines {
 		     rst_val => "Not_Aligned",
 		     desc => "Address Mask: This register is not natually aligned, so a mask will not work.");
 	    }
+	}
 
-	    # If small range, make a alias per range
-	    if ($regref->{range_ents} < 17) {
-		for (my $range_val=$range_low; $range_val <= $range_high; $range_val++) {
-		    my $range_addr = Bit::Vector->new_Dec($regref->{pack}{address_bits},
-							  $regref->{spacing} * $range_val);
-		    $range_addr->add($regref->{addr}, $range_addr, 0);
-		    new_push SystemC::Vregs::Define::Value
-			(pack => $pack,
-			 name => "RA_".$nor_mnem.$range_val,
-			 val => $range_addr,
-			 rst_val => $range_addr->to_Hex,
-			 bits => $regref->{pack}{address_bits},
-			 desc => "Address of Entry ${classname}${range_val}", );
-		}
+	# If small range, make a alias per range
+	if ($range ne ""
+	    && $regref->{range_ents} < 17) {
+	    for (my $range_val=$range_low; $range_val <= $range_high; $range_val++) {
+		my $range_addr = Bit::Vector->new_Dec($regref->{pack}{address_bits},
+						      $regref->{spacing} * $range_val);
+		$range_addr->add($regref->{addr}, $range_addr, 0);
+		new_push SystemC::Vregs::Define::Value
+		    (pack => $pack,
+		     name => "RA_".$nor_mnem.$range_val,
+		     val => $range_addr,
+		     rst_val => $range_addr->to_Hex,
+		     bits => $regref->{pack}{address_bits},
+		     desc => "Address of Entry ${classname}${range_val}", );
 	    }
 	}
     }
@@ -1025,6 +1086,29 @@ sub create_defines {
 
 ######################################################################
 ######################################################################
+#### Diags
+
+sub dump {
+    my $self = shift;
+    my $fh = shift || \*STDOUT;
+    my $indent = shift||"  ";
+    print $fh $indent,"Pack: ",$self->{name},"\n";
+    foreach my $typeref (values %{$self->{types}}) {
+	$typeref->dump($fh,$indent."  ");
+    }
+    foreach my $regref (values %{$self->{regs}}) {
+	$regref->dump($fh,$indent."  ");
+    }
+    foreach my $enumref (values %{$self->{enums}}) {
+	$enumref->dump($fh,$indent."  ");
+    }
+    foreach my $defref ($self->defines_sorted) {
+	$defref->dump($fh,$indent."  ");
+    }
+}
+
+######################################################################
+######################################################################
 #### Saving
 
 sub SystemC::Vregs::Bit::_vregs_write_type {
@@ -1045,7 +1129,7 @@ sub SystemC::Vregs::Type::_vregs_write_type {
     if ($self->{inherits}) {
 	print $fh "\t:$self->{inherits}";
     }
-    foreach my $var (keys %{$self->{attributes}}) {
+    foreach my $var (sort (keys %{$self->{attributes}})) {
 	print $fh "\t-$var";
     }
     print $fh "\n";
@@ -1113,9 +1197,14 @@ sub regs_write {
     print $fh "//",'*'x70,"\n// Enumerations\n";
     foreach my $classref ($self->enums_sorted) {
 	my $classname = $classref->{name} || "x";
-	printf $fh "   enum\t$classname\n";
+	printf $fh "   enum\t$classname";
+	foreach my $var (keys %{$classref->{attributes}}) {
+	    print $fh "\t-$var";
+	}
+	print $fh "\n";
 	    
 	foreach my $fieldref ($classref->fields_sorted()) {
+	    next if $fieldref->{omit_from_vregs_file};
 	    printf $fh "\tconst\t%-13s\t%s\t\"%s\"\n"
 		,$fieldref->{name},$fieldref->{rst},$fieldref->{desc};
 	}
@@ -1207,6 +1296,11 @@ Reads the specified HTML filename, and creates internal objects.
 
 Reads the specified .vregs filename, and creates internal objects.
 
+=item regs_read_check
+
+Calls the normal sequence of commands to read a known-good vregs file;
+regs_read, check, and exit_if_error.
+
 =item regs_write
 
 Creates the specified .vregs filename.
@@ -1220,7 +1314,7 @@ Returns list of SystemC::Vregs::Type objects.
 
 =head1 SEE ALSO
 
-C<vregs>
+C<vreg>
 C<SystemC::Vregs::Rules>
 C<SystemC::Vregs::Outputs>
 

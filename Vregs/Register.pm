@@ -1,4 +1,4 @@
-# $Id: Register.pm,v 1.30 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #4 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,10 +26,25 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.210';
+$VERSION = '1.240';
 
-# mnem
-# addr
+# Fields:
+#	{name}			Field name (Subclass)
+#	{nor_name}		Name w/o leading R_
+#	{at}			File/line number (Subclass)
+#	{pack}			Parent SystemC::Vregs ref
+#	{typeref}		Owning SystemC::Vregs::Type ref
+#	{addrtext}	
+#	{addr}			Beginning SystemC::Vregs::Addr
+#	{addr_end}		Ending SystemC::Vregs::Addr
+#	{spacingtext}	
+#	{range}			Range text
+#	{range_high}		SystemC::Vregs::Addr
+#	{range_low}		SystemC::Vregs::Addr
+#	{range_ents}		Number of range entries, SystemC::Vregs::Addr
+
+######################################################################
+# Accessors
 
 sub new {
     my $class = shift;  $class = ref $class if ref $class;
@@ -91,8 +104,8 @@ sub dewildcard {
 sub check_name {
     my $regref = shift;
     my $field = $regref->{name};
-    ($field =~ /^R_[A-Z][a-zA-Z0-9]+$/)
-	or $regref->warn ("Register mnemonics must match R_[capitals][alphanumerics]'\n");
+    ($field =~ /^R_[A-Z][a-zA-Z0-9]*$/)
+	or $regref->warn ("Register mnemonics must match R_[capitals][alphanumerics]\n");
     ($field =~ /cnfg[0-9]+$/i) and $regref->warn ("Abbreviate CNFG (Configuration) as Cfg\n");  #Dan Lussier'ism
     ($regref->{nor_name} = $field) =~ s/^[RC]_//;
 }
@@ -192,7 +205,8 @@ sub computes {
 	my $inc = $regref->{pack}->addr_const_vec(1);
         $inc->subtract($regref->{range_ents}, $inc, 0);
 	$inc->Multiply($regref->{spacing}, $inc);
-	$inc->add($inc, $regref->{pack}->addr_const_vec(4), 0);
+	$regref->{ent_size} = $regref->{pack}->addr_const_vec($regref->{typeref}{words}*4);
+	$inc->add($inc, $regref->{ent_size}, 0);
 	$inc->add($regref->{addr}, $inc, 0);
 	$regref->{addr_end} = $inc;
     }
@@ -204,6 +218,15 @@ sub check_end {
 	($regref->{addr_end}->Lexicompare($regref->{addr_end_wildcard}) < 0)
 	    or $regref->warn ("Register exceeds upper boundary in wildcarded declaration: ", $regref->{addr_end}," ", $regref->{addr_end_wildcard}, "\n");
     }
+}
+
+sub dump {
+    my $self = shift;
+    my $fh = shift || \*STDOUT;
+    my $indent = shift||"  ";
+    print $fh +($indent,"Reg: ",$self->{name},
+		" addr:",$self->{addrtext}||'',
+		"\n");
 }
 
 ######################################################################

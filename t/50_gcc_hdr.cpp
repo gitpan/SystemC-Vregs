@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: 50_gcc_hdr.cpp,v 1.11 2002/03/11 14:07:22 wsnyder Exp $
+// $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 
 #include <stdlib.h>
@@ -90,7 +90,6 @@ typedef unsigned long long Address ;
 // Just enough so we know it compiles and run!
 int main() {
     ExClassOne clOne;
-    ExClassTwo clTwo;
     clOne.fieldsZero();
     clOne.cmd(ExEnum::ONE);
     clOne.address(0x1234);
@@ -108,16 +107,16 @@ int main() {
 	COUT << "%Error: ClassTwo Has Wrong Size: "<<sizeof(ExBase)<<" "<<ExClassTwo::SIZE<<endl;
 	exit(10);
     }
-    if ((char*)&clTwo != (char*)&(clTwo.m_w[0])) {
-	COUT << "%Error: Data doesn't start at base\n";
-	exit(10);
-    }
 
     // Dumping a enum
-    COUT << "Cmd = "<<clOne.cmd()<<endl;
+    COUT << "Cmd = "<<clOne.cmd()<< " Desc="<<clOne.cmd().description()<<endl;
 
     // Dumping class
     COUT << "ClassOne =\t" <<hex << clOne.dump() << endl;
+
+    // Check subclassing worked
+    ExSuperEnum sen (ExSuperEnum::A__FIVE);
+    COUT << "SuperEnum Desciption = "<<sen.description()<<endl;
 
     return (0);
 }

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Id: 20_vregsparse.t,v 1.4 2002/03/11 14:07:22 wsnyder Exp $
+# $Revision: #1 $$Date: 2002/09/16 $$Author: lab $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 
 use strict;
@@ -12,6 +12,6 @@ use SystemC::Vregs;
 ok(1);
 
 print "Checking vregs...\n";
-run_system ("${PERL} ./vregs --rm --html vregs_spec.htm"
+run_system ("${PERL} ./vreg --rm --html vregs_spec.htm"
 	    ." --noheaders --package vregs_spec --output test_dir");
 ok(1);

@@ -1,4 +1,4 @@
-# $Id: Enum.pm,v 1.11 2002/03/11 15:53:29 wsnyder Exp $
+# $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -6,9 +6,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,7 +26,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.210';
+$VERSION = '1.240';
 
 ######################################################################
 ######################################################################
@@ -59,7 +57,7 @@ sub find_value {
 sub check_name {
     my $self = shift;
     my $field = $self->{name};
-    if ($field !~ /^[A-Z][a-zA-Z0-9_]+$/) {
+    if ($field !~ /^[A-Z][a-zA-Z0-9_]*$/) {
 	$self->warn ("Enum names must match [capitals][alphanumerics]'\n: $field");
 	return;
     }
@@ -81,6 +79,17 @@ sub fields_sorted {
     my $typeref = shift;
     return (sort {$a->{rst_val} <=> $b->{rst_val}}
 	    (values %{$typeref->{fields}}));
+}
+
+sub dump {
+    my $self = shift;
+    my $fh = shift || \*STDOUT;
+    my $indent = shift||"  ";
+    print $fh +($indent,"Enum: ",$self->{name},
+		"\n");
+    foreach my $fieldref ($self->fields_sorted) {
+	$fieldref->dump($fh,$indent."  ");
+    }
 }
 
 ######################################################################
@@ -132,8 +141,8 @@ sub check_name {
     my $self = shift;
     my $field = $self->{name};
     my $class = $self->{class};
-    if ($field !~ /^[A-Z][A-Z0-9_]+$/) {
-	return $self->warn ("Enum field names must match [capital][capitalnumerics_]: $field'\n");
+    if ($field !~ /^[A-Z][A-Z0-9_]*$/) {
+	return $self->warn ("Enum field names must match [capital][capitalnumerics_]: $field\n");
     }
     #my $prefix = $1;
     #if (defined $class->{value_prefix}
@@ -144,11 +153,49 @@ sub check_name {
     #$class->{value_prefix} = $prefix;
 }
 
+sub expand_subenums {
+    my $self = shift;
+    if ($self->{desc} =~ /^(.*)ENUM:(\S+)(.*)/) {
+	my $prefix = $1; my $subname = $2; my $postfix = $3;
+	print "Expand Subenum '$prefix'  '$subname'  '$postfix'\n" if $SystemC::Vregs::Debug;
+	my $suberef = $self->{pack}->find_enum($subname);
+	if (!$suberef) {
+	    $self->warn("Enum references sub-enum which isn't found: $subname\n");
+	} else {
+	    $suberef->check();
+	    $self->{omit_description} = 1;
+	    foreach my $subfieldref ($suberef->fields_sorted) {
+		print "   FIELD ADD ".$subfieldref->{name}."\n" if $SystemC::Vregs::Debug;
+		my $rst = $self->{bits}."'d".($self->{rst_val} + $subfieldref->{rst_val});
+		my $valref = new SystemC::Vregs::Enum::Value
+		    (pack => $self->{pack},
+		     name => $self->{name}."__".$subfieldref->{name},
+		     class => $self->{class},
+		     rst  => $rst,
+		     desc => $prefix . $subfieldref->{desc} . $postfix,
+		     omit_from_vregs_file => 1,   # Else we'll add it every time we rebuild
+		     );
+		$valref->check;
+	    }
+	}
+    }
+}
+
 sub check {
     my $self = shift;
     $self->clean_desc();
     $self->clean_rst();
     $self->check_name();
+    $self->expand_subenums();
+    ($self->{desc}) or $self->info("(Soon warn) Empty description, please document it.\n");
+}
+
+sub dump {
+    my $self = shift;
+    my $fh = shift || \*STDOUT;
+    my $indent = shift||"  ";
+    print $fh +($indent,"Value: ",$self->{name},
+		"\n");
 }
 
 ######################################################################

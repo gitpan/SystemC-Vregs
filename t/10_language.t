@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Id: 10_language.t,v 1.5 2002/03/11 14:07:22 wsnyder Exp $
+# $Revision: #1 $$Date: 2002/09/16 $$Author: lab $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 
 use strict;
