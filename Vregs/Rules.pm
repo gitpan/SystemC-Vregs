@@ -1,8 +1,8 @@
-# $Revision: #30 $$Date: 2003/10/30 $$Author: wsnyder $
+# $Revision: #32 $$Date: 2004/01/27 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -18,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.243';
+$VERSION = '1.244';
 
 ######################################################################
 # Default rules
@@ -226,7 +226,7 @@ SystemC::Vregs::Rules - Rules for outputting class headers
 =head1 DESCRIPTION
 
 This package is used to execute Vregs rule files.  These files describe
-execptions and additional text to be included in Vregs outputs.
+exceptions and additional text to be included in Vregs outputs.
 
 =head1 RULE DECLARATIONS
 
@@ -287,7 +287,7 @@ Specifies a rule to be invoked right after the '}' ending a enum declaration.
 =item name => qr/I<regexp>/
 
 Must be either a string which must match for the rule to be invoked, or a
-rexexp reference (qr/regexp/) which if matches will invoke the rule.
+regexp reference (qr/regexp/) which if matches will invoke the rule.
 
 =item replace => 1
 

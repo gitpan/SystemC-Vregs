@@ -1,8 +1,8 @@
-# $Revision: #34 $$Date: 2003/10/30 $$Author: wsnyder $
+# $Revision: #36 $$Date: 2004/01/27 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.243';
+$VERSION = '1.244';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -66,8 +66,8 @@ sub clean_html_text {
     s/\223/\"/g;	# ISO-Latin1 left double-quote
     s/\224/\"/g;	# ISO-Latin1 right double-quote
     s/\225/\*/g;	# ISO-Latin1 bullet
-    s/\226/-/g;		# ISO-Latin1 en-dash (0x96) (Unicode &#8211;)
-    s/\227/--/g;	# ISO-Latin1 em-dash (0x97) (Unicode &#8212;)
+    s/\226/-/g;		# ISO-Latin1 en-dash (0x96)
+    s/\227/--/g;	# ISO-Latin1 em-dash (0x97)
     s/\230/~/g;		# ISO-Latin1 small tilde
     s/\233/>/g;		# ISO-Latin1 single right angle quote
     s/\246/\|/g;	# ISO-Latin1 broken vertical bar
@@ -75,13 +75,21 @@ sub clean_html_text {
     s/\264/\'/g;	# ISO-Latin1 spacing acute
     s/\267/\*/g;	# ISO-Latin1 middle dot (0xB7)
     # These are automatically removed by HTML::Entities in Perl 5.7 and greater
-    s/\&\#8209;/-/g;	# Unicode nonbreaking hyphen (0x2011)
-    s/\&mdash;/--/g;	# ISO-Latin1 em-dash (0x97) (Unicode &#8212;)
-    s/\&\#8220;/\"/g;	# ISO-Latin1 left double-quote
-    s/\&ldquo;/\"/g;	# ISO-Latin1 left double-quote
-    s/\&\#8221;/\"/g;	# ISO-Latin1 right double-quote
-    s/\&rdquo;/\"/g;	# ISO-Latin1 right double-quote
-    s/\&\#8212;/--/g;	# ISO-Latin1 em-dash (0x97) (Unicode &#8212;)
+    s/\&\#8209;/-/g;	# ISOpub nonbreaking hyphen (U+2011, &#8209;)
+    s/\&\#8211;/--/g;	# ISOpub en-dash (U+2013, &#8211;)
+    s/\&ndash;/--/g;	# ISOpub en-dash (U+2013, &#8211;)
+    s/\&\#8212;/--/g;	# ISOpub em-dash (U+2014, &#8212;)
+    s/\&mdash;/--/g;	# ISOpub em-dash (U+2014, &#8212;)
+    s/\&\#8216;/\'/g;	# ISOnum left single-quote (U+2018, &#8216;)
+    s/\&lsquo;/\'/g;	# ISOnum left single-quote (U+2018, &#8216;)
+    s/\&\#8217;/\'/g;	# ISOnum right single-quote (U+2019, &#8217;)
+    s/\&rsquo;/\'/g;	# ISOnum right single-quote (U+2019, &#8217;)
+    s/\&\#8220;/\"/g;	# ISOnum left double-quote (U+201C, &#8220;)
+    s/\&ldquo;/\"/g;	# ISOnum left double-quote (U+201C, &#8220;)
+    s/\&\#8221;/\"/g;	# ISOnum right double-quote (U+201D, &#8221;)
+    s/\&rdquo;/\"/g;	# ISOnum right double-quote (U+201D, &#8221;)
+    s/\&\#8230;/--/g;	# ISOpub horizontal elipses (U+2026, &#8230;)
+    s/\&hellip;/--/g;	# ISOpub horizontal elipses (U+2026, &#8230;)
     # Compress spacing
     s/\`/\'/g;
     s/[\t\n\r ]+/ /g;
@@ -115,17 +123,26 @@ sub text {
     # Don't bother if we are in a table
     if (! $self->{_in_a_table}) {
 	$_ = $_[0];
-	printf "Text %s: %s: %s",$self->{_fh}->tell()
-	    ,($self->{_vregs_first_word_in_p}?"FW":"  "),"$_\n" if $Debug;
+	printf +("Text %s: %s:|%s|\n", $self->{_fh}->tell(),
+		 ($self->{_vregs_first_word_in_p}?"FW":"  "),$_) if $Debug;
 	my $text = clean_html_text($_);
 	if ($text !~ /^\s*$/
 	    && $text !~ /^</) {
 	    my $nosp_text = $text;
-	    $nosp_text =~ s/^\s+//; $nosp_text =~ s/\s+$//;
+	    if ($self->{_vregs_first_word_in_p}) {
+		$nosp_text =~ s/^\s+//; $nosp_text =~ s/\s+$//;
+		# Per W3C HTML spec, "SGML specifies that a line break immediately
+		# following a start tag must be ignored, as must a line break
+		# immediately before an end tag.  This applies to all HTML elements
+		# without exception."
+		# And, "For all HTML elements except PRE, sequences of white space
+		# separate words."
+		# Sadly, the HTML parser did not take care of this for us.
+		$text = $nosp_text;
+	    }
 	    if ($self->{_vregs_first_word_in_p}
 		&& $Find_Headers{$nosp_text}) {
-		$text = $nosp_text;
-		print "Keyword $text\n" if $Debug;
+		print "Keyword '$text'\n" if $Debug;
 		if ($Find_Start_Headers{$text}) {
 		    # Process previous entry, and prepare for next discovery
 		    my $pack = $self->{_vregs_pack};
@@ -140,7 +157,7 @@ sub text {
                 $self->{_vregs_first_endp} = 0;
 	    }
 	    elsif ($self->{_vregs_next_tag}) {
-		print "TAG $self->{_vregs_next_tag} $text\n" if $Debug;
+		print "TAG '$self->{_vregs_next_tag}' '$text'\n" if $Debug;
 		$self->{_vregs_next}{$self->{_vregs_next_tag}} .= $text;
 	    }
 	}

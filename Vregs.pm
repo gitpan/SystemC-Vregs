@@ -1,8 +1,8 @@
-# $Revision: #108 $$Date: 2003/10/30 $$Author: wsnyder $
+# $Revision: #110 $$Date: 2004/01/27 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -27,7 +27,7 @@ use Carp;
 use vars qw($Debug $Bit_Access_Regexp @ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.243';
+$VERSION = '1.244';
 
 ######################################################################
 #### Constants
@@ -751,7 +751,7 @@ sub check {
 sub _force_mask {
     my $pack = shift;
     my $mask = shift;
-    # Return new mask which assumes power-of-2 alignement of all registers
+    # Return new mask which assumes power-of-2 alignment of all registers
     my $bit;
     for ($bit=$pack->{address_bits}-1; $bit>=1; --$bit) {  # Ignore bits 1&0
 	if ($mask->bit_test($bit)) {
@@ -1031,7 +1031,7 @@ sub create_defines {
 		    (pack => $pack,
 		     name => "RAM_".$nor_mnem,
 		     rst_val => "Not_Aligned",
-		     desc => "Address Mask: This register is not natually aligned, so a mask will not work.");
+		     desc => "Address Mask: This register is not naturally aligned, so a mask will not work.");
 	    }
 	}
 
@@ -1287,7 +1287,7 @@ number of address bits should be passed as address_bits.
 
 =item check
 
-Checks the object for errors, and parses the object to create some derrived
+Checks the object for errors, and parses the object to create some derived
 fields.
 
 =item defines_sorted

@@ -1,8 +1,8 @@
-# $Revision: #40 $$Date: 2003/10/30 $$Author: wsnyder $
+# $Revision: #42 $$Date: 2004/01/27 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.243';
+$VERSION = '1.244';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -272,7 +272,7 @@ Reference to the package (SystemC::Vregs) object self is a member of.
 
 =back
 
-=item DERRIVED FIELDS
+=item DERIVED FIELDS
 
 These fields are valid only after check() is called.
 
@@ -298,7 +298,7 @@ Creates a new register object.
 
 =item check
 
-Checks the object for errors, and parses to create derrived fields.
+Checks the object for errors, and parses to create derived fields.
 
 =back
 

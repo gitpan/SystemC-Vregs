@@ -1,7 +1,7 @@
-// $Revision: #17 $$Date: 2003/09/22 $$Author: wsnyder $ -*- C++ -*-
+// $Revision: #19 $$Date: 2004/01/27 $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+// Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 // you can redistribute it and/or modify it under the terms of either the GNU
 // General Public License or the Perl Artistic License.
 // 
@@ -102,7 +102,7 @@ public:
     bool		isRegDump() const { return ((m_flags & REGFL_NOREGDUMP)==0); }
     bool		isBigTest() const { return ((m_flags & REGFL_NOBIGTEST)==0); }
 
-    // ACCESSORS - Derrived from above functions
+    // ACCESSORS - Derived from above functions
     // True if this is a entry of a multiple entry structure
     bool		isRanged() const { return entSize() != 0; }
     size64_t		entries() const {

@@ -1,8 +1,8 @@
-# $Revision: #9 $$Date: 2003/10/30 $$Author: wsnyder $
+# $Revision: #12 $$Date: 2004/01/27 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -17,7 +17,7 @@ package SystemC::Vregs::OutputNamed;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.243';
+$VERSION = '1.244';
 
 use SystemC::Vregs::Outputs;
 use SystemC::Vregs::Number;
@@ -44,7 +44,7 @@ sub named_h_write {
 		,"    static bool   isClassName(const char* className);\n"
 		,"    static int    numClassNames();\n"
 		,"    static const char** classNames();\n"
-		,"    static void   dumpClass(const char* className, void* datap, OStream& ost=COUT, const char* pf=\"\n\t\");\n"
+		,"    static void   dumpClass(const char* className, void* datap, OStream& ost=COUT, const char* pf=\"\\n\\t\");\n"
 	        ,"};\n\n");
 
     $fl->close();
@@ -133,7 +133,7 @@ Creates a header file for use with dump_named_write.
 =item named_cpp_write
 
 Creates a C++ file which allows textual class names to be mapped
-to appopriate pointer types for dumping to a stream.
+to appropriate pointer types for dumping to a stream.
 
 =back
 

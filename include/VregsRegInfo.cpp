@@ -1,7 +1,7 @@
-// $Revision: #13 $$Date: 2003/09/22 $$Author: wsnyder $ -*- C++ -*-
+// $Revision: #15 $$Date: 2004/01/27 $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+// Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 // you can redistribute it and/or modify it under the terms of either the GNU
 // General Public License or the Perl Artistic License.
 // 
@@ -84,6 +84,7 @@ VregsRegEntry* VregsRegInfo::find_by_next_addr (address_t addr)
 {
     // Return register at given address, or the next register at slightly greater address
     ByAddrMap::iterator iter = m_byAddr.lower_bound(addr);
+    if (iter == m_byAddr.end()) return NULL;
     VregsRegEntry* re1p = iter->second;
     if (!re1p) {
 	iter = m_byAddr.end();
@@ -107,7 +108,7 @@ VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr)
 {
     // Return register at given address, or NULL
     VregsRegEntry* rep = find_by_next_addr(addr);
-    if (addr >= rep->address() && addr < rep->addressEnd() ) {
+    if (rep && addr >= rep->address() && addr < rep->addressEnd() ) {
 	return rep;
     }
     return NULL;

@@ -1,8 +1,8 @@
-# $Revision: #37 $$Date: 2003/10/30 $$Author: wsnyder $
+# $Revision: #39 $$Date: 2004/01/27 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -19,7 +19,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.243';
+$VERSION = '1.244';
 
 ######################################################################
 #### Implementation
@@ -479,7 +479,7 @@ from the present file contents.
 
 =item language
 
-The language for the file.  May be C, Perl, Assembler, Tcl, or Verilog.  A new
+The language for the file.  May be C, Perl, Assembler, TCL, or Verilog.  A new
 language Foo may be defined by making a SystemC::Vregs::Language::Foo class
 which is an @ISA of SystemC::Vregs::Language.
 

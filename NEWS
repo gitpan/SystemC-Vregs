@@ -1,9 +1,13 @@
 SystemC::Vregs NEWS --  history of user-visible changes.
-Copyright (C) 2002 Wilson Snyder.
+Copyright (C) 2002-2004 Wilson Snyder.
 
 The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
+
+* Changes in Vregs 1.244 1/27/2004
+
+****	Documentation fixes.
 
 * Changes in Vregs 1.243 10/30/2003
 
@@ -23,7 +27,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 * Changes in Vregs 1.241 6/9/2003
 
-***	Added error if a derrived class is extended to more words then its base
+***	Added error if a derived class is extended to more words then its base
 	class.  Use the '-stretchable' attribute on the base class to disable this.
 	Also check at runtime the word set methods, unless -stretchable is used.
 
@@ -109,7 +113,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 	silently truncate the argument.
 
 ***	Define VREGS_STRUCT_DEF_CTOR(TypeName, numWords) if you want structs
-	to have a default contructor, e.g. to initialize the words to
+	to have a default constructor, e.g. to initialize the words to
 	0xdeadbeef.  Otherwise Vregs structs are initially undefined (just
 	like a C++ array of uint32_t).
 
@@ -154,11 +158,11 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Revision: #47 $$Date: 2003/10/30 $$Author: wsnyder $
+$Revision: #49 $$Date: 2004/01/27 $$Author: wsnyder $
 ----------------------------------------------------------------------
 Copyright information:
 
-   Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+   Copyright 2001-2004 by Wilson Snyder.  This program is free software;
    you can redistribute it and/or modify it under the terms of either the GNU
    General Public License or the Perl Artistic License.
 

@@ -1,8 +1,8 @@
-# $Revision: #20 $$Date: 2003/10/30 $$Author: wsnyder $
+# $Revision: #22 $$Date: 2004/01/27 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2003 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -18,7 +18,7 @@ package SystemC::Vregs::Subclass;
 use strict;
 use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.243';
+$VERSION = '1.244';
 
 $Errors = 0;
 
@@ -42,11 +42,27 @@ sub at_text {
 	    $at .= "::";
 	}
 	$at .= ($self->{name}||$self->{Register}||$self->{Mnemonic}||$self->{at}||"");
+	# If the name has non-printing or strange chars, quote it and show them.
+	if ($at !~ /^[\w\-\:]+$/) {
+	    $at =~ s/(.)/substchar($1)/egs;
+	    $at = "'". $at ."'";
+	}
 	$at .= ": ";
     }
 
     $at .= ($self->{at}||"").":" if $SystemC::Vregs::Debug;
     return $at;
+}
+
+sub substchar {
+    my $c = shift; 
+    my $n = ord $c;
+    if ($n >= 33 && $n <= 126) {
+	return "\\\'" if ($c eq "'");
+	return "\\\\" if ($c eq "\\");
+	return $c;
+    }
+    return sprintf("\\x%02x", $n);
 }
 
 sub info {
