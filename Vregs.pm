@@ -1,4 +1,4 @@
-# $Revision: 1.122 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
+# $Revision: 1.122 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw($Debug @ISA $VERSION
 	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.250';
+$VERSION = '1.260';
 
 ######################################################################
 #### Constants
@@ -64,7 +64,9 @@ sub new {
     my $self = {address_bits => 32,
 		data_bits => 32,	# Changing this isn't verified
 		rebuild_comment => undef,
-		attributes => {},
+		attributes => {
+		    # v2k => 0,		# Use localparam instead of parameter
+		},
 		comments => 1,
 		protect_rdwr_only => 1,
 		@_};
@@ -691,7 +693,7 @@ sub regs_read {
 		 at => "${filename}:$.",
 		 );
 	}
-	elsif ($line =~ /^package\s+(\S+)\s*(\S*)$/ ) {
+	elsif ($line =~ /^package\s+(\S+)\s*(.*)$/ ) {
 	    my $flags = $2;
 	    $self->{name} = $1;
 	    $self->{attributes}{$1} = 1 while ($flags =~ s/-([a-z]+)\b//);

@@ -1,4 +1,4 @@
-# $Revision: 1.48 $$Date: 2005/01/13 18:23:42 $$Author: wsnyder $
+# $Revision: 1.48 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.250';
+$VERSION = '1.260';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);

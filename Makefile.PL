@@ -1,4 +1,4 @@
-# $Revision: 1.23 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
+# $Revision: 1.23 $$Date: 2005-02-07 07:34:31 -0500 (Mon, 07 Feb 2005) $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
 # Copyright 2001-2005 by Wilson Snyder.  This program is free software;
@@ -11,7 +11,7 @@ use Carp;
 sub MY::postamble {
 "
 README: readme.texi
-	-rm \$@
+	-rm -rf \$@
 	makeinfo \$< --output \$@ --no-headers --no-validate
 
 dist: distcheck README
@@ -31,16 +31,13 @@ preexist:
 	test ! -r \$(HOME)/src/kits/\$(DISTVNAME).tar.gz
 
 tag:
-#	c4 label -d     \$(DISTNAME)_\$(VERSION_SYM) || true
-#	c4 label        \$(DISTNAME)_\$(VERSION_SYM)
-#	c4 labelsync -l \$(DISTNAME)_\$(VERSION_SYM) ...
-	cvs tag -F      \$(DISTNAME)_\$(VERSION_SYM) .
+	svnorcvs tag  \$(DISTNAME)_\$(VERSION_SYM)
 
 maintainer-diff:
-	cvs diff -r \$(DISTNAME)_\$(VERSION_SYM) 
+	svnorcvs diff \$(DISTNAME)_\$(VERSION_SYM) 
 
 maintainer-clean: distclean
-	-rm README Makefile
+	-rm -rf README Makefile
 
 maintainer-dist: preexist dist tag
 	cp \$(DISTVNAME).tar.gz \$(HOME)/src/kits

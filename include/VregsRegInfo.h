@@ -1,17 +1,23 @@
-// $Revision: 1.21 $$Date: 2005/01/12 21:35:09 $$Author: wsnyder $ -*- C++ -*-
+// $Revision: 1.21 $$Date: 2005-02-21 14:12:14 -0500 (Mon, 21 Feb 2005) $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2005 by Wilson Snyder.  This program is free software;
-// you can redistribute it and/or modify it under the terms of either the GNU
-// General Public License or the Perl Artistic License.
-// 
+// Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// program is free software; you can redistribute it and/or modify it under
+// the terms of either the GNU Lesser General Public License or the Perl
+// Artistic License.
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 //======================================================================
-// DESCRIPTION: Vregs: VregsRegEntry and VregsRegInfo classes
+///
+/// \file
+/// \brief Vregs: VregsRegEntry and VregsRegInfo classes
+///
+/// AUTHOR:  Wilson Snyder
+///
 //======================================================================
 
 #ifndef _VREGS_REG_INFO_H_
@@ -29,30 +35,28 @@ class VregsRegInfo;
 
 //======================================================================
 // VregsRegEntry
-// Each register has one of these entries, which is a member of VregsRegInfo
+/// Each register has one of these entries, which is a member of VregsRegInfo
 
 class VregsRegEntry {
 private:
-    address_t		m_address;	// Address of entry 0, word 0 of register
-    size64_t		m_size;		// Size in bytes of the register
-    const char*		m_name;		// Ascii name of the register
-    size64_t		m_entSize;	// Size of a single entry
-    long		m_lowEntNum;	// Low entry number (for RAMs)
-    void*		m_userinfo;	// Reserved for users (not used here)
+    address_t		m_address;	///< Address of entry 0, word 0 of register
+    size64_t		m_size;		///< Size in bytes of the register
+    const char*		m_name;		///< Ascii name of the register
+    size64_t		m_entSize;	///< Size of a single entry
+    long		m_lowEntNum;	///< Low entry number (for RAMs)
+    void*		m_userinfo;	///< Reserved for users (not used here)
 
-    uint32_t		m_rdMask;	// Readable mask (1 in bit indicates is readable)
-    uint32_t		m_wrMask;	// Writeable mask (1 in bit indicates is writable)
-    uint32_t		m_rstVal;	// Reset value (for 32 bit reg tests)
-    uint32_t		m_rstMask;	// Reset mask (1 in bit indicates is reset)
-    uint32_t		m_flags;	// Flags (side effects, testing)
-
-    // Function to return 'name' of address, NULL = default
-    // Function to print data, NULL = default
+    uint32_t		m_rdMask;	///< Readable mask (1 in bit indicates is readable)
+    uint32_t		m_wrMask;	///< Writeable mask (1 in bit indicates is writable)
+    uint32_t		m_rstVal;	///< Reset value (for 32 bit reg tests)
+    uint32_t		m_rstMask;	///< Reset mask (1 in bit indicates is reset)
+    uint32_t		m_flags;	///< Flags (side effects, testing)
 
 public:
 //protected:
     // CREATORS
     friend class VregsRegInfo;
+    // Create new register, called by vregs generated headers
     VregsRegEntry(address_t addr, size64_t size,
 		  const char* name, size64_t entSize, long lowEntNum,
 		  uint32_t rdMask, uint32_t wrMask,
@@ -65,61 +69,63 @@ public:
 
 public:
     // CONSTANTS
-    static const uint32_t REGFL_RDSIDE	= 0x1;	// Register has read side effects
-    static const uint32_t REGFL_WRSIDE	= 0x2;	// Register has write side effects
-    static const uint32_t REGFL_NOBIGTEST = 0x4;	// Register should be extensively tested
-    static const uint32_t REGFL_NOREGTEST = 0x8;	// Register should not be tested
-    static const uint32_t REGFL_NOREGDUMP = 0x10;	// Register should not be dumped
+    static const uint32_t REGFL_RDSIDE	= 0x1;	///< Register has read side effects
+    static const uint32_t REGFL_WRSIDE	= 0x2;	///< Register has write side effects
+    static const uint32_t REGFL_NOBIGTEST = 0x4;	///< Register should be extensively tested
+    static const uint32_t REGFL_NOREGTEST = 0x8;	///< Register should not be tested
+    static const uint32_t REGFL_NOREGDUMP = 0x10;	///< Register should not be dumped
 
     // MANIPULATORS
     void 		userinfo (void* userinfo) { m_userinfo = userinfo; }
-    void		dump() const;
+    void		dump() const;	///< Dump all information on registers
 
     // ACCESSORS
-    address_t		address () const { return m_address; }
-    const char* 	name () const { return m_name; }
-    size64_t	 	size () const { return m_size; }
-    size64_t	 	entSize () const { return m_entSize; }
-    long 		lowEntNum () const { return m_lowEntNum; }
-    void* 		userinfo () const { return m_userinfo; }
+    address_t		address () const { return m_address; }	///< Starting address
+    const char* 	name () const { return m_name; }	///< Register name
+    size64_t	 	size () const { return m_size; }	///< Total size in bytes
+    size64_t	 	entSize () const { return m_entSize; }	///< One array entry in bytes
+    long 		lowEntNum () const { return m_lowEntNum; }	///< Low bound of array
+    void* 		userinfo () const { return m_userinfo; }	///< Userdata
 
     // We don't allow visibility to the uint that gives the value of these fields
     // This allows us to have other then 32 bit registers in the future
-    bool		rdMask(int bit) const { return ((m_rdMask & (1UL<<(bit)))!=0); }
-    bool		wrMask(int bit) const { return ((m_wrMask & (1UL<<(bit)))!=0); }
-    bool		rstVal(int bit) const { return ((m_rstVal & (1UL<<(bit)))!=0); }
-    bool		rstMask(int bit) const { return ((m_rstMask & (1UL<<(bit)))!=0); }
-    uint32_t		rdMask() const { return (m_rdMask); }
-    uint32_t		wrMask() const { return (m_wrMask); }
-    uint32_t		rstVal() const { return (m_rstVal); }
-    uint32_t		rstMask() const { return (m_rstMask); }
-    bool		isRdMask() const { return (m_rdMask!=0); }
-    bool		isWrMask() const { return (m_wrMask!=0); }
-    bool		isRstMask() const { return (m_rstMask!=0); }
-    bool		isRdSide() const { return ((m_flags & REGFL_RDSIDE)!=0); }
-    bool		isWrSide() const { return ((m_flags & REGFL_WRSIDE)!=0); }
-    bool		isRegTest() const { return ((m_flags & REGFL_NOREGTEST)==0); }
-    bool		isRegDump() const { return ((m_flags & REGFL_NOREGDUMP)==0); }
-    bool		isBigTest() const { return ((m_flags & REGFL_NOBIGTEST)==0); }
+    bool		rdMask(int bit) const { return ((m_rdMask & (1UL<<(bit)))!=0); } ///< Is this bit readable
+    bool		wrMask(int bit) const { return ((m_wrMask & (1UL<<(bit)))!=0); } ///< Is this bit writable
+    bool		rstMask(int bit) const { return ((m_rstMask & (1UL<<(bit)))!=0); } ///< Is this bit reset
+    bool		rstVal(int bit) const { return ((m_rstVal & (1UL<<(bit)))!=0); } ///< Reset value of this bit
+    uint32_t		rdMask() const { return (m_rdMask); }	///< Bits that are readable
+    uint32_t		wrMask() const { return (m_wrMask); }	///< Bits that are writable
+    uint32_t		rstMask() const { return (m_rstMask); }	///< Bits that are reset
+    uint32_t		rstVal() const { return (m_rstVal); }	///< Reset value
+    bool		isRdMask() const { return (m_rdMask!=0); }	///< Readable
+    bool		isWrMask() const { return (m_wrMask!=0); }	///< Writable
+    bool		isRstMask() const { return (m_rstMask!=0); }	///< Reset non zero
+    bool		isRdSide() const { return ((m_flags & REGFL_RDSIDE)!=0); }	///< Has read side effects
+    bool		isWrSide() const { return ((m_flags & REGFL_WRSIDE)!=0); }	///< Has write side effects
+    bool		isRegTest() const { return ((m_flags & REGFL_NOREGTEST)==0); }	///< Register is testable
+    bool		isRegDump() const { return ((m_flags & REGFL_NOREGDUMP)==0); }	///< Register should be dumped
+    bool		isBigTest() const { return ((m_flags & REGFL_NOBIGTEST)==0); }	///< Register too big for testing
 
     // ACCESSORS - Derived from above functions
     // True if this is a entry of a multiple entry structure
-    bool		isRanged() const { return entSize() != 0; }
+    bool		isRanged() const { return entSize() != 0; }	///< Has a range
+    /// Return number of entries (array elements)
     size64_t		entries() const {
 				if (!isRanged()) return lowEntNum()+1;
 				return (max ((long)(size()/entSize()), lowEntNum())+1); }
+    /// Ending address of the register + 1
     address_t		addressEnd() const { return address() + size(); }
 };
 
 //======================================================================
 // VregsRegInfo
-// There is generally one global VregsRegInfo, which has info about registers
+/// There is generally one global VregsRegInfo, which has info about all registers
 
 class VregsRegInfo {
 private:
     typedef std::map<address_t,VregsRegEntry*> ByAddrMap;
 
-    ByAddrMap m_byAddr;		// Address sorted reg info
+    ByAddrMap m_byAddr;		///< Address sorted reg info
 
 public:
     // CREATORS
@@ -127,6 +133,7 @@ public:
     ~VregsRegInfo() {};
 
     // MANIPULATORS
+    /// Add a new register, called by vregs classes
     void	add_register (VregsRegEntry* regentp);
     void	add_register (address_t addr, size64_t size, const char* name,
 			      uint32_t spacing, uint32_t rangelow, uint32_t rangehigh,
@@ -149,20 +156,22 @@ public:
     void	dump();
 
     // MANIPULATORS - Lookups
-    VregsRegEntry* find_by_addr (address_t addr);
-    VregsRegEntry* find_by_next_addr (address_t addr);
-    const char*	addr_name (address_t addr, char* buffer, size64_t length); // Return "name" of address
+    VregsRegEntry* find_by_addr (address_t addr);	///< Return register given address
+    VregsRegEntry* find_by_next_addr (address_t addr);	///< Return register after address
+    /// Return textual "name" of address
+    const char*	addr_name (address_t addr, char* buffer, size64_t length);
 
-    // MANIPULATORS - Iterating through all registers.
+    // MANIPULATORS
+    /// Iterate across VregsRegInfo's.
     class iterator {
 	ByAddrMap::iterator   m_addrIt;
     public:
 	iterator(ByAddrMap::iterator addrIt) : m_addrIt(addrIt) {};
-	inline iterator operator++() {++m_addrIt; return *this;};	// prefix
+	inline iterator operator++() {++m_addrIt; return *this;};	///< prefix
 	inline operator VregsRegEntry* () const { return (m_addrIt->second); };
     };
-    iterator	begin() { return m_byAddr.begin(); }
-    iterator	end()   { return m_byAddr.end(); }
+    iterator	begin() { return m_byAddr.begin(); }	///< Begin iterator across all registers
+    iterator	end()   { return m_byAddr.end(); }	///< End iterator across all registers
 
     // ACCESSORS
 };

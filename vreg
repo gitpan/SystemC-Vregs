@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Revision: 1.11 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
+#$Revision: 1.11 $$Date: 2005-02-16 10:47:01 -0500 (Wed, 16 Feb 2005) $$Author: wsnyder $
 ######################################################################
 #
 # Copyright 2001-2005 by Wilson Snyder.  This program is free software;
@@ -59,6 +59,7 @@ my $opt_comments = 1;
 my $opt_rules;
 my $opt_rebuild_comment = "$0 @orig_argv";
 our @opt_library_vregs = ();
+my %opt_attributes;
 if (! GetOptions (
 		  "help"	=> \&usage,
 		  "debug"	=> \&debug,
@@ -72,6 +73,7 @@ if (! GetOptions (
 		  "rebuild-comment=s"	=> \$opt_rebuild_comment,
 		  "rm"		=> \$opt_rm,
 		  "rules=s"	=> \$opt_rules,
+		  "v2k!"	=> sub { shift; $opt_attributes{v2k} = shift; },
 		  # File Enables (if adding one, add to files! also)
 		  "class_h!"	=> \$opt_class_h,
 		  "class_cpp!"	=> \$opt_class_cpp,
@@ -102,7 +104,9 @@ $opt_package or die "%Error: No --package specified\n";
 
 my @vr_params = (address_bits=>40,
 		 comments=>$opt_comments,
- 		 rebuild_comment=>$opt_rebuild_comment,);
+ 		 rebuild_comment=>$opt_rebuild_comment,
+		 attributes=>\%opt_attributes,
+		 );
 
 my @opt_library_vr;
 foreach my $vlib (@opt_library_vregs) {
@@ -185,7 +189,7 @@ if ($opt_headers) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 1.11 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $ ', "\n";
+    print '$Revision: 1.11 $$Date: 2005-02-16 10:47:01 -0500 (Wed, 16 Feb 2005) $$Author: wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);
@@ -235,8 +239,6 @@ file format to HTML.  If inside Microsoft Word, exit.
 
 When the --header switch is used, vreg reads a .vregs file and creates
 definition and class headers in the --output directory.
-
-Attribute heading
 
 =head1 ARGUMENTS
 
@@ -326,6 +328,11 @@ useless style tags that make the file less humanly readable.
 
 Specify the name of the rules file.  (See L<SystemC::Vregs::Rules>.)
 Defaults to the I<out_directory>/I<package>__rules.pl.
+
+=item -v2k
+
+Use Verilog-2001 constructs, such as localparam.  Identical to the v2k
+package attribute.
 
 =back
 

@@ -1,4 +1,4 @@
-// $Revision: 1.5 $$Date: 2005/01/12 21:35:09 $$Author: wsnyder $ -*- Verilog -*-
+// $Revision: 1.5 $$Date: 2005-01-12 16:35:09 -0500 (Wed, 12 Jan 2005) $$Author: wsnyder $ -*- Verilog -*-
 //====================================================================
 // DESCRIPTION: Manual test case showing use of AUTOASCII
 //

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Revision: 1.19 $$Date: 2004/12/17 18:03:41 $$Author: wsnyder $
+// $Revision: 1.19 $$Date: 2004-12-17 13:03:41 -0500 (Fri, 17 Dec 2004) $$Author: wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 //
 // Copyright 2001-2004 by Wilson Snyder.  This program is free software;

@@ -2,6 +2,12 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.260 3/1/2005
+
+***	With -v2k attribute, use localparam instead of parameter.
+
+***	Add Doxygen comments to C++ sources.
+
 * Vregs 1.250 1/13/2005
 
 **	NEWS is now renamed Changes, to support CPAN indexing. [Offer Kaye]
@@ -167,7 +173,7 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Revision: 1.5 $$Date: 2005/01/13 18:23:42 $$Author: wsnyder $
+$Revision: 1.5 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
 ----------------------------------------------------------------------
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].

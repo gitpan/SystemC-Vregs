@@ -1,4 +1,4 @@
-# $Revision: 1.133 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
+# $Revision: 1.133 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.250';
+$VERSION = '1.260';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -56,16 +56,21 @@ sub open {
     $self->print("// -*- C++ -*-\n") if ($self->{C});
     $self->print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n") if ($self->{XML});
     $self->comment("DO NOT EDIT -- Generated automatically by vregs\n");
-    $self->comment("DESC"."RIPTION: Register Information: Generated automatically by vregs\n");
-    $self->print("\n");
+    if ($self->{C}) {
+	$self->comment_pre("\\file\n");
+	$self->comment_pre("\\brief Register Information: Generated automatically by vregs\n");
+    } else {
+	$self->comment("DESC"."RIPTION: Register Information: Generated automatically by vregs\n");
+    }
+    $self->comment_pre("\n");
 
     if ($self->{rules}) {
 	$self->{rules}->filehandle($self);
 	foreach my $rfile ($self->{rules}->filenames()) {
 	    $rfile = basename($rfile,"^");
-	    $self->comment("See SystemC::Vregs::Rules file: $rfile\n");
+	    $self->comment_pre("See SystemC::Vregs::Rules file: $rfile\n");
 	}
-	$self->print("\n");
+	$self->comment_pre("\n");
     }
 
     $self->{rules}->execute_rule ('any_file_before', 'any_file', $self) if $self->{rules};
@@ -138,15 +143,16 @@ sub SystemC::Vregs::Enum::enum_write {
 	$fl->printf ("\t%-13s = 0x%x,"
 		     ,$fieldref->{name},$fieldref->{rst_val});
 	if ($pack->{comments}) {
-	    $fl->printf ("\t/* %s */",$fieldref->{desc});
+	    $fl->printf ("\t");
+	    $fl->comment_post ($fieldref->{desc});
 	}
 	$fl->printf ("\n");
     }
     # Perhaps this should just be added to the data structures?
     # note no comma to make C happy
-    $fl->printf("\t%-13s = 0x%x\t/* %s */\n"
-		,"MAX", (1<<$self->{bits}), "MAXIMUM+1");
-    $fl->print ("    };\n");
+    $fl->printf("\t%-13s = 0x%x\t","MAX", (1<<$self->{bits}));
+    $fl->comment_post ("MAXIMUM+1");
+    $fl->print ("\n    };\n");
     $pack->{rules}->execute_rule ('enum_end_before', $clname, $self);
     $fl->print ("  };\n");
     $pack->{rules}->execute_rule ('enum_end_after', $clname, $self);
@@ -551,32 +557,35 @@ sub defs_write {
     $self->create_defines(1);
     my $fl = SystemC::Vregs::File->open(rules => $self->{rules},
 					@_);
-    $fl->include_guard();
-    $fl->print("\n");
-    $fl->comment("package $self->{name}\n");
+    $fl->comment_pre("\n");
+    $fl->comment_pre("package $self->{name}\n");
+    $fl->comment_pre("\n");
+
+    $fl->comment_pre
+	(("*"x70)."\n"
+	 ."   General convention:\n"
+	 ."     RA_{regname}     Register beginning address\n"
+	 ."     RAE_{regname}    Register ending address + 1\n"
+	 ."     RAC_{regname}    Number of entries in register\n"
+	 ."     RAM_{regname}    Register region address mask\n"
+	 ."     RRP_{regname}    Register RANGE spacing in bytes, if arrayed\n"
+	 ."     RRS_{regname}    Register RANGE size, if arrayed\n"
+	 ."\n"
+	 ."     RBASEA_{regs}    Register common-prefix starting address\n"
+	 ."     RBASEAE_{regs}   Register common-prefix ending address + 1\n"
+	 ."     RBASEAM_{regs}   Register common-prefix bit mask\n"
+	 ."\n"
+	 ."     E_{enum}_{alias}           Value of enumeration encoding\n"
+	 ."\n"
+	 ."     CM{w}_{class}_WRITABLE     Mask of all writable bits\n"
+	 ."     CB{w}_{class}_{field}_{f}  Class field starting bit\n"
+	 ."     CE{w}_{class}_{field}_{f}  Class field ending bit\n"
+	 ."     CR{w}_{class}_{field}_{f}  Class field range\n"
+	 ."          {w}=32=bit word number,  {f}=field number if discontinuous\n"
+	 );
     $fl->print("\n");
 
-    $fl->comment(("*"x70)."\n"
-		 ."   General convention:\n"
-		 ."     RA_{regname}     Register beginning address\n"
-		 ."     RAE_{regname}    Register ending address + 1\n"
-		 ."     RAC_{regname}    Number of entries in register\n"
-		 ."     RAM_{regname}    Register region address mask\n"
-		 ."     RRP_{regname}    Register RANGE spacing in bytes, if arrayed\n"
-		 ."     RRS_{regname}    Register RANGE size, if arrayed\n"
-		 ."\n"
-		 ."     RBASEA_{regs}    Register common-prefix starting address\n"
-		 ."     RBASEAE_{regs}   Register common-prefix ending address + 1\n"
-		 ."     RBASEAM_{regs}   Register common-prefix bit mask\n"
-		 ."\n"
-		 ."     E_{enum}_{alias}           Value of enumeration encoding\n"
-		 ."\n"
-		 ."     CM{w}_{class}_WRITABLE     Mask of all writable bits\n"
-		 ."     CB{w}_{class}_{field}_{f}  Class field starting bit\n"
-		 ."     CE{w}_{class}_{field}_{f}  Class field ending bit\n"
-		 ."     CR{w}_{class}_{field}_{f}  Class field range\n"
-		 ."          {w}=32=bit word number,  {f}=field number if discontinuous\n"
-		 );
+    $fl->include_guard();
     $fl->print("\n");
 
     $fl->print ("//Verilint  34 off //WARNING: Unused macro\n") if $fl->{Verilog};
@@ -649,14 +658,15 @@ sub param_write {
 
     #$fl->include_guard();  #no guards-- it may be used in multiple modules
 
-    $fl->comment(("*"x70)."\n"
-		 ."\tRAP_{regname}           Register address as a parameter\n"
-		 ."\tCMP_{regname}_WRITABLE  Register RdWr bit-mask as a parameter\n"
-		 ."\n"
-		 ."\tThis is useful in Verilog to allow extraction of bit\n"
-		 ."\tranges, for example:\n"
-		 ."\t\tif (myaddr == RAP_SOMEREG[31:15]) ...\n"
-		 ."\n");
+    $fl->comment_pre
+	(("*"x70)."\n"
+	 ."\tRAP_{regname}           Register address as a parameter\n"
+	 ."\tCMP_{regname}_WRITABLE  Register RdWr bit-mask as a parameter\n"
+	 ."\n"
+	 ."\tThis is useful in Verilog to allow extraction of bit\n"
+	 ."\tranges, for example:\n"
+	 ."\t\tif (myaddr == RAP_SOMEREG[31:15]) ...\n"
+	 ."\n");
 
     $fl->print ("\n"
 		."`ifdef NOTDEFINED\n"
@@ -675,7 +685,8 @@ sub param_write {
 
 	if ($define =~ s/^(RA|CM)_/${1}P_/) {
 	    my $prt_val = _param_write_value($defref, $fl);
-	    $fl->printf ("   parameter %-26s %13s%s\n",
+	    $fl->printf ("   %s %-26s %13s%s\n",
+			 ($self->{attributes}{v2k} ? 'localparam':'parameter'),
 			 $define . " =", $prt_val.";",
 			 $cmt
 			 );
@@ -687,7 +698,8 @@ sub param_write {
 	my $i=0;
 	foreach my $fieldref (@fields) {
 	    if ($i==0) {
-		$fl->printf ("   parameter %s\n",
+		$fl->printf ("   %s %s\n",
+			     ($self->{attributes}{v2k} ? 'localparam':'parameter'),
 			     "// synopsys enum En_$classref->{name}"
 			     );
 	    }

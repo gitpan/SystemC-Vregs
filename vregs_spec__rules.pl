@@ -1,4 +1,4 @@
-#// $Revision: 1.7 $$Date: 2004/12/04 20:13:29 $$Author: wsnyder $ -*- C++ -*-
+#// $Revision: 1.7 $$Date: 2004-12-04 15:13:30 -0500 (Sat, 04 Dec 2004) $$Author: wsnyder $ -*- C++ -*-
 #// DESCRIPTION: SystemC::Vregs::Rules file: Perl code Vregs parses to produce .h file
 #// ** This is a PERL file, but highlighted as C++ instead of Perl
 #//    since there's more C++ code here then perl code!

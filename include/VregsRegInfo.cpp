@@ -1,17 +1,23 @@
-// $Revision: 1.18 $$Date: 2005/01/12 21:35:09 $$Author: wsnyder $ -*- C++ -*-
+// $Revision: 1.18 $$Date: 2005-02-21 10:11:49 -0500 (Mon, 21 Feb 2005) $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2005 by Wilson Snyder.  This program is free software;
-// you can redistribute it and/or modify it under the terms of either the GNU
-// General Public License or the Perl Artistic License.
-// 
+// Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// program is free software; you can redistribute it and/or modify it under
+// the terms of either the GNU Lesser General Public License or the Perl
+// Artistic License.
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 //======================================================================
-// DESCRIPTION: Vregs: VregsRegEntry and VregsRegInfo classes
+///
+/// \file
+/// \brief Vregs: VregsRegEntry and VregsRegInfo classes
+///
+/// AUTHOR:  Wilson Snyder
+///
 //======================================================================
 
 #include "VregsRegInfo.h"
@@ -19,8 +25,7 @@
 //======================================================================
 // VregsRegEntry
 
-void VregsRegEntry::dump () const
-{
+void VregsRegEntry::dump () const {
     COUT << "  REnt: Address "
 	 << hex << address() << " - " << (address() + size() - 1)
 	 << "  Reg " << name();
@@ -33,8 +38,7 @@ void VregsRegEntry::dump () const
 //======================================================================
 // VregsRegInfo
 
-void VregsRegInfo::add_register (VregsRegEntry* regentp)
-{
+void VregsRegInfo::add_register (VregsRegEntry* regentp) {
     m_byAddr.insert(std::make_pair(regentp->address(), regentp));
 }
 
@@ -70,18 +74,16 @@ void VregsRegInfo::add_register (
     }
 }
 
-void VregsRegInfo::dump()
-{
+void VregsRegInfo::dump() {
     COUT << "VregsRegInfo dump\n";
-    
+
     for (VregsRegInfo::iterator iter = begin(); iter != end(); ++iter) {
 	const VregsRegEntry* rep = iter;
 	rep->dump();
     }
 }
 
-VregsRegEntry* VregsRegInfo::find_by_next_addr (address_t addr)
-{
+VregsRegEntry* VregsRegInfo::find_by_next_addr (address_t addr) {
     // Return register at given address, or the next register at slightly greater address
     ByAddrMap::iterator iter = m_byAddr.lower_bound(addr);
     if (iter == m_byAddr.end()) return NULL;
@@ -104,8 +106,7 @@ VregsRegEntry* VregsRegInfo::find_by_next_addr (address_t addr)
     return NULL;
 }
 
-VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr)
-{
+VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr) {
     // Return register at given address, or NULL
     VregsRegEntry* rep = find_by_next_addr(addr);
     if (rep && addr >= rep->address() && addr < rep->addressEnd() ) {
@@ -114,11 +115,9 @@ VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr)
     return NULL;
 }
 
-const char* VregsRegInfo::addr_name (
-    address_t addr, char* buffer, size64_t length)
+const char* VregsRegInfo::addr_name (address_t addr, char* buffer, size64_t length) {
     // If there is a register at this address, return string representing it.
     // Returns buffer.
-{
     char* bufp = buffer;
 
     *bufp = '\0';

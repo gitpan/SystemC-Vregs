@@ -71,6 +71,52 @@ specification.  This may be put into
 
 <p class=RegDescBody>-netorder</p>
 
+<p class=RegDescBody></p>
+
+<p class=RegDescBody>A header called “Attributes” specifies
+special actions for the entire package.<br>
+<![if !supportLineBreakNewLine]><br>
+<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=459>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody><b>Attribute</b></p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody><b>Description</b></p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>-v2k</p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody>For Verilog files, use Verilog-2001 constructs,
+  namely localparam instead of parameter. </p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>-netorder</p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody>Store all structures in network order.  Have all accessor functions pack and unpack
+  to host order.</p>
+  </td>
+  
+ </tr>
+</table>
+
+<p class=RegDescBody></p>
+
+<p class=RegDescBody></p>
+
 <p class=MsoNormal></p>
 
 <p class=MsoNormal></p>
@@ -1053,11 +1099,11 @@ shows an example class which expands its subclasses.</p>
 
 <h2><![if !supportLists]>6.1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Definition</h2>
 
-<p class=RegDescBody>Register declarations key off the word “Register”
-alone on a line.  Registers always start
-with R_, then a name beginning with a capital, and containing no additional
-underscores.  They can also have
-attributes like the Class Declarations.</p>
+<p class=RegDescBody>Register declarations key off the word
+“Register” alone on a line.  Registers
+always start with R_, then a name beginning with a capital, and containing no
+additional underscores.  They can also
+have attributes like the Class Declarations.</p>
 
 <p class=RegDescBody>Registers can also inherit other registers
 using the C++ like “DerrivedReg : BaseReg” format.  This allows a field definition to be shared among many nearly

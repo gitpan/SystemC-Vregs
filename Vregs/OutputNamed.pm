@@ -1,4 +1,4 @@
-# $Revision: 1.19 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
+# $Revision: 1.19 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::OutputNamed;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.250';
+$VERSION = '1.260';
 
 use SystemC::Vregs::Outputs;
 use SystemC::Vregs::Number;

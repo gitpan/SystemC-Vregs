@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 1.11 $$Date: 2004/12/04 20:13:30 $$Author: wsnyder $
+# $Revision: 1.11 $$Date: 2005-02-16 10:47:01 -0500 (Wed, 16 Feb 2005) $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2001-2004 by Wilson Snyder.  This program is free software;
@@ -19,6 +19,7 @@ print "Checking vregs...\n";
 run_system ("${PERL} ./vreg --rm --headers"
 	    ." --package vregs_spec"
 	    ." --rules vregs_spec__rules.pl"
+	    ." --v2k"
 	    ." --output test_dir");
 ok(1);
 

@@ -1,4 +1,4 @@
-# $Revision: 1.46 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
+# $Revision: 1.46 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -19,7 +19,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.250';
+$VERSION = '1.260';
 
 ######################################################################
 #### Implementation
@@ -166,13 +166,27 @@ sub comment {
     }
 }
 
+sub comment_pre {
+    my $self = shift; ($self && ref($self)) or croak 'Not a hash reference';
+    $self->comment(@_);
+}
+
+sub comment_post {
+    my $self = shift; ($self && ref($self)) or croak 'Not a hash reference';
+    $self->comment(@_);
+}
+
 sub define {
     my $self = shift; ($self && ref($self)) or croak 'Not a hash reference';
+    my $def = shift;
+    my $val = shift;
+    my $cmt = shift;
     # Assume C++ define
-    if ($_[2]) {
-	$self->printf ("#define\t%-26s %16s\t/* %s */\n", @_);
+    if ($cmt) {
+	$self->printf ("#define\t%-26s %16s\t", $def, $val);
+	$self->comment_post ($cmt,"\n");
     } else {
-	$self->printf ("#define\t%-26s %16s\n", @_);
+	$self->printf ("#define\t%-26s %16s\n", $def, $val);
     }
 }
 
@@ -232,6 +246,7 @@ sub sprint_hex_value_drop0 {
 #### C
 
 package SystemC::Vregs::Language::C;
+use Carp;
 use vars qw(@ISA %Keywords);
 #Made by super::New: @ISA = qw(SystemC::Vregs::Language);
 use strict;
@@ -254,6 +269,22 @@ foreach my $kwd (qw( asm auto break case catch cdecl char class const
 
 sub is_keyword {
     return $Keywords{$_[0]};
+}
+
+sub comment_pre {
+    my $self = shift; ($self && ref($self)) or croak 'Not a hash reference';
+    my $strg = join ('', @_);
+    $strg =~ s!\n(.)!\n/// $1!og;
+    $strg =~ s!\n\n!\n///\n!og;
+    $strg = " ".$strg unless $strg =~ /^\s/;
+    $self->print("///$strg");
+}
+
+sub comment_post {
+    my $self = shift; ($self && ref($self)) or croak 'Not a hash reference';
+    my $strg = join ('', @_);
+    $strg =~ s!\n(.)!\n///< $1!og;
+    $self->print("///< $strg");
 }
 
 ######################################################################
@@ -502,6 +533,14 @@ Returns the type of file, for example 'C'.
 =item comment
 
 Output a string with the appropriate comment delimiters.
+
+=item comment_pre
+
+Output a comment and Doxygen document before-the-fact.
+
+=item comment_post
+
+Output a comment and Doxygen document after-the-fact.
 
 =item include_guard
 
