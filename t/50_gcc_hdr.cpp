@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Revision: #16 $$Date: 2004/01/27 $$Author: wsnyder $
+// $Revision: 1.19 $$Date: 2004/12/17 18:03:41 $$Author: wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 //
 // Copyright 2001-2004 by Wilson Snyder.  This program is free software;
@@ -7,9 +7,14 @@
 // General Public License or the Perl Artistic License.
 
 #include <stdlib.h>
-typedef unsigned int uint32_t ;
-typedef unsigned long long uint64_t ;
-typedef unsigned long long Address ;
+typedef unsigned int uint32_t;
+#if defined(__WORDSIZE) && (__WORDSIZE == 64)
+typedef unsigned long int uint64_t;
+typedef unsigned long int Address;
+#else
+typedef unsigned long long uint64_t;
+typedef unsigned long long Address;
+#endif
 
 #include "vregs_spec_class.h"
 // Check include guard works

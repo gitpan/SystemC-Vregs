@@ -1,7 +1,7 @@
-# $Revision: #20 $$Date: 2004/08/26 $$Author: ws150726 $
+# $Revision: 1.23 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 
@@ -31,13 +31,13 @@ preexist:
 	test ! -r \$(HOME)/src/kits/\$(DISTVNAME).tar.gz
 
 tag:
-	c4 label -d     \$(DISTNAME)_\$(VERSION_SYM) || true
-	c4 label        \$(DISTNAME)_\$(VERSION_SYM)
-	c4 labelsync -l \$(DISTNAME)_\$(VERSION_SYM) ...
-#	cvs tag -F      \$(DISTNAME)_\$(VERSION_SYM) .
+#	c4 label -d     \$(DISTNAME)_\$(VERSION_SYM) || true
+#	c4 label        \$(DISTNAME)_\$(VERSION_SYM)
+#	c4 labelsync -l \$(DISTNAME)_\$(VERSION_SYM) ...
+	cvs tag -F      \$(DISTNAME)_\$(VERSION_SYM) .
 
 maintainer-diff:
-	c4 diff     ...@\$(DISTNAME)_\$(VERSION_SYM) 
+	cvs diff -r \$(DISTNAME)_\$(VERSION_SYM) 
 
 maintainer-clean: distclean
 	-rm README Makefile
@@ -54,6 +54,7 @@ WriteMakefile(
 	      AUTHOR	=> 'Wilson Snyder <wsnyder@wsnyder.org>',
 	      ABSTRACT  => 'Extract C++/Verilog Enum and Classes from html documents',
 	      VERSION_FROM  => 'Vregs.pm',
+	      NO_META	=> 1,
 	      EXE_FILES => [qw( vreg )],
 	      PREREQ_PM => {'HTML::TableExtract' => 0,
 			    'HTML::Parser' => 0,   # Also needed by TableExtract

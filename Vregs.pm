@@ -1,8 +1,8 @@
-# $Revision: #118 $$Date: 2004/10/26 $$Author: ws150726 $
+# $Revision: 1.122 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2004 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -28,7 +28,7 @@ use vars qw($Debug @ISA $VERSION
 	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.246';
+$VERSION = '1.250';
 
 ######################################################################
 #### Constants
@@ -230,7 +230,7 @@ sub new_item {
     my $bittableref = $_[1];
     my $flagref = $_[2];	# Hash of {heading} = value_of_heading
     #Create a new register/class/enum, called from the html parser
-    print ::Dumper(\$flagref, $bittableref) if $SystemC::Vregs::TableExtract::Debug;
+    print "new_item:",::Dumper(\$flagref, $bittableref) if $SystemC::Vregs::TableExtract::Debug;
 
     $flagref->{Register} = $flagref->{Class} if $flagref->{Class};
     if ($flagref->{Register}) {
@@ -261,9 +261,9 @@ sub new_define {
 	 = _choose_columns ($flagref,
 			    [qw(Constant Mnemonic Definition)],
 			    $bittable[0]);
-    defined $const_col or return $self->warn ($flagref, "Table is missing column headed 'Constant'\n");
-    defined $mnem_col  or return $self->warn ($flagref, "Table is missing column headed 'Mnemonic'\n");
-    defined $def_col   or return $self->warn ($flagref, "Table is missing column headed 'Definition'\n");
+    defined $const_col or return $self->warn ($flagref, "Define table is missing column headed 'Constant'\n");
+    defined $mnem_col  or return $self->warn ($flagref, "Define table is missing column headed 'Mnemonic'\n");
+    defined $def_col   or return $self->warn ($flagref, "Define table is missing column headed 'Definition'\n");
 
     foreach my $row (@bittable) {
 	 print "  Row:\n" if $Debug;
@@ -305,9 +305,9 @@ sub new_enum {
 	= _choose_columns ($flagref,
 			   [qw(Constant Mnemonic Definition)],
 			   $bittable[0]);
-    defined $const_col or return $self->warn ($flagref, "Table is missing column headed 'Constant'\n");
-    defined $mnem_col  or return $self->warn ($flagref, "Table is missing column headed 'Mnemonic'\n");
-    defined $def_col   or return $self->warn ($flagref, "Table is missing column headed 'Definition'\n");
+    defined $const_col or return $self->warn ($flagref, "Enum table is missing column headed 'Constant'\n");
+    defined $mnem_col  or return $self->warn ($flagref, "Enum table is missing column headed 'Mnemonic'\n");
+    defined $def_col   or return $self->warn ($flagref, "Enum table is missing column headed 'Definition'\n");
 
     my $classref = new SystemC::Vregs::Enum
 	(pack => $self,
@@ -1356,7 +1356,7 @@ Returns list of SystemC::Vregs::Type objects.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2001-2004 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2005 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

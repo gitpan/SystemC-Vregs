@@ -1,39 +1,46 @@
-SystemC::Vregs NEWS --  history of user-visible changes.
-Copyright (C) 2002-2004 Wilson Snyder.
+Revision history for Perl extension SystemC::Vregs
 
-The contributors that suggested a given feature is shown in [].
-	
-This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
-
-* Changes in Vregs 1.246 10/23/2004
+The contributors that suggested a given feature are shown in [].
+
+* Vregs 1.250 1/13/2005
+
+**	NEWS is now renamed Changes, to support CPAN indexing. [Offer Kaye]
+
+***	Support Unicode decoding in Perl 5.8.0
+
+***	Support latex2html documents.
+
+****	Fix 64-bit compile warnings.
+
+* Vregs 1.246 10/23/2004
 
 ***	Support Star Office documents.
-
-* Changes in Vregs 1.245 7/22/2004
+
+* Vregs 1.245 7/22/2004
 
 ***	Add operator!= to enum classes for GCC 3.0
 
 ***	Support parsing of Netscape Composer documents.  [Reed Lawson]
-
-* Changes in Vregs 1.244 1/27/2004
+
+* Vregs 1.244 1/27/2004
 
 ****	Documentation fixes.
-
-* Changes in Vregs 1.243 10/30/2003
+
+* Vregs 1.243 10/30/2003
 
 ***	Add before_any_file rule.  
 
 ****	Documentation fixes.  [Mike Castle]
-
-* Changes in Vregs 1.242 9/4/2003
+
+* Vregs 1.242 9/4/2003
 
 **	Allow classes to have fields which are expanded from other classes.
 	For an example, see "ExClass" in vregs_spec.doc. [John DeRoo]
 
 ***	Add CRESET_ defines for the default values of non-zero, non-bool fields.
 	[John DeRoo]
-
-* Changes in Vregs 1.241 6/9/2003
+
+* Vregs 1.241 6/9/2003
 
 ***	Added error if a derived class is extended to more words then its base
 	class.  Use the '-stretchable' attribute on the base class to disable this.
@@ -53,8 +60,8 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ****	Fix structs referencing structs declared later in the same package.
 
 ****	Add/drop leading 0s in define values to make correctly widthed numbers.
-
-* Changes in Vregs 1.240 12/13/2002
+
+* Vregs 1.240 12/13/2002
 
 **	Added subclassing of enumerations.  
 	A enumeration can now reference another enumeration, and all values under the
@@ -77,8 +84,8 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ****	Fixed propagation of attributes across wildcarded classes.
 
 ****	Fixed decimal reset values in VregsRegInfo classes.
-
-* Changes in Vregs 1.230 8/8/2002
+
+* Vregs 1.230 8/8/2002
 
 **	Added --noregtest attribute to registers, for suppressing testing.
 
@@ -90,15 +97,15 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ****	Warn about empty bit descriptions.
 
 ****	Added dump() methods for internal debugging.
-
-* Changes in Vregs 1.210 3/11/2002
+
+* Vregs 1.210 3/11/2002
 
 ***	Allow duplicate enumeration values.  The ascii() method will
 	print the first sorted enumeration text.
 
 ****	Fix ORing in of ranged addresses.  [Greg Waters]
-
-* Changes in Vregs 1.200 11/26/2001
+
+* Vregs 1.200 11/26/2001
 
 **	Allow replacement of enumeration before/after rules.
 
@@ -123,8 +130,8 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 	like a C++ array of uint32_t).
 
 ****	Changed enumeration ascii() default to "?E" instead of "%E"
-
-* Changes in Vregs 1.100 10/18/2001
+
+* Vregs 1.100 10/18/2001
 
 **	Added rules for .cpp files: before_enum_cpp,
 	after_enum_cpp, before_class_cpp, after_class_cpp.
@@ -148,27 +155,28 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 	This allows other parsers to pick off the fields they need.
 
 ****	Fixed E_ enum defines to be in hex, not decimal.
-
-* Changes in Vregs 1.000 9/03/2001
+
+* Vregs 1.000 9/03/2001
 
 **	First publicized release.
 
 ***	Added ENUM ascii() methods to cpp instead of inlined .h
-
-* Changes in Vregs 0.1 6/27/2001
+
+* Vregs 0.1 6/27/2001
 
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Revision: #53 $$Date: 2004/10/26 $$Author: ws150726 $
+$Revision: 1.5 $$Date: 2005/01/13 18:23:42 $$Author: wsnyder $
 ----------------------------------------------------------------------
-Copyright information:
+	
+This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-   Copyright 2001-2004 by Wilson Snyder.  This program is free software;
-   you can redistribute it and/or modify it under the terms of either the GNU
-   General Public License or the Perl Artistic License.
+Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+you can redistribute it and/or modify it under the terms of either the GNU
+General Public License or the Perl Artistic License.
 
 Local variables:
 mode: outline
-paragraph-separate: "[ 	]*$"
+paragraph-separate: "[ 	\f\n]*$"
 end:

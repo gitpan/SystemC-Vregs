@@ -2,7 +2,7 @@ COPYING
 MANIFEST
 META.yml			Module meta-data (added by MakeMaker)
 Makefile.PL
-NEWS
+Changes
 README
 Vregs.pm
 Vregs/Bit.pm

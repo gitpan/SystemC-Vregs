@@ -1,9 +1,12 @@
-   This is the SystemC Vregs Package, aka Vregs.
+1 SystemC::Vregs
+****************
 
-Copyright
-=========
+This is the SystemC Vregs Package, aka Vregs.
 
-   This package is Copyright 2001-2004 by Wilson Snyder
+1.1 Copyright
+=============
+
+This package is Copyright 2001-2005 by Wilson Snyder
 <wsnyder@wsnyder.org>.
 
    This program is free software; you can redistribute it and/or modify
@@ -13,10 +16,10 @@ Artistic License.
    This code is provided with no warranty of any kind, and is used
 entirely at your own risk.
 
-Summary
-=======
+1.2 Summary
+===========
 
-   The publicly licensed Vregs package provides a means for extracting
+The publicly licensed Vregs package provides a means for extracting
 registers, classes, enumerations, and defines from documentation.  Vregs
 then extracts header files for C++, Verilog, and Perl.
 
@@ -28,10 +31,10 @@ Vregs from the link off of http://www.veripool.com/vregs.html
 the generated header files are only useful in object oriented languages
 like C++.
 
-Description
-===========
+1.3 Description
+===============
 
-   Vregs converts documentation to C++, Verilog, and perl headers.
+Vregs converts documentation to C++, Verilog, and perl headers.
 
    First, you write your specification using the example documentation
 in Microsoft Word format in vregs_spec.doc, or using any editor that can
@@ -52,10 +55,10 @@ in the spec.
    Vregs can be customized to change the code it creates using
 templates; see 'man vreg' for details.
 
-Obtaining Distribution
-======================
+1.4 Obtaining Distribution
+==========================
 
-   The latest version is available at `http://www.perl.org/CPAN/'
+The latest version is available at `http://www.perl.org/CPAN/'
 
    Download the latest package from that site, and decompress.  `gunzip
 SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar'
@@ -64,17 +67,17 @@ SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar'
 and Verilog::Language from CPAN.  If you wish, simply try and install
 Vregs and it will tell you what prerequisites are missing.
 
-Supported Systems
-=================
+1.5 Supported Systems
+=====================
 
-   This version of Vregs has been built and tested on:
+This version of Vregs has been built and tested on:
 
    * i386-linux
 
    It should run on any system with Perl.
 
-Installation
-============
+1.6 Installation
+================
 
   1. `cd' to the directory containing this README notice.
 

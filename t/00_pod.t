@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: #2 $$Date: 2004/06/21 $$Author: ws150726 $
+# $Revision: 1.3 $$Date: 2004/12/04 20:13:30 $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2000-2004 by Wilson Snyder.  This program is free software;

@@ -1,6 +1,6 @@
 ;; vregs-mode.el --- minor mode for displaying waveform signal values
 ;;
-;; $Revision: #8 $$Date: 2004/01/27 $$Author: wsnyder $
+;; $Revision: 1.10 $$Date: 2005/01/12 21:35:08 $$Author: wsnyder $
 
 ;; Author          : Wilson Snyder <wsnyder@wsnyder.org>
 ;; Keywords        : languages
@@ -27,7 +27,7 @@
 
 ;; COPYING:
 ;;
-;; Copyright 2001-2004 by Wilson Snyder.  This program is free software;
+;; Copyright 2001-2005 by Wilson Snyder.  This program is free software;
 ;; you can redistribute it and/or modify it under the terms of either the GNU
 ;; General Public License or the Perl Artistic License.
 ;; 
