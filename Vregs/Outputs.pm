@@ -1,4 +1,4 @@
-# $Id: Outputs.pm,v 1.67 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Outputs.pm,v 1.78 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -24,7 +24,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -61,6 +61,7 @@ sub open {
     }
 
     $self->print("// -*- C++ -*-\n") if ($self->{C});
+    $self->print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n") if ($self->{XML});
     $self->comment("DO NOT EDIT -- Generated automatically by vregs\n");
     $self->comment("DESC"."RIPTION: Register Information: Generated automatically by vregs\n");
     $self->print("\n");
@@ -93,7 +94,7 @@ sub private_not_public {
     my $private = shift;
     # Print public: or private: depending on desired state
     if ($private && !$self->{private}) {
-	$self->print ("private:\n");
+	$self->print ("protected:\n");
     }
     if (!$private && $self->{private}) {
 	$self->print ("public:\n");
@@ -151,12 +152,12 @@ sub SystemC::Vregs::Enum::enum_write {
     $fl->print ("  };\n");
     $pack->{rules}->execute_rule ('enum_end_after', $clname, $self);
     
-    #$fl->print ("  ostream& operator <<(ostream &o, ${clname} &en) {\n");
+    #$fl->print ("  OStream& operator <<(OStream &o, ${clname} &en) {\n");
     #$fl->print ("    o << setiosflags(ios::left) << setw(5) << (const char*)en; return o;};\n");
     $fl->print ("  inline bool operator== (${clname} lhs, ${clname} rhs) { return (lhs.m_e == rhs.m_e); }\n",
 		"  inline bool operator== (${clname} lhs, ${clname}::en rhs) { return (lhs.m_e == rhs); }\n",
 		"  inline bool operator== (${clname}::en lhs, ${clname} rhs) { return (lhs == rhs.m_e); }\n",
-		"  inline std::ostream& operator<< (std::ostream& lhs, const ${clname}& rhs) { return lhs << rhs.ascii(); }\n",
+		"  inline OStream& operator<< (OStream& lhs, const ${clname}& rhs) { return lhs << rhs.ascii(); }\n",
 		"  inline bool operator< (${clname} lhs, ${clname} rhs) { return lhs.m_e < rhs.m_e; }\n",
 		"\n",
 		);
@@ -170,6 +171,7 @@ sub SystemC::Vregs::Enum::enum_cpp_write {
     my $clname = $self->{name} || "x";
 
     $fl->print("//${clname}\n",);
+    $pack->{rules}->execute_rule ('enum_cpp_before', $clname, $self);
     $fl->print ("const char* ${clname}::ascii () const {\n");
     $fl->print ("    switch (m_e) {\n");
     foreach my $fieldref ($self->fields_sorted()) {
@@ -179,6 +181,7 @@ sub SystemC::Vregs::Enum::enum_cpp_write {
     $fl->print ("  default: return (\"%E\");\n");
     $fl->print ("  }\n");
     $fl->print ("}\n\n");
+    $pack->{rules}->execute_rule ('enum_cpp_after', $clname, $self);
 }
 
 ######################################################################
@@ -201,17 +204,6 @@ sub SystemC::Vregs::Type::_class_h_write {
     my $fl = shift;
     my $clname = $self->{name} || "x";
 
-    my $words = 0;
-    my @fields = (values %{$self->{fields}});
-    if ($self->{inherits_typeref}) {
-	push @fields, (values %{$self->{inherits_typeref}->{fields}});
-    }
-    foreach my $bitref (@fields) {
-	foreach my $bit (@{$bitref->{bitlist}}) {
-	    $words = int($bit / 32)+1 if $words < int($bit / 32)+1;
-	}
-    }
-    
     my $netorder = attribute_value($pack,$self,'netorder');
     my $ntohl = ($netorder ? "ntohl" : "");
     my $htonl = ($netorder ? "htonl" : "");
@@ -219,6 +211,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 
     my $inh = "";
     $inh = " : $self->{inherits}" if $self->{inherits};
+    my $words = $self->{words};
 
     $pack->{rules}->execute_rule ('class_begin_before', $clname, $self);
     $fl->print("struct $clname$inh {\n");
@@ -227,6 +220,12 @@ sub SystemC::Vregs::Type::_class_h_write {
 
     if ($inh ne "") {
 	$fl->print("    // w() inherited from $self->{inherits}::\n");
+	# Correct for any size difference
+	(defined $self->{inherits_typeref}->{words}) or die "%Error: Missed words compute()\n";
+	if (($self->{words}||0) > $self->{inherits_typeref}->{words}) {
+	    $fl->printf("    uint32_t m_wStretch[%d];   // Bring base size up\n",
+			$self->{words} - $self->{inherits_typeref}->{words});
+	}
     } else {
 	$fl->print("    ${uint} m_w[${words}];\n",
 		   "    inline uint32_t w(int b) const { return (${ntohl}(m_w[b])); };\n",
@@ -259,7 +258,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 
         my $extract = "";
         my $deposit = "";
-        foreach my $bitrange (@{$bitref->{bitlist_range}}) {
+        foreach my $bitrange (@{$bitref->{bitlist_range_32}}) {
 	    my ($msb,$lsb,$nbits,$srcbit) = @{$bitrange};
 	    my $low_mod = $lsb % 32;
 	    my $high_mod = $msb % 32;
@@ -330,7 +329,7 @@ sub SystemC::Vregs::Type::_class_h_write {
     # bloat, and it was taking a lot of compile time.
     $fl->print("    typedef VregsOstream<${clname}> DumpOstream;\n",
 	       "    DumpOstream dump(const char* prefix=\"\\n\\t\") const;\n",
-	       "    ostream& _dump(ostream& lhs, const char* pf) const;\n",
+	       "    OStream& _dump(OStream& lhs, const char* pf) const;\n",
 	       "    void dumpCout() const; // For GDB\n",);
     
     # Put const's last to avoid GDB stupidity
@@ -341,7 +340,7 @@ sub SystemC::Vregs::Type::_class_h_write {
     $fl->print("};\n");
     $pack->{rules}->execute_rule ('class_end_after', $clname, $self);
 
-    $fl->print("  ostream& operator<< (ostream& lhs, const ${clname}::DumpOstream rhs);\n",);
+    $fl->print("  OStream& operator<< (OStream& lhs, const ${clname}::DumpOstream rhs);\n",);
 
     $fl->print("\n");
 }
@@ -403,13 +402,14 @@ sub SystemC::Vregs::Type::_class_cpp_write {
     }
 
     $fl->print("//${clname}\n",);
+    $pack->{rules}->execute_rule ('class_cpp_before', $clname, $self);
     $fl->print("${clname}::DumpOstream ${clname}::dump(const char* prefix) const {\n",
 	       "    return DumpOstream(this,prefix);\n",
 	       "}\n");
-    $fl->print("ostream& operator<< (ostream& lhs, const ${clname}::DumpOstream rhs) {\n",
+    $fl->print("OStream& operator<< (OStream& lhs, const ${clname}::DumpOstream rhs) {\n",
 	       "    return ((${clname}*)rhs.obj())->_dump(lhs,rhs.prefix());\n",
 	       "}\n");
-    $fl->print("ostream& ${clname}::_dump (ostream& lhs, const char* pf) const {\n",);
+    $fl->print("OStream& ${clname}::_dump (OStream& lhs, const char* pf) const {\n",);
     unshift @dumps, "(($self->{inherits}*)(this))->dump(pf)" if $self->{inherits};
     if ($#dumps<0) {
 	$fl->print("    return lhs;\n");
@@ -419,7 +419,8 @@ sub SystemC::Vregs::Type::_class_cpp_write {
     }
 
     # For usage in GDB
-    $fl->print("void ${clname}::dumpCout () const { cout<<this->dump(\"\\n\\t\")<<endl; }\n",);
+    $fl->print("void ${clname}::dumpCout () const { COUT<<this->dump(\"\\n\\t\")<<endl; }\n",);
+    $pack->{rules}->execute_rule ('class_cpp_after', $clname, $self);
     
     $fl->print("\n");
 }
@@ -464,15 +465,21 @@ sub defs_write {
 
     $fl->comment(("*"x70)."\n"
 		 ."   General convention:\n"
-		 ."     RA_{regname}          Register address\n"
-		 ."     RAE_{regname}         Register ending address + 1\n"
-		 ."     RAC_{regname}         Number of entries in register\n"
-		 ."     RAM_{regname}         Register region address mask\n"
-		 ."     RRP_{regname}         Register RANGE spacing\n"
-		 ."     RRS_{regname}         Register RANGE size\n"
-		 ."     CB_{class}_{field}    Class field starting bit\n"
-		 ."     CE_{class}_{field}    Class field ending bit\n"
-		 ."     CR_{class}_{field}    Class field range\n"
+		 ."     RA_{regname}     Register address\n"
+		 ."     RAE_{regname}    Register ending address + 1\n"
+		 ."     RAC_{regname}    Number of entries in register\n"
+		 ."     RAM_{regname}    Register region address mask\n"
+		 ."     RRP_{regname}    Register RANGE spacing\n"
+		 ."     RRS_{regname}    Register RANGE size\n"
+		 .""
+		 ."     RBASEA_{regs}    Register common-prefix starting address\n"
+		 ."     RBASEAE_{regs}   Register common-prefix ending address + 1\n"
+		 ."     RBASEAM_{regs}   Register common-prefix bit mask\n"
+		 .""
+		 ."     CB{w}_{class}_{field}_{f}  Class field starting bit\n"
+		 ."     CE{w}_{class}_{field}_{f}  Class field ending bit\n"
+		 ."     CR{w}_{class}_{field}_{f}  Class field range\n"
+		 ."          {w}=32=bit word number,  {f}=field number if discontinuous\n"
 		 );
     $fl->print("\n");
 
@@ -490,6 +497,9 @@ sub defs_write {
 	my $define  = $defref->{name};
 	my $value   = $defref->{rst_val};
 	my $comment = $defref->{desc};
+	if ($fl->{C} && $define =~ /^C[BER][0-9]/) {
+	    next;  # Skip for Perl/C++, not much point as we have structs
+	}
 	$value = $fl->sprint_hex_value ($value,$defref->{bits}) if (defined $defref->{bits});
 	if ($fl->{Perl} && ($defref->{bits}||0) > 32) {
 	    $fl->print ("#");
@@ -512,7 +522,7 @@ sub param_write {
     $self->create_defines(1);
     my $fl = SystemC::Vregs::File->open(language=>'Verilog', @_);
 
-    $fl->include_guard();
+    #$fl->include_guard();  #no guards-- it may be used in multiple modules
 
     $fl->comment(("*"x70)."\n"
 		 ."\tRAP_{regname}          Register address as a parameter\n"
@@ -539,6 +549,7 @@ sub param_write {
 	if ($define =~ s/^RA_/RAP_/) {
 	    if (defined $bits) {
 		$bits = 32 if ($value->Lexicompare($bit32) <= 0);
+		$bits = 32 if $self->{param_always_32bits};
 		$value = Bit::Vector->new_Hex($bits, $value->to_Hex);
 	    }
 	    my $rst_val = $fl->sprint_hex_value ($value->to_Hex,$bits);

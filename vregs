@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#$Id: vregs,v 1.40 2001/08/04 01:45:35 wsnyder Exp $
+#$Id: vregs,v 1.41 2001/09/18 14:21:35 wsnyder Exp $
 ######################################################################
 #
 # This program is Copyright 2001 by Wilson Snyder.
@@ -113,7 +113,8 @@ foreach my $vlib (@opt_library_vregs) {
 }
 
 @vr_params = (@vr_params,
-	      libraries=>\@opt_library_vr);
+	      libraries=>\@opt_library_vr,
+	      param_always_32bits=>1,);
 
 my $vr = new SystemC::Vregs (@vr_params,
 			     name=>$opt_package,
@@ -174,7 +175,7 @@ if ($opt_headers) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Id: vregs,v 1.40 2001/08/04 01:45:35 wsnyder Exp $ ', "\n";
+    print '$Id: vregs,v 1.41 2001/09/18 14:21:35 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);

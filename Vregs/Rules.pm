@@ -1,4 +1,4 @@
-# $Id: Rules.pm,v 1.8 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Rules.pm,v 1.11 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -25,7 +25,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 ######################################################################
 # Default rules
@@ -49,10 +49,14 @@ sub before_class_begin { _declare_rule (rule=>'class_begin_before', @_); }
 sub  after_class_begin { _declare_rule (rule=>'class_begin_after', @_); }
 sub before_class_end {	 _declare_rule (rule=>'class_end_before', @_); }
 sub  after_class_end {	 _declare_rule (rule=>'class_end_after', @_); }
+sub before_class_cpp {	 _declare_rule (rule=>'class_cpp_before', @_); }
+sub  after_class_cpp {	 _declare_rule (rule=>'class_cpp_after', @_); }
 sub before_enum_begin {	 _declare_rule (rule=>'enum_begin_before', @_); }
 sub  after_enum_begin {	 _declare_rule (rule=>'enum_begin_after', @_); }
 sub before_enum_end {	 _declare_rule (rule=>'enum_end_before', @_); }
 sub  after_enum_end {	 _declare_rule (rule=>'enum_end_after', @_); }
+sub before_enum_cpp {	 _declare_rule (rule=>'enum_cpp_before', @_); }
+sub  after_enum_cpp {	 _declare_rule (rule=>'enum_cpp_after', @_); }
 
 ######################################################################
 # Functions that rule subroutines may call
@@ -144,7 +148,7 @@ sub _declare_rule {
     if (!ref $param{name}) {
 	# Turn name=>constant into a regexp
 	my $nometa = quotemeta $param{name};
-	$param{name} = qr/^$nometa/;
+	$param{name} = qr/^$nometa$/;
     }
 
     if ($param{replace}) {

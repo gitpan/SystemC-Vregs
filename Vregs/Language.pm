@@ -1,4 +1,4 @@
-# $Id: Language.pm,v 1.18 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Language.pm,v 1.21 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -26,7 +26,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 ######################################################################
 #### Implementation
@@ -124,7 +124,9 @@ sub is_keyword {
 	    || SystemC::Vregs::Language::Perl::is_keyword($sym) && "Perl"
 	    || SystemC::Vregs::Language::Verilog::is_keyword($sym) && "Verilog"
 	    || SystemC::Vregs::Language::Assembler::is_keyword($sym) && "Assembler"
-	    || SystemC::Vregs::Language::Tcl::is_keyword($sym) && "Tcl"); 
+	    || SystemC::Vregs::Language::Tcl::is_keyword($sym) && "Tcl"
+	    # XML keywords can't conflict as they all have <'s
+	    ); 
 }
 
 ######################################################################
@@ -376,8 +378,34 @@ sub comment_end_char {
 sub comment {
     my $self = shift;
     my $strg = join ('', @_);
-    $strg =~ s!\n(.)!\n;$1!g;
+    $strg =~ s!\n(.)!\n#$1!g;
     $self->print ("\#".$strg);
+}
+
+######################################################################
+######################################################################
+######################################################################
+#### XML
+
+package SystemC::Vregs::Language::XML;
+use vars qw(@ISA);
+@ISA = qw(SystemC::Vregs::Language);
+use strict;
+
+sub is_keyword { return undef;}
+sub comment_start_char { return "<!--"; }
+sub comment_end_char { return "-->"; }
+sub comment {
+    my $self = shift;
+    my $strg = join ('', @_);
+    $strg =~ s%--+%-%sg;	# Drop --'s, they end comments
+    $strg =~ s%[<>]%_%sg;	# Replace special <>'s
+    $strg =~ s%\n(?!$)% -->\n<!-- %sg;
+    if ($strg =~ s/\n$//) {
+	$self->print("<!-- $strg -->\n");
+    } else {
+	$self->print("<!-- $strg -->");
+    }
 }
 
 ######################################################################

@@ -1,4 +1,4 @@
-// $Id: VregsClass.h,v 1.3 2001/08/04 01:45:35 wsnyder Exp $ -*- C++ -*-
+// $Id: VregsClass.h,v 1.5 2001/09/19 15:12:46 wsnyder Exp $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -39,11 +39,23 @@ typedef uint32_t nint32_t;  // Uint stored in network order
 typedef uint64_t nint64_t;  // Uint stored in network order
 #endif
 
+#ifndef _ADDRESS_T
+//typedef uint64_t address_t;
+typedef uint32_t address_t;
+#endif
+
 //======================================================================
 // VregsOstream
 
+#ifndef COUT
+#define COUT cout
+#endif
+#ifndef OStream
+#define OStream ostream
+#endif
+
 // This class is used so we can do:
-//	cout << "structure= " << vregs_object.dump() << " etc...";
+//	COUT << "structure= " << vregs_object.dump() << " etc...";
 // To get the dump() to work, the dump() function should return a VregsOstream object
 // templated to the type of the vregs_object.  However, that causes compile times
 // to explode, so we just store a void* and cast in the vregs output.

@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.cpp,v 1.6 2001/06/22 19:24:15 wsnyder Exp $ -*- C++ -*-
+// $Id: VregsRegInfo.cpp,v 1.7 2001/09/18 14:02:57 wsnyder Exp $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -29,13 +29,13 @@
 
 void VregsRegEntry::dump (void) const
 {
-    cout << "  REnt: Address "
+    COUT << "  REnt: Address "
 	 << hex << address() << " - " << (address() + size() - 1)
 	 << "  Reg " << name();
     if (isRanged()) {
-	cout << "[" << hex << lowEntNum() << "]";
+	COUT << "[" << hex << lowEntNum() << "]";
     }
-    cout << "  Size " << size() << endl;
+    COUT << "  Size " << size() << endl;
 }
 
 //======================================================================
@@ -80,7 +80,7 @@ void VregsRegInfo::add_register (
 
 void VregsRegInfo::dump (void)
 {
-    cout << "VregsRegInfo dump\n";
+    COUT << "VregsRegInfo dump\n";
     
     for (VregsRegInfo::iterator iter = begin(); iter != end(); ++iter) {
 	const VregsRegEntry* rep = iter;

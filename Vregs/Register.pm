@@ -1,4 +1,4 @@
-# $Id: Register.pm,v 1.25 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Register.pm,v 1.27 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 # mnem
 # addr
@@ -56,6 +56,16 @@ sub dewildcard {
     my $inh = $self->{typeref}->inherits();
     print "Reg Wildcard $self->{name} $inh\n" if $SystemC::Vregs::Debug;
     (my $regexp = $inh) =~ s/[*]/\.\*/g;
+
+    #(my $defbase = $inh) =~ s/[*]/Base/g;
+    #(my $defname = $defbase) =~ s/^R_//g;
+    #my $defref = new SystemC::Vregs::Define::Value
+    #	 (pack => $self->{pack},
+    #	  name => "RA_".$defname,
+    #	  rst  => $self->{addrtext},
+    #	  desc => "Base address from wildcarded register range",
+    #	  );
+    
     my $gotone;
     foreach my $matchref ($self->{pack}->find_reg_regexp("^$regexp")) {
 	$gotone = 1;

@@ -1,4 +1,4 @@
-# $Id: Type.pm,v 1.4 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Type.pm,v 1.6 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 ######################################################################
 # Accessors
@@ -172,6 +172,24 @@ sub computes {
     $mnem_vec .= sprintf "X[%d:%d], ", $bit+$x, $bit+1 if $x>1;
     $mnem_vec =~ s/, $//;
     $typeref->{mnem_vec} = $mnem_vec;
+
+    $typeref->_computes_words();
+}
+
+sub _computes_words {
+    my $self = shift;
+
+    my $words = 0;
+    my @fields = (values %{$self->{fields}});
+    if ($self->{inherits_typeref}) {
+	push @fields, (values %{$self->{inherits_typeref}->{fields}});
+    }
+    foreach my $bitref (@fields) {
+	foreach my $bit (@{$bitref->{bitlist}}) {
+	    $words = int($bit / 32)+1 if $words < int($bit / 32)+1;
+	}
+    }
+    $self->{words} = $words;
 }
 
 sub fields_sorted {

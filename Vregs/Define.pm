@@ -1,4 +1,4 @@
-# $Id: Define.pm,v 1.5 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Define.pm,v 1.7 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 ######################################################################
 ######################################################################
@@ -90,7 +90,8 @@ sub check_name {
     my $self = shift;
     my $field = $self->{name};
     my $class = $self->{class};
-    if ($field !~ /^[A-Z][A-Z0-9_]+$/) {
+    if ($self->{is_manual}
+	&& $field !~ /^[A-Z][A-Z0-9_]+$/) {
 	return $self->warn ("Define field names must match [capital][capitalnumerics_]: $field'\n");
     }
 }

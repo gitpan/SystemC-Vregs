@@ -1,4 +1,4 @@
-# $Id: Enum.pm,v 1.8 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Enum.pm,v 1.9 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 ######################################################################
 ######################################################################

@@ -1,6 +1,7 @@
 // -*- C++ -*-
 // DESCRIPTION: C++ file compiled as part of test suite
 
+#include <stdlib.h>
 typedef unsigned int uint32_t ;
 typedef unsigned long long uint64_t ;
 typedef unsigned long long Address ;
@@ -78,19 +79,44 @@ typedef unsigned long long Address ;
 #ifndef INSERTED__after_class_end__ExClassTwo
 #error MISSING  INSERTED__after_class_end__ExClassTwo
 #endif
+#ifndef INSERTED__before_class_cpp__ExClassTwo
+#error MISSING  INSERTED__before_class_cpp__ExClassTwo
+#endif
+#ifndef INSERTED__after_class_cpp__ExClassTwo
+#error MISSING  INSERTED__after_class_cpp__ExClassTwo
+#endif
 
 // Just enough so we know it compiles and run!
 int main() {
-    ExClassOne base;
-    base.fieldsZero();
-    base.cmd(ExEnum::ONE);
-    base.address(0x1234);
+    ExClassOne clOne;
+    ExClassTwo clTwo;
+    clOne.fieldsZero();
+    clOne.cmd(ExEnum::ONE);
+    clOne.address(0x1234);
+
+    // Size check
+    if (sizeof(ExBase) != ExBase::SIZE) {
+	COUT << "%Error: Base Has Wrong Size: "<<sizeof(ExBase)<<" "<<ExBase::SIZE<<endl;
+	exit(10);
+    }
+    if (sizeof(ExClassOne) != ExClassOne::SIZE) {
+	COUT << "%Error: ClassOne Has Wrong Size: "<<sizeof(ExBase)<<" "<<ExClassOne::SIZE<<endl;
+	exit(10);
+    }
+    if (sizeof(ExClassTwo) != ExClassTwo::SIZE) {
+	COUT << "%Error: ClassTwo Has Wrong Size: "<<sizeof(ExBase)<<" "<<ExClassTwo::SIZE<<endl;
+	exit(10);
+    }
+    if ((char*)&clTwo != (char*)&(clTwo.m_w[0])) {
+	COUT << "%Error: Data doesn't start at base\n";
+	exit(10);
+    }
 
     // Dumping a enum
-    cout << "Cmd = "<<base.cmd()<<endl;
+    COUT << "Cmd = "<<clOne.cmd()<<endl;
 
     // Dumping class
-    cout << "Base =\t" <<hex << base.dump() << endl;
+    COUT << "ClassOne =\t" <<hex << clOne.dump() << endl;
 
     return (0);
 }

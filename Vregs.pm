@@ -1,4 +1,4 @@
-# $Id: Vregs.pm,v 1.61 2001/09/04 02:06:18 wsnyder Exp $
+# $Id: Vregs.pm,v 1.75 2001/10/18 12:46:46 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -34,7 +34,7 @@ use Carp;
 use vars qw($Debug $Bit_Access_Regexp @ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 ######################################################################
 #### Constants
@@ -132,7 +132,8 @@ sub find_reg_regexp {
 
 sub regs_sorted {
     my $pack = shift;
-    return (sort {$a->{addr}->Lexicompare($b->{addr})}
+    return (sort {$a->{addr}->Lexicompare($b->{addr})
+		      || $a->{name} cmp $b->{name}}
 	    (values %{$pack->{regs}}));
 }
 sub types_sorted {
@@ -436,6 +437,9 @@ sub new_register {
 
 	    my $rst = defined $rst_col ? $row->[$rst_col] : "";
 	    $rst = 'X' if ($rst eq "" && !$is_register);
+
+	    (!$typeref->{fields}{$bit_mnem}) or
+		$self->warn ($typeref->{fields}{$bit_mnem}, "Field defined twice in spec\n");
 	    my $bitref = new SystemC::Vregs::Bit
 		(pack => $self,
 		 name => $bit_mnem,
@@ -447,6 +451,14 @@ sub new_register {
 		 desc => $row->[$def_col],
 		 type => defined $type_col && $row->[$type_col],
 		 );
+
+	    # Take special user defined fields and add to table
+	    for (my $colnum=0; $colnum<=$#{$bittable[0]}; $colnum++) {
+		my $col = $bittable[0][$colnum];
+		if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
+		    $bitref->{attributes}{$1} = $row->[$colnum];
+		}
+	    }
 
 	    # Enter each bit into the table
 	    $typeref->{fields}{$bit_mnem} = $bitref;
@@ -465,19 +477,22 @@ sub _choose_columns {
 
     my @collist;
     my @colused = ();
+    my @colheads;
     # The list is short, so this is faster then forming a hash.
     # If things get wide, this may change
     for (my $h=0; $h<=$#{$headref}; $h++) {
-	if ($headref->[$h] =~ s/\s*\(.*\)//) {
+	$colheads[$h] = $headref->[$h];
+	if ($colheads[$h] =~ s/\s*\(.*\)\s*//) {
 	    # Strip comments in the header
 	    # Allow ignoring these columns entirely
-	    $colused[$h] = 1 if $headref->[$h] eq "";
+	    #print "HR $h '$headref->[$h]'  '$colheads[$h]'\n";
+	    $colused[$h] = 1 if $colheads[$h] eq "";
 	}
     }
   headchk:
     foreach my $fld (@{$fieldref}) {
 	for (my $h=0; $h<=$#{$headref}; $h++) {
-	    if ($fld eq $headref->[$h]) {
+	    if ($fld eq $colheads[$h]) {
 		push @collist, $h;
 		$colused[$h] = 1;
 		next headchk;
@@ -488,14 +503,16 @@ sub _choose_columns {
 
     my $ncol = 0;
     for (my $h=0; $h<=$#{$headref}; $h++) {
-	$ncol = 1 if !$colused[$h];
+	$ncol = $h+1 if !$colused[$h];
     }
     
     if ($ncol) {
-        SystemC::Vregs::Subclass::warn ($flagref, "Extra columns found:\n");
+        SystemC::Vregs::Subclass::warn ($flagref, "Column ".($ncol-1)." found with unknown header.\n");
 	print "Desired column headers: '",join("' '",@{$fieldref}),"'\n";
 	print "Found   column headers: '",join("' '",@{$headref}),"'\n";
-	print "("; foreach (@collist) { print (((defined $_)?$_:'-'),' '); }
+	print "Defined:("; foreach (@collist) { print (((defined $_)?$_:'-'),' '); }
+	print ")\n";
+	print "Used:   ("; foreach (@colused) { print ((($_)?'Y':'-'),' '); }
 	print ")\n";
     }
 
@@ -671,20 +688,36 @@ sub check {
 ######################################################################
 #### Defines
 
+sub _force_mask {
+    my $pack = shift;
+    my $mask = shift;
+    # Return new mask which assumes power-of-2 alignement of all registers
+    my $bit;
+    for ($bit=$pack->{address_bits}-1; $bit>=1; --$bit) {  # Ignore bits 1&0
+	if ($mask->bit_test($bit)) {
+	    last;
+	}
+    }
+    for (; $bit>=0; --$bit) {
+	$mask->Bit_On($bit);
+    }
+    return $mask;
+}
+
 sub _valid_mask {
-    my $regref = shift;
+    my $pack = shift;
     my $addr = shift;
     my $mask = shift;
 
     # if (($addr & ~$mask) != $addr)
-    my $a = Bit::Vector->new($regref->{pack}{address_bits});
-    my $b = Bit::Vector->new($regref->{pack}{address_bits});
+    my $a = Bit::Vector->new($pack->{address_bits});
+    my $b = Bit::Vector->new($pack->{address_bits});
     $a->Complement($mask);
     $b->Intersection($a,$addr);
     return 0 if !$b->equal($addr);
 
     my $one = 1;
-    for (my $bit=0; $bit<$regref->{pack}{address_bits}; $bit++) {
+    for (my $bit=0; $bit<$pack->{address_bits}; $bit++) {
 	if ($mask->bit_test($bit)) {
 	    return 0 if !$one;
 	} else {
@@ -698,33 +731,75 @@ sub SystemC::Vregs::Type::_create_defines {
     my $typeref = shift;
 
     # Make bit alias
-    my $typemnem = $typeref->{name};
-    (my $nor_mnem  = $typemnem) =~ s/^R_//;
     foreach my $bitref (values %{$typeref->{fields}}) {
-	my $bit_mnem = $bitref->{name};
-	my $comment  = $bitref->{comment};
+	{   # Wide-word defines
+	    my $rnum = 0;  $rnum = 1 if $#{$bitref->{bitlist_range}};
+	    foreach my $bitrange (reverse @{$bitref->{bitlist_range}}) {
+		$bitref->_create_defines_range ($typeref, $bitrange, $rnum++, 1);
+	    }
+	}
 
-	my $rnum = "";
-	$rnum = 1 if ($#{$bitref->{bitlist_range}});
-	foreach my $bitrange (@{$bitref->{bitlist_range}}) {
-	    my ($msb,$lsb,$nbits,$srcbit) = @{$bitrange};
+	# Multi-word defines
+	if ($typeref->{words}>1) {
+	    my $rnum = 0;  $rnum = 1 if $#{$bitref->{bitlist_range_32}};
+	    foreach my $bitrange (reverse @{$bitref->{bitlist_range_32}}) {
+		$bitref->_create_defines_range ($typeref, $bitrange, $rnum++, 0);
+	    }
+	}
+    }
+}
+
+sub SystemC::Vregs::Bit::_create_defines_range {
+    my $bitref = shift;
+    my $typeref = shift;
+    my $bitrange = shift;
+    my $rnum = shift;
+    my $wideword = shift;
+
+    my ($msb,$lsb,$nbits,$srcbit) = @{$bitrange};
+    my $bit_mnem = $bitref->{name};
+    my $comment  = $bitref->{comment};
+    (my $nor_mnem  = $typeref->{name}) =~ s/^R_//;
+
+    # For multi-ranged fields, we append a _1 for the first range, _2, ...
+    my $rstr = ""; $rstr = "_".$rnum if $rnum;
+
+    # For multi-word structures, make verilog defines that include
+    # the word number, and subtract 32* that value.  This allows for
+    # easy extraction using multiple busses and/or multi-cycle transactions.
+    for (my $word=-1; $word<$typeref->{words}; $word++) {
+	# word=-1 indicates we are making the wide structure
+	next if $word==-1 && !$wideword;
+	next if $word!=-1 &&  $wideword;
+	my $wstr = "";  $wstr = $word if $word>=0;
+
+	# If a single field in word #0, CR0_ would be the same as a CR_, so suppress
+	next if $msb<32 && $word!=-1 && $rnum==0;
+
+	if ($word==-1
+	    || ($msb>=($word*32) && $msb<($word*32+32))
+	    || ($lsb>=($word*32) && $lsb<($word*32+32))) {
+	    my $wlsb = $lsb;
+	    my $wmsb = $msb;
+	    $wlsb -= $word*32 if $word!=-1;
+	    $wmsb -= $word*32 if $word!=-1;
+
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $typeref->{pack},
-		 name => "CR${rnum}_".$nor_mnem."_".$bit_mnem,
-		 rst_val => $msb.":".$lsb,
+		 name => "CR${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
+		 rst_val => $wmsb.":".$wlsb,
 		 is_verilog => 1,
 		 desc => "Field Bit Range: $comment", );
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $typeref->{pack},
-		 name => "CB${rnum}_".$nor_mnem."_".$bit_mnem,
-		 rst_val => $lsb,
+		 name => "CB${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
+		 rst_val => $wlsb,
 		 desc => "Field Start Bit: $comment", );
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $typeref->{pack},
-		 name => "CE${rnum}_".$nor_mnem."_".$bit_mnem,
-		 rst_val  => $msb,
+		 name => "CE${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
+		 rst_val  => $wmsb,
 		 desc => "Field End Bit:   $comment", );
-	    $rnum = ($rnum||0) + 1;
 	}
     }
 }
@@ -737,7 +812,7 @@ sub SystemC::Vregs::Enum::_create_defines {
 	    (pack => $self->{pack},
 	     name => "E_".$self->{name}."_".$fieldref->{name},
 	     bits => $fieldref->{bits},
-	     rst_val => $fieldref->{rst_val},
+	     rst_val => sprintf("%x",$fieldref->{rst_val}),
 	     desc => "Enum Value: $fieldref->{desc}", );
     }
 }
@@ -753,7 +828,6 @@ sub create_defines {
     my $bit4 = $pack->addr_const_vec(0x4);
     my $bit32 = $pack->addr_const_vec(0xffffffff);
 
-    my %moddef = ();
     foreach my $regref ($pack->regs_sorted()) {
 	my $classname   = $regref->{name};
 	(my $nor_mnem  = $classname) =~ s/^R_//;
@@ -762,21 +836,11 @@ sub create_defines {
 	my $range      = $regref->{range};
 	my $range_high = $regref->{range_high};
 	my $range_low  = $regref->{range_low};
-	my $mod        = $regref->{mod};
-
-#	 if (!defined $moddef{$mod}
-#	     && (($addr & 0xfff00000) == ($Register_Base | 0x00f00000))) {
-#	     push @defs, { 'define' => "RA_" . uc $mod,
-#			   'value' => $addr & 0xffff0000, 'hex' => 1,
-#			   'comment' => "Address of Module Base", };
-#	     $moddef{$mod} = 1;
-#	 }
 
 	# Make master alias
 	new_push SystemC::Vregs::Define::Value
 	    (pack => $pack,
 	     name => "RA_".$nor_mnem,
-	     gt32 => ($addr->Lexicompare($bit32) > 0),
 	     val => $addr,
 	     rst_val => $addr->to_Hex, bits => $pack->{address_bits},
 	     desc => "Address of $classname", );
@@ -824,7 +888,7 @@ sub create_defines {
 
 	    my $delta = Bit::Vector->new($regref->{pack}{address_bits});
 	    $delta->subtract($regref->{addr_end},$addr,1);  #end-start-1
-	    if (_valid_mask ($regref, $addr, $delta)) {
+	    if (_valid_mask ($pack, $addr, $delta)) {
 		new_push SystemC::Vregs::Define::Value
 		    (pack => $pack,
 		     name => "RAM_".$nor_mnem,
@@ -853,11 +917,56 @@ sub create_defines {
 			 val => $range_addr,
 			 rst_val => $range_addr->to_Hex,
 			 bits => $regref->{pack}{address_bits},
-			 gt32 => ($range_addr->Lexicompare($bit32) > 0),
 			 desc => "Address of Entry ${classname}${range_val}", );
 		}
 	    }
 	}
+    }
+
+    my %moddef = ();
+    foreach my $regref ($pack->regs_sorted()) {
+	my $classname   = $regref->{name};
+	(my $nor_mnem  = $classname) =~ s/^R_//;
+	for (my $str=$nor_mnem; $str=~s/[A-Z][a-z0-9_]*$//;) {
+	    #print "$nor_mnem\t$str\t",$regref->{addr},"\n";
+	    next if $str eq "";
+	    $moddef{$str}{count}++;
+	    $moddef{$str}{addr}
+	    = SystemC::Vregs::Number::min($moddef{$str}{addr},$regref->{addr});
+	    $moddef{$str}{addr_end}
+	    = SystemC::Vregs::Number::max($moddef{$str}{addr_end},$regref->{addr_end});
+	}
+    }
+
+    foreach my $nor_mnem (sort (keys %moddef)) {
+	my $modref = $moddef{$nor_mnem};
+	next if $modref->{count} < 2;
+	my $addr = $modref->{addr};
+	my $addr_end = $modref->{addr_end};
+	#print "$nor_mnem\t$addr\t$addr_end\n";
+
+	# Make master alias
+	new_push SystemC::Vregs::Define::Value
+	    (pack => $pack,
+	     name => "RBASEA_".$nor_mnem,
+	     val => $addr,
+	     rst_val => $addr->to_Hex, bits => $pack->{address_bits},
+	     desc => "Base address of $nor_mnem registers", );
+	new_push SystemC::Vregs::Define::Value
+	    (pack => $pack,
+	     name => "RBASEAE_".$nor_mnem,
+	     val => $addr_end,
+	     rst_val => $addr_end->to_Hex, bits => $pack->{address_bits},
+	     desc => "Base address of $nor_mnem registers", );
+	my $delta = Bit::Vector->new($pack->{address_bits});
+	$delta->subtract($modref->{addr_end},$addr,1);  #end-start-1
+	$delta = _force_mask ($pack, $delta);
+	new_push SystemC::Vregs::Define::Value
+	    (pack => $pack,
+	     name => "RBASEAM_".$nor_mnem,
+	     rst_val => $delta->to_Hex,
+	     bits => $pack->{address_bits},
+	     desc => "Address Mask (may be forced to power-of-two)");
     }
 
     foreach my $typeref ($pack->types_sorted) {

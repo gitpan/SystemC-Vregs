@@ -1,4 +1,4 @@
-#// $Id: vregs_spec__rules.pl,v 1.4 2001/06/22 18:39:43 wsnyder Exp $ -*- C++ -*-
+#// $Id: vregs_spec__rules.pl,v 1.5 2001/10/05 23:33:55 wsnyder Exp $ -*- C++ -*-
 #// DESCRIPTION: SystemC::Vregs::Rules file: Perl code Vregs parses to produce .h file
 #// ** This is a PERL file, but highlighted as C++ instead of Perl
 #//    since there's more C++ code here then perl code!
@@ -46,6 +46,20 @@ after_class_end (
     name => qr/.*/,
     prog => sub {
 	fprintf("#define INSERTED__after_class_end__%s\n",
+		$self->{name});
+    },);
+
+before_class_cpp (
+    name => qr/.*/,
+    prog => sub {
+	fprintf("#define INSERTED__before_class_cpp__%s\n",
+		$self->{name});
+    },);
+
+after_class_cpp (
+    name => qr/.*/,
+    prog => sub {
+	fprintf("#define INSERTED__after_class_cpp__%s\n",
 		$self->{name});
     },);
 

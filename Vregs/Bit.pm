@@ -1,4 +1,4 @@
-# $Id: Bit.pm,v 1.4 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Bit.pm,v 1.6 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -27,7 +27,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 #desc
 #type
@@ -191,22 +191,29 @@ sub check_bits {
     #print "bitdecode '$field'=> @{$bitref->{bitlist}}\n";
 
     # Encode bits back into extents and ranges
-    my $msb = -1;
-    my $lastbit = -1;
-    my $tobit = $bitref->{numbits};
     $bitref->{bitlist_range} = [];
-    foreach my $bit (@{$bitref->{bitlist}}, -1) {
-	if ($bit != $lastbit-1
-	    || (31==($bit % 32))	# Don't let a range span different 32 bit words
-	    ) {
-	    if ($msb>=0) {
-		#print " rangeadd $msb $lastbit $bit\n";
-		push @{$bitref->{bitlist_range}}, [$msb, $lastbit, $msb-$lastbit+1, $tobit];
+    $bitref->{bitlist_range_32} = [];
+    foreach my $thirtytwo (0 .. 1) {
+	my @blist;
+	my $msb = -1;
+	my $lastbit = -1;
+	my $tobit = $bitref->{numbits};
+	foreach my $bit (@{$bitref->{bitlist}}, -1) {
+	    if ($bit != $lastbit-1
+		|| ($thirtytwo && (31==($bit % 32)))	# Don't let a range span different 32 bit words
+		|| $bit == -1
+		) {
+		if ($msb>=0) {
+		    #print " rangeadd $msb $lastbit $bit\n";
+		    push @blist, [$msb, $lastbit, $msb-$lastbit+1, $tobit];
+		}
+		$msb = $bit;
 	    }
-	    $msb = $bit;
+	    $lastbit = $bit;
+	    $tobit--;
 	}
-	$lastbit = $bit;
-	$tobit--;
+	$bitref->{bitlist_range_32} = \@blist if $thirtytwo;
+	$bitref->{bitlist_range}    = \@blist if !$thirtytwo;
     }
 }
 

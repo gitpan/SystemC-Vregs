@@ -1,4 +1,4 @@
-# $Id: Number.pm,v 1.3 2001/09/04 02:06:21 wsnyder Exp $
+# $Id: Number.pm,v 1.5 2001/10/18 12:46:49 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,13 +28,30 @@ use vars qw($VERSION @ISA);
 use Bit::Vector;
 
 @ISA = qw (Bit::Vector);	# For now, let Bit::Vector do all the work
-$VERSION = '1.000';
+$VERSION = '1.100';
 
 ######################################################################
 ######################################################################
 ######################################################################
 ######################################################################
-#### Utilities
+#### Creators
+
+sub min {
+    my $veca = shift;
+    my $vecb = shift;
+    return $veca if !defined $vecb;
+    return $vecb if !defined $veca;
+    if ($veca->Lexicompare($vecb) < 0) {return $veca;}
+    else {return $vecb;}
+}
+sub max {
+    my $veca = shift;
+    my $vecb = shift;
+    return $veca if !defined $vecb;
+    return $vecb if !defined $veca;
+    if ($veca->Lexicompare($vecb) > 0) {return $veca;}
+    else {return $vecb;}
+}
 
 sub text_to_vec {
     my $default_width = shift;	# Width if not specified, undef=must be sized
@@ -49,19 +66,22 @@ sub text_to_vec {
     }
     if ($text =~ /^(\'d|)(\d+)$/i) {
 	return undef if !$width;
-	return Bit::Vector->new_Dec($width, $2);
+	return SystemC::Vregs::Number->new_Dec($width, $2);
     }
     elsif ($text =~ /^(0x|\'[hx])([a-z0-9]+)$/i) {
 	return undef if !$width;
-	return Bit::Vector->new_Hex($width, $2);
+	return SystemC::Vregs::Number->new_Hex($width, $2);
     }
     elsif ($text =~ /^\'b([0-1]+)$/i) {
 	return undef if !$width;
-	return Bit::Vector->new_Bin($width, $1);
+	return SystemC::Vregs::Number->new_Bin($width, $1);
     }
 
     return undef;
 }
+
+######################################################################
+#### Accessors
 
 ######################################################################
 #### Package return

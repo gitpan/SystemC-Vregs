@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.h,v 1.7 2001/08/01 17:19:00 wsnyder Exp $ -*- C++ -*-
+// $Id: VregsRegInfo.h,v 1.8 2001/09/18 14:02:57 wsnyder Exp $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -31,10 +31,7 @@
 #include <map>
 #include <algorithm>
 
-#ifndef _ADDRESS_T
-//typedef uint64_t address_t;
-typedef uint32_t address_t;
-#endif
+#include "VregsClass.h"
 
 //======================================================================
 // VregsRegEntry
