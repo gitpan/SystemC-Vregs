@@ -1,4 +1,5 @@
 \input texinfo @c -*-texinfo-*-
+@c $Id: readme.texi,v 1.6 2002/03/11 14:07:22 wsnyder Exp $
 @c %**start of header
 @setfilename readme.info
 @settitle Perl SystemC::Vregs Installation
@@ -81,6 +82,10 @@ The latest version is available at
 
 Download the latest package from that site, and decompress.
 @samp{gunzip SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar}
+
+You will also need to have installed Bit::Vector, HTML::TableExtract,
+and Verilog::Language from CPAN.  If you wish, simply try and install
+Vregs and it will tell you what prerequisites are missing.
 
 @node Supported Systems, Installation, Obtaining Distribution, Top
 @section Supported Systems

@@ -1,4 +1,4 @@
-# $Id: TableExtract.pm,v 1.16 2001/11/26 15:31:44 wsnyder Exp $
+# $Id: TableExtract.pm,v 1.20 2002/03/11 15:53:29 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -23,7 +23,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.200';
+$VERSION = '1.210';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -51,17 +51,30 @@ sub parse_file {
     $self->{_vregs_filename} = $filename;
     $self->{_vregs_num_tables} = -1;
     $self->SUPER::parse_file ($fh);
+    $self->start("p");
+    $self->text("Register");
     $fh->close();
 }
 
 sub clean_html_text {
     $_ = shift;
+    s/\&nbsp;/ /g;	# Why didn't HTML::TableExtract handle this?
+    s/\240/ /g;		# ISO-Latin1 nonbreaking space
+    s/\255//g;		# ISO-Latin1 soft hyphen
     s/[\t\n\r ]+/ /g;
     s/^\s+//;
     s/\s+$//;
-    s/\222/\'/g;
-    s/\226/-/g;
-    s/\240//g;	# Nonbreakable space
+    # Substituting 2 or 3 periods for 'elipses' causes Vspecs to truncate
+    # the field description at the periods, so use dashes.
+    s/\205/--/g;	# ISO-Latin1 horizontal elipses (0x85)
+    s/\221/\'/g;	# ISO-Latin1 left single-quote
+    s/\222/\'/g;	# ISO-Latin1 right single-quote
+    s/\223/\"/g;	# ISO-Latin1 left double-quote
+    s/\224/\"/g;	# ISO-Latin1 right double-quote
+    s/\225/\*/g;	# ISO-Latin1 bullet
+    s/\226/-/g;		# ISO-Latin1 en-dash
+    s/\227/--/g;	# ISO-Latin1 em-dash (0x97)
+    s/\267/\*/g;	# ISO-Latin1 middle dot (0xB7)
     return $_;
 }
 

@@ -5,6 +5,14 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in Vregs 1.210 3/11/2002
+
+***	Allow duplicate enumeration values.  The ascii() method will
+	print the first sorted enumeration text.
+
+****	Fix ORing in of ranged addresses.  [Greg Waters]
+
+
 * Changes in Vregs 1.200 11/26/2001
 
 **	Allow replacement of enumeration before/after rules.
@@ -70,7 +78,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.16 2001/11/26 15:31:41 wsnyder Exp $
+$Id: NEWS,v 1.19 2002/03/11 15:53:27 wsnyder Exp $
 ----------------------------------------------------------------------
 Copyright information:
 

@@ -1,4 +1,4 @@
-# $Id: Register.pm,v 1.28 2001/11/26 15:31:44 wsnyder Exp $
+# $Id: Register.pm,v 1.30 2002/03/11 15:53:29 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.200';
+$VERSION = '1.210';
 
 # mnem
 # addr
@@ -109,9 +109,12 @@ sub check_addrtext {
 	    $regref->warn ("Address contains | of unknown register: $addrtext\n");
 	} else {
 	    my $text = $orin_ref->{addrtext};
+	    $text =~ s/-.*//;
 	    $inher_min = $regref->{pack}->addr_text_to_vec($text);
+	    defined $inher_min or $orin_ref->warn("Can't parse address text: $text\n");
 	}
     }
+
     if ($addrtext =~ s/^.*(0x[0-9a-f_]+)\s*-\s*(0x[0-9a-f_]+)\s*[|]\s*//i) {
 	my $mintext = $1;  my $maxtext = $2;
 	$inher_min = $regref->{pack}->addr_text_to_vec($mintext);

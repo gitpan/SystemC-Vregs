@@ -1,4 +1,5 @@
 // -*- C++ -*-
+// $Id: 50_gcc_hdr.cpp,v 1.11 2002/03/11 14:07:22 wsnyder Exp $
 // DESCRIPTION: C++ file compiled as part of test suite
 
 #include <stdlib.h>

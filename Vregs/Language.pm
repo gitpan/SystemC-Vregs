@@ -1,4 +1,4 @@
-# $Id: Language.pm,v 1.22 2001/11/26 15:31:44 wsnyder Exp $
+# $Id: Language.pm,v 1.23 2002/03/11 15:53:29 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -26,7 +26,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.200';
+$VERSION = '1.210';
 
 ######################################################################
 #### Implementation

@@ -1,4 +1,5 @@
 // -*- C++ -*-
+// $Id: 55_gcc_info.cpp,v 1.5 2002/03/11 14:07:22 wsnyder Exp $
 // DESCRIPTION: C++ file compiled as part of test suite
 
 #include "VregsRegInfo.h"

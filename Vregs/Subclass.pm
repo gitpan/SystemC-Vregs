@@ -1,4 +1,4 @@
-# $Id: Subclass.pm,v 1.9 2001/11/26 15:31:44 wsnyder Exp $
+# $Id: Subclass.pm,v 1.11 2002/03/11 15:53:29 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -25,7 +25,7 @@ package SystemC::Vregs::Subclass;
 use strict;
 use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.200';
+$VERSION = '1.210';
 
 $Errors = 0;
 
@@ -73,6 +73,7 @@ sub clean_sentence {
     # Make it reasonably small, or the first sentence
     $field =~ s/^\s+//g;
     $field =~ s/\s*\bthis bit\b//g;
+    $field =~ s/\"/ /g;
     $field =~ s/\s+/ /g;
     $field = substr $field,0,80;
     if ($field =~ /[.,;]/) {

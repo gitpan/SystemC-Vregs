@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.h,v 1.10 2001/10/23 19:53:44 wsnyder Exp $ -*- C++ -*-
+// $Id: VregsRegInfo.h,v 1.11 2001/12/11 15:28:20 wsnyder Exp $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -33,6 +33,8 @@
 
 #include "VregsClass.h"
 
+class VregsRegInfo;
+
 //======================================================================
 // VregsRegEntry
 // Each register has one of these entries, which is a member of VregsRegInfo
@@ -58,7 +60,7 @@ private:
 public:
 //protected:
     // CREATORS
-    friend class VregsRegInfo {};
+    friend class VregsRegInfo;
     VregsRegEntry(address_t addr, size64_t size,
 		  const char* name, size64_t entSize, long lowEntNum,
 		  uint32_t rdMask, uint32_t wrMask,

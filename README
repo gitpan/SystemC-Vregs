@@ -62,6 +62,10 @@ Obtaining Distribution
    Download the latest package from that site, and decompress.  `gunzip
 SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar'
 
+   You will also need to have installed Bit::Vector, HTML::TableExtract,
+and Verilog::Language from CPAN.  If you wish, simply try and install
+Vregs and it will tell you what prerequisites are missing.
+
 Supported Systems
 =================
 

@@ -1,4 +1,4 @@
-# $Id: Outputs.pm,v 1.86 2001/11/26 15:31:44 wsnyder Exp $
+# $Id: Outputs.pm,v 1.93 2002/03/11 15:53:29 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -24,7 +24,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.200';
+$VERSION = '1.210';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -157,9 +157,16 @@ sub SystemC::Vregs::Enum::enum_cpp_write {
     $pack->{rules}->execute_rule ('enum_cpp_before', $clname, $self);
     $fl->print ("const char* ${clname}::ascii () const {\n");
     $fl->print ("    switch (m_e) {\n");
+    my %did_values;
     foreach my $fieldref ($self->fields_sorted()) {
-	$fl->printf ("\tcase %s: return(\"%s\");\n"
+	if ($did_values{$fieldref->{rst_val}}) {
+	    $fl->printf ("\t//DUPLICATE: ");
+	} else {
+	    $fl->printf ("\t");
+	}
+	$fl->printf ("case %s: return(\"%s\");\n"
 		     ,$fieldref->{name},$fieldref->{name});
+	$did_values{$fieldref->{rst_val}} = 1;
     }
     $fl->print ("  default: return (\"?E\");\n");
     $fl->print ("  }\n");
@@ -311,9 +318,15 @@ sub SystemC::Vregs::Type::_class_h_write {
     $fl->private_not_public (0);
     $fl->printf("    VREGS_STRUCT_DEF_CTOR(%s, %s)\t// (typeName, numWords)\n",
 		$clname, $words);
-    $fl->print("    void fieldsZero () {\n",
-	       "\tfor (int i=0; i<${words}; i++) w(i,0);\n",
-	       "    };\n");
+    $fl->print("    void fieldsZero () {\n");
+    if ($words>=8) {
+	$fl->print("\tfor (int i=0; i<${words}; i++) w(i,0);\n");
+    } else {
+	$fl->print("\t");
+	for (my $i=0; $i<$words; $i++) { $fl->print("w($i,0); "); }
+	$fl->print("\n");
+    }
+    $fl->print("    };\n");
     $fl->print("    void fieldsReset () {\n",
 	       "\tfieldsZero();\n",
 	       @resets,
@@ -473,6 +486,7 @@ sub defs_write {
 		 ."     RBASEAE_{regs}   Register common-prefix ending address + 1\n"
 		 ."     RBASEAM_{regs}   Register common-prefix bit mask\n"
 		 .""
+		 ."     CM{w}_{class}_WRITABLE     Mask of all writable bits\n"
 		 ."     CB{w}_{class}_{field}_{f}  Class field starting bit\n"
 		 ."     CE{w}_{class}_{field}_{f}  Class field ending bit\n"
 		 ."     CR{w}_{class}_{field}_{f}  Class field range\n"
@@ -502,7 +516,9 @@ sub defs_write {
 	    $fl->print ("#");
 	    $comment .= " (TOO LARGE FOR PERL)";
 	}
-	if (!$defref->{is_verilog} || $fl->{Verilog}) {
+	if (($defref->{is_verilog} && $fl->{Verilog})
+	    || ($defref->{is_perl} && $fl->{Perl})
+	    || (!$defref->{is_verilog} && !$defref->{is_perl})) {
 	    $fl->define ($define, $value, $comment);
 	}
     }
@@ -522,7 +538,8 @@ sub param_write {
     #$fl->include_guard();  #no guards-- it may be used in multiple modules
 
     $fl->comment(("*"x70)."\n"
-		 ."\tRAP_{regname}          Register address as a parameter\n"
+		 ."\tRAP_{regname}           Register address as a parameter\n"
+		 ."\tCMP_{regname}_WRITABLE  Register RdWr bit-mask as a parameter\n"
 		 ."\n"
 		 ."\tThis is useful in Verilog to allow extraction of bit\n"
 		 ."\tranges, for example:\n"
@@ -543,13 +560,16 @@ sub param_write {
 	my $comment = $defref->{desc};
 	my $bits    = $defref->{bits};
 	    
-	if ($define =~ s/^RA_/RAP_/) {
-	    if (defined $bits) {
-		$bits = 32 if ($value->Lexicompare($bit32) <= 0);
-		$bits = 32 if $self->{param_always_32bits};
+	if ($define =~ s/^(RA|CM)_/${1}P_/) {
+	    my $rst_val = $defref->{rst_val};
+	    if (defined $bits && $value && ref $value) {
+		$bits = 32 if ($bits==32
+			       || $self->{param_always_32bits}
+			       || $value->Lexicompare($bit32));
 		$value = Bit::Vector->new_Hex($bits, $value->to_Hex);
+		$rst_val = $value->to_Hex;
 	    }
-	    my $rst_val = $fl->sprint_hex_value ($value->to_Hex,$bits);
+	    $rst_val = $fl->sprint_hex_value ($rst_val,$bits);
 	    $fl->printf ("   parameter %-26s %12s\t// ${comment}\n",
 			 $define . " =", $rst_val.";", 
 			 "Address of Module Base");

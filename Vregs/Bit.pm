@@ -1,4 +1,4 @@
-# $Id: Bit.pm,v 1.9 2001/11/26 15:31:44 wsnyder Exp $
+# $Id: Bit.pm,v 1.11 2002/03/11 15:53:29 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -27,7 +27,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.200';
+$VERSION = '1.210';
 
 #desc
 #type
@@ -168,7 +168,7 @@ sub check_bits {
     $field =~ s/[ \t]+//g;  $field = lc $field;
     $bitref->{bits} = $field;
 
-    (defined $field && $field =~ /^[0-9w]/) or $bitref->warn ("No bit range specified: '$field'\n");
+    (defined $field && $field =~ /^[0-9wb]/) or $bitref->warn ("No bit range specified: '$field'\n");
 
     # Split w[15:0],w[21] into 15,14,13,...
     $bitref->{bitlist} = [];
@@ -176,12 +176,19 @@ sub check_bits {
     foreach my $subfield (split ",","$field,") {
 	$subfield = "w0[${subfield}]" if $subfield !~ /\[/;
 	foreach my $busbit (Verilog::Language::split_bus ($subfield)) {
-	    if ($busbit !~ /^(w(\d+)|)\[(\d+)\]$/) {
+	    my $bit;
+	    if ($busbit =~ /^(b(\d+))\[(\d+)\]$/) {
+		my $byte=$2; $bit=$3;
+		$bit += $byte*8 if $byte;
+	    }
+	    elsif ($busbit =~ /^(w(\d+)|)\[(\d+)\]$/) {
+		my $word=$2; $bit=$3;
+		$bit += $word*32 if $word;
+	    }
+	    else {
 		$bitref->warn ("Strange bits selection: '$field': $busbit\n");
 		return;
 	    }
-	    my $word=$2; my $bit=$3;
-	    $bit += $word*32 if $word;
 	    push @{$bitref->{bitlist}}, $bit;
 	    $numbits++;
 	}

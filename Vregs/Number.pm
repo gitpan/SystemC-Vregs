@@ -1,4 +1,4 @@
-# $Id: Number.pm,v 1.6 2001/11/26 15:31:44 wsnyder Exp $
+# $Id: Number.pm,v 1.8 2002/03/11 15:53:29 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw($VERSION @ISA);
 use Bit::Vector;
 
 @ISA = qw (Bit::Vector);	# For now, let Bit::Vector do all the work
-$VERSION = '1.200';
+$VERSION = '1.210';
 
 ######################################################################
 ######################################################################
@@ -60,6 +60,7 @@ sub text_to_vec {
     # We allow C format  (10, 0x10, 0x10_11)
     # And Verilog format (32'd20, 32'h2f, 32'b1011)
     $text =~ s/_//g;
+    $text =~ s/\s+$//;
     my $width = $default_width;
     if ($text =~ s/^(\d+)\'/\'/) {
 	$width = $1;
