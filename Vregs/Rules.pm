@@ -1,4 +1,4 @@
-# $Revision: #25 $$Date: 2003/06/09 $$Author: wsnyder $
+# $Revision: #27 $$Date: 2003/09/04 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -23,7 +23,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.241';
+$VERSION = '1.242';
 
 ######################################################################
 # Default rules
@@ -103,6 +103,7 @@ sub  after_enum_cpp {	 _declare_rule (rule=>'enum_cpp_after', @_); }
 
 sub fprint  { $Default_Self->{filehandle}->print (@_); }
 sub fprintf { $Default_Self->{filehandle}->printf (@_); }
+sub protect_rdwr_only { $Default_Self->{protect_rdwr_only} = shift; }
 
 ######################################################################
 # Functions called by rest of vregs program

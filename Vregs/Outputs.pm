@@ -1,4 +1,4 @@
-# $Revision: #117 $$Date: 2003/06/09 $$Author: wsnyder $
+# $Revision: #119 $$Date: 2003/09/04 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.241';
+$VERSION = '1.242';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -90,6 +90,11 @@ sub close {
 sub private_not_public {
     my $self = shift;
     my $private = shift;
+    my $pack = shift;
+    my $enabled = (defined $pack->{rules}{protect_rdwr_only}
+		   ? $pack->{rules}{protect_rdwr_only}
+		   : $pack->{protect_rdwr_only});
+    $private = 0 if !$enabled;
     # Print public: or private: depending on desired state
     if ($private && !$self->{private}) {
 	$self->print ("protected:\n");
@@ -355,7 +360,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 	}
 
 	# Mask after shifting on reads, so the mask is a smaller constant.
-	$fl->private_not_public ($bitref->{access} !~ /R/);
+	$fl->private_not_public ($bitref->{access} !~ /R/, $pack);
 	my $typEnd = 11 + length $bitref->{type};
 	$fl->printf("    inline %s%s%-13s () const ",
 		    $bitref->{type}, ($typEnd < 16 ? "\t\t" : $typEnd < 24 ? "\t" : " "),
@@ -364,7 +369,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 	#printf $fl "\t//%s", $bitref->{desc};
 	$fl->printf("\n");
 
-	$fl->private_not_public ($bitref->{access} !~ /W/);
+	$fl->private_not_public ($bitref->{access} !~ /W/, $pack);
 	$fl->printf("    inline void\t\t%-13s (%s b) ", $lc_mnem, $bitref->{type});
 	$fl->print("{${deposit} }");
 	#printf $fl "\t//%s", $bitref->{desc};
@@ -374,7 +379,7 @@ sub SystemC::Vregs::Type::_class_h_write {
     }
 
     $fl->printf("\n");
-    $fl->private_not_public (0);
+    $fl->private_not_public (0, $pack);
     $fl->printf("    VREGS_STRUCT_DEF_CTOR(%s, %s)\t// (typeName, numWords)\n",
 		$clname, $words);
     $fl->print("    void fieldsZero () {\n");
@@ -402,7 +407,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 	       "    void dumpCout() const; // For GDB\n",);
     
     # Put const's last to avoid GDB stupidity
-    $fl->private_not_public (0);
+    $fl->private_not_public (0, $pack);
     $fl->printf("    static const size_t SIZE = %d;\n", $words*4);
 
     $pack->{rules}->execute_rule ('class_end_before', $clname, $self);

@@ -1,4 +1,4 @@
-# $Revision: #28 $$Date: 2003/06/09 $$Author: wsnyder $
+# $Revision: #31 $$Date: 2003/09/04 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -25,7 +25,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.241';
+$VERSION = '1.242';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -73,10 +73,10 @@ sub is_overlap_ok {
     my $other = shift;
     # Return true if these two bitrefs can overlap
     return 1 if !$self || !$other;
-    return 1 if lc $self->{name} eq lc $other->{name};
-    return 1 if lc $self->{overlaps} eq "allowed";
+    return 1 if lc $self->{overlaps}  eq "allowed";
     return 1 if lc $other->{overlaps} eq "allowed";
-    return 1 if lc $self->{overlaps} eq lc $other->{name};
+    return 1 if lc $self->{name} eq lc $other->{name};
+    return 1 if lc $self->{overlaps}  eq lc $other->{name};
     return 1 if lc $other->{overlaps} eq lc $self->{name};
     return 1 if $self->ignore || $other->ignore;
     return 0;
@@ -196,6 +196,7 @@ sub check_bits {
     my $field = $bitref->{bits};
 
     $field =~ s/[ \t]+//g;  $field = lc $field;
+    $field =~ s/,,+//g; $field =~ s/,$//;
     $bitref->{bits} = $field;
 
     (defined $field && $field =~ /^[0-9wb]/) or $bitref->warn ("No bit range specified: '$field'\n");
@@ -252,6 +253,56 @@ sub check_bits {
 	$bitref->{bitlist_range_32} = \@blist if $thirtytwo;
 	$bitref->{bitlist_range}    = \@blist if !$thirtytwo;
     }
+}
+
+######################################################################
+
+sub dewildcard {
+    my $bitref = shift;
+    return if !$bitref->{expand};
+
+    print "type_expand_field $bitref->{name}\n" if $SystemC::Vregs::Debug;
+    my $ityperef = $bitref->{pack}->find_type($bitref->{type});
+    if (!$ityperef) {
+	$bitref->warn("Can't find class $bitref->{type} for bit marked as 'Expand Class'\n");
+	return;
+    }
+
+    # Copy the expanded type's fields directly into this class, minding the bit offsets
+    foreach my $ibitref (values %{$ityperef->{fields}}) {
+	my $newname = $bitref->{name}.$ibitref->{name};
+	# Compute what bit numbers the new structure gets
+	$bitref->check_bits;  # So we get bistlist
+	$ibitref->check_bits;  # So we get bistlist
+	my $bits="";
+	my $basebit = $bitref->{bitlist_range}[0][1];
+	defined $basebit or $bitref->warn("No starting bit specified for base structure\n");
+        foreach my $bitrange (@{$ibitref->{bitlist_range}}) {
+	    my ($msb,$lsb,$nbits,$srcbit) = @{$bitrange};
+	    $bits .= ($msb+$basebit).":".($lsb+$basebit).",";
+	}
+	#print "$newname $bitref->{bitlist_range}[0]\n" if $SystemC::Vregs::Debug;
+	print "$newname $basebit $bits\n" if $SystemC::Vregs::Debug;
+	my $overlaps = $ibitref->{overlaps};
+	$overlaps = ($bitref->{name}.$overlaps) if $overlaps && $overlaps ne "allowed";
+	my $newref = SystemC::Vregs::Bit->new
+	    (%{$ibitref},
+	     pack=>$bitref->{pack},
+	     name=>$newname,
+	     typeref=>$bitref->{typeref},
+	     expanded_super=>$bitref->{name},
+	     expanded_sub=>$ibitref->{name},
+	     bits=>$bits,
+	     );
+	$newref->{desc} =~ s/(\boverlaps\s+)([a-zA-Z0-9_]+)/$1$overlaps/i if $overlaps;
+	#print "REG $newref->{name}  ol $overlaps\n";
+
+	# Cleanup the bitlist
+	$newref->check_bits;
+    }
+
+    # Eliminate ourself
+    $bitref->delete();
 }
 
 sub computes {

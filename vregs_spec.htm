@@ -590,8 +590,8 @@ multiple disjoint segments, separated by commas.  (w0[15:13] or w0[15,14,13] or 
 equivelent.)</p>
 
 <p class=RegDescBody>The mnemonic column is the name of this
-field.  The Mnemonic must begin with upper
-case, and can contain mixed case. 
+field.  The Mnemonic must begin with
+upper case, and can contain mixed case. 
 Underscores are not acceptable, use mixed case instead.</p>
 
 <p class=RegDescBody>The type is the C++ type of the
@@ -695,10 +695,9 @@ specific messages.</p>
   <td valign=top>
   <p class=TableBody><i>Command Needs Acknowledge.</i>  <i>Overlaps Cmd.</i> This is a Boolean field, since it’s one
   bit and has no specified type.  The
-  “overlaps Cmd” field turns off the normal warning that bit 28 is used
-  twice.  This is done in this example
-  as one bit of the command always indicates a specific piece of information
-  that we want to extract.</p>
+  “overlaps Cmd” field turns off the normal warning that bit 28 is used twice.  This is done in this example as one bit of
+  the command always indicates a specific piece of information that we want to
+  extract.</p>
   </td>
   
  </tr>
@@ -957,6 +956,92 @@ extends the size of the base class.</p>
 
 
 
+<h2><![if !supportLists]>5.5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Expanded
+Class </h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This
+shows an example class which expands its subclasses.</p>
+
+<p class=RegDescHead><b>Class</b></p>
+
+<p class=RegDescBody>ExExpand</p>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=625>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Bit</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Type</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Constant</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Definition</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w0[0]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Base1</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>ExBase</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Base 1</i>.  Expand Class.  The ‘expand class’ keyword causes the
+  entire contents of ExBase to be expanded into this class.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>w2[0]</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Base2</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>ExBase</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>&nbsp;</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Base 2.</i>  Expand Class.</p>
+  </td>
+  
+ </tr>
+</table>
+
+<p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
+
 <p class=MsoNormal><![if !supportEmptyParas]>&nbsp;<![endif]></p>
 
 <div>
@@ -980,9 +1065,9 @@ identical registers.  If all the fields
 are identical to the base register, the derrived register can completely
 elimintate it’s field table.  As a
 extension of this, you can specify a wildcard “Derrived* : Base*”; which will
-pull all Base registers into the Derrived section; when this is done, the
-address specified is added to the address specified in the Base’s declaration,
-and the end address is checked against the Base’s ending address.</p>
+pull all Base registers into the Derrived section; when this is done, the address
+specified is added to the address specified in the Base’s declaration, and the
+end address is checked against the Base’s ending address.</p>
 
 <p class=RegDescBody>The address is specified in hex, with a
 leading 0x.  The maximum width of the
@@ -1001,8 +1086,8 @@ are as follows:</p>
 
 <p class=RegDescBody>Reset indicates the value after chip
 reset.  X or N/A indicates not reset.
-FW0 or FW-(some perl expression) indicates that the value is loaded in by firmware
-during initialization.</p>
+FW0 or FW-(some perl expression) indicates that the value is loaded in by
+firmware during initialization.</p>
 
 <p class=RegDescBody>Access indicates read/write, read-only,
 etc.  Read side effects indicate that

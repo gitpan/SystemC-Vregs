@@ -1,4 +1,4 @@
-# $Revision: #27 $$Date: 2003/06/09 $$Author: wsnyder $
+# $Revision: #30 $$Date: 2003/09/04 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.241';
+$VERSION = '1.242';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -64,6 +64,10 @@ sub clean_html_text {
     s/[\t\n\r ]+/ /g;
     s/^\s+//;
     s/\s+$//;
+    s/\`/\'/g;
+    # HTML escapes
+    s/&ldquo;/\'/g;	# ISO-Latin1 left single-quote
+    s/&rdquo;/\'/g;	# ISO-Latin1 right single-quote
     # Substituting 2 or 3 periods for 'elipses' causes Vspecs to truncate
     # the field description at the periods, so use dashes.
     s/\205/--/g;	# ISO-Latin1 horizontal elipses (0x85)

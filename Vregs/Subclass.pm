@@ -1,4 +1,4 @@
-# $Revision: #16 $$Date: 2003/06/09 $$Author: wsnyder $
+# $Revision: #17 $$Date: 2003/09/04 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -23,7 +23,7 @@ package SystemC::Vregs::Subclass;
 use strict;
 use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.241';
+$VERSION = '1.242';
 
 $Errors = 0;
 

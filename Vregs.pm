@@ -1,4 +1,4 @@
-# $Revision: #102 $$Date: 2003/06/09 $$Author: wsnyder $
+# $Revision: #106 $$Date: 2003/09/04 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -32,7 +32,7 @@ use Carp;
 use vars qw($Debug $Bit_Access_Regexp @ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.241';
+$VERSION = '1.242';
 
 ######################################################################
 #### Constants
@@ -67,6 +67,7 @@ sub new {
 		rebuild_comment => undef,
 		attributes => {},
 		comments => 1,
+		protect_rdwr_only => 1,
 		@_};
     bless $self, $class;
     $self->{rules} = new SystemC::Vregs::Rules (package => $self, );
@@ -491,6 +492,8 @@ sub new_register {
 	    my $rst = defined $rst_col ? $row->[$rst_col] : "";
 	    $rst = 'X' if ($rst eq "" && !$is_register);
 
+	    my $type = defined $type_col && $row->[$type_col];
+
 	    (!$typeref->{fields}{$bit_mnem}) or
 		$self->warn ($typeref->{fields}{$bit_mnem}, "Field defined twice in spec\n");
 	    my $bitref = new SystemC::Vregs::Bit
@@ -502,7 +505,8 @@ sub new_register {
 		 overlaps => $overlaps,
 		 rst  => $rst,
 		 desc => $row->[$def_col],
-		 type => defined $type_col && $row->[$type_col],
+		 type => $type,
+		 expand => ($type && $desc =~ /expand class/i)?1:undef,
 		 );
 
 	    # Take special user defined fields and add to table
@@ -919,6 +923,15 @@ sub SystemC::Vregs::Bit::_create_defines_range {
 		 rst_val => $bitword,
 		 desc => "Field Word Number for ${bitwidth}-bit extracts", );
 	}
+    }
+    if ($bitref->{numbits}>1 && $bitref->{rst_val}) {
+	new_push SystemC::Vregs::Define::Value
+	    (pack => $typeref->{pack},
+	     name => "CRESET_${nor_mnem}_${bit_mnem}",
+	     rst_val => sprintf("%x",$bitref->{rst_val}),
+	     bits => $bitref->{numbits},
+	     is_verilog => 1,
+	     desc => "Field Reset", );
     }
 }
 

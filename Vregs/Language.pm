@@ -1,4 +1,4 @@
-# $Revision: #33 $$Date: 2003/06/09 $$Author: wsnyder $
+# $Revision: #34 $$Date: 2003/09/04 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -24,7 +24,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.241';
+$VERSION = '1.242';
 
 ######################################################################
 #### Implementation

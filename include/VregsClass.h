@@ -1,4 +1,4 @@
-// $Revision: #10 $$Date: 2003/03/26 $$Author: gwaters $ -*- C++ -*-
+// $Revision: #11 $$Date: 2003/08/12 $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -24,6 +24,7 @@
 #define _VREGSCLASS_H_
 
 #include <iostream>
+using namespace std;
 
 //======================================================================
 // Standard types

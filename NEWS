@@ -5,6 +5,15 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in Vregs 1.242 9/4/2003
+
+**	Allow classes to have fields which are expanded from other classes.
+	For an example, see "ExClass" in vregs_spec.doc. [John DeRoo]
+
+***	Add CRESET_ defines for the default values of non-zero, non-bool fields.
+	[John DeRoo]
+
+
 * Changes in Vregs 1.241 6/9/2003
 
 ***	Added error if a derrived class is extended to more words then its base
@@ -14,13 +23,13 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ***	Added enum values to parameter files
 	These include a enum declaration for Synopsys and the author's
 	verilog-mode for emacs.  This allows the enumeration values to be
-	decoded into verilog strings.
+	decoded into verilog strings.  [John DeRoo]
 
 ****	With vspec --rm switch, remove MS Word change bar comments
 	This enables use of wvHtml to convert MSWord doc files to html.
 
 ****	Attributes in special columns of register bits are now passed
-	through into .vregs files.
+	through into .vregs files.  [Tom Levergood]
 
 ****	Fix structs referencing structs declared later in the same package.
 
@@ -138,7 +147,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Revision: #40 $$Date: 2003/06/09 $$Author: wsnyder $
+$Revision: #43 $$Date: 2003/09/04 $$Author: wsnyder $
 ----------------------------------------------------------------------
 Copyright information:
 

@@ -1,4 +1,4 @@
-# $Revision: #21 $$Date: 2003/06/09 $$Author: wsnyder $
+# $Revision: #23 $$Date: 2003/09/04 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -26,7 +26,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.241';
+$VERSION = '1.242';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -83,6 +83,13 @@ sub find_bit {
 
 sub dewildcard {
     my $self = shift;
+
+    # Expand any bit wildcards
+    foreach my $fieldref (values %{$self->{fields}}) {
+	$fieldref->dewildcard;
+    }
+
+    # Expand type wildcards
     #print ::Dumper($self);
     return if (($self->{name}||"") !~ /\*/);
     print "Type Wildcard ",$self->inherits(),"\n" if $SystemC::Vregs::Debug;
