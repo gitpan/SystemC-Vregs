@@ -1,4 +1,4 @@
-# $Revision: #6 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #117 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -205,6 +205,7 @@ sub SystemC::Vregs::Type::_class_h_write {
     my $clname = $self->{name} || "x";
 
     my $netorder = attribute_value($pack, $self, 'netorder') || 0;
+    my $stretchable = attribute_value($pack, $self, 'stretchable') || 0;
     my $ntohl = ($netorder ? "ntohl" : "");
     my $htonl = ($netorder ? "htonl" : "");
     my $uint  = ($netorder ? "nint32_t" : "uint32_t");
@@ -233,19 +234,34 @@ sub SystemC::Vregs::Type::_class_h_write {
 	# Correct for any size difference
 	(defined $inhType->{words}) or die "%Error: Missed words compute()\n";
 	if (($self->{words}||0) > $inhType->{words}) {
+	    # Ensure the parent type disabled array bounds checking.
+	    my $inh_stretchable =
+		attribute_value($inhType->{pack}, $inhType, 'stretchable') || 0;
+	    if (! $inh_stretchable) {
+		die sprintf("%%Error: Base class %s (%d words) needs '-stretchable'"
+			    ." since %s has %d words.\n",
+			    $inhType->{name}, $inhType->{words},
+			    $clname, $self->{words});
+	    }
 	    $fl->printf("  protected: uint32_t m_wStretch[%d];   // Bring base size up\n"
 			."  public:\n",
 			$self->{words} - $self->{inherits_typeref}->{words});
 	}
     } else {
-	$fl->print("  protected: ${uint} m_w[${words}];\n"
+	$fl->print("  protected: ${uint} m_w[${words}];"
+		   .($stretchable ? "  // Attr '-stretchable'\n" : "\n")
 		   ."  public:\n"
-		   ."    inline uint32_t w(int b) const { return (${ntohl}(m_w[b])); };\n"
-		   ."    inline void w(int b, uint32_t val) { m_w[b] = ${htonl}(val); };\n");
+		   ."    inline uint32_t w(int b) const { return (${ntohl}(m_w[b])); }\n"
+		   ."    inline void w(int b, uint32_t val) {");
+	if (! $stretchable) {
+	    $fl->print(" VREGS_WORDIDX_CHK($clname, $words, b)\n"
+		       ."\t\t\t\t\t");
+	}
+	$fl->print(" m_w[b] = ${htonl}(val); }\n");
 	$fl->print("    inline ${uchar}* ${toBytePtr}() {\n"
-		   ."\treturn reinterpret_cast<${uchar}*>(&m_w[0]); };\n"
+		   ."\treturn reinterpret_cast<${uchar}*>(&m_w[0]); }\n"
 		   ."    inline const ${uchar}* ${toBytePtr}() const {\n"
-		   ."\treturn reinterpret_cast<const ${uchar}*>(&m_w[0]); };\n");
+		   ."\treturn reinterpret_cast<const ${uchar}*>(&m_w[0]); }\n");
     }
     if ($clname =~ /^R_/) {
 	# Write only those bits that are marked access writable
@@ -283,6 +299,7 @@ sub SystemC::Vregs::Type::_class_h_write {
     $fl->printf("\n");
 
     foreach my $bitref ($self->fields_sorted()) {
+	next if $bitref->ignore;
 	(my $lc_mnem = $bitref->{name}) =~ s/^(.)/lc $1/xe;
 	my $typecast = "";
 	$typecast = $bitref->{type} if $bitref->{cast_needed};
@@ -450,6 +467,7 @@ sub SystemC::Vregs::Type::_class_cpp_write {
 
     my $fields_lcFirst = $self->{attributes}{lcfirst} || 0;
     foreach my $bitref ($self->fields_sorted()) {
+	next if $bitref->ignore;
 	(my $lc_mnem = $bitref->{name}) =~ s/^(.)/lc $1/xe;
 	if ($self->{inherits_typeref}
 	    && $self->{inherits_typeref}->find_bit($bitref->{name})) {
@@ -568,7 +586,7 @@ sub defs_write {
 	if ($fl->{C} && $define =~ /^C[BER][0-9]/) {
 	    next;  # Skip for Perl/C++, not much point as we have structs
 	}
-	$value = $fl->sprint_hex_value ($value,$defref->{bits}) if (defined $defref->{bits});
+	$value = $fl->sprint_hex_value_add0 ($value,$defref->{bits}) if (defined $defref->{bits});
 	if ($fl->{Perl} && ($defref->{bits}||0) > 32) {
 	    $fl->print ("#");
 	    $comment .= " (TOO LARGE FOR PERL)";
@@ -584,6 +602,31 @@ sub defs_write {
 }
 
 ######################################################################
+
+use vars qw($_Param_Write_Value_Bit32);
+
+sub _param_write_value {
+    my $self = shift;
+    my $fl = shift;
+    my $tohex = shift;
+
+    # Create max value that fits in 32 bits, just once for speed
+    $_Param_Write_Value_Bit32 ||= $self->{pack}->addr_const_vec(0xffffffff);  
+    my $bit32 = $_Param_Write_Value_Bit32;
+
+    my $rst_val = $self->{rst_val};
+    $rst_val = sprintf("%X",$rst_val) if !ref $rst_val && $tohex;
+    my $value   = $self->{val};
+    my $bits    = $self->{bits};
+    if (defined $bits && defined $value && ref $value) {
+	$bits = 32 if ($bits==32
+		       || $self->{pack}{param_always_32bits}
+		       || ($value->Lexicompare($bit32)<=0));  # value<32 bits
+	$value = Bit::Vector->new_Hex($bits, $value->to_Hex);
+	$rst_val = $value->to_Hex;
+    }
+    return $fl->sprint_hex_value_add0 ($rst_val,$bits);
+}
 
 sub param_write {
     my $self = shift;
@@ -610,30 +653,38 @@ sub param_write {
 		."\n"
 		."//Verilint 175 off //WARNING: Unused parameter\n\n");
 
-    my $bit32 = $self->addr_const_vec(0xffffffff);
     foreach my $defref ($self->defines_sorted) {
 	my $define  = $defref->{name};
 	my $value   = $defref->{val};
 	my $comment = $defref->{desc};
-	my $bits    = $defref->{bits};
 	    
 	my $cmt = "";
 	$cmt = "\t// ${comment}" if $self->{comments};
 
 	if ($define =~ s/^(RA|CM)_/${1}P_/) {
-	    my $rst_val = $defref->{rst_val};
-	    if (defined $bits && defined $value && ref $value) {
-		$bits = 32 if ($bits==32
-			       || $self->{param_always_32bits}
-			       || ($value->Lexicompare($bit32)<=0));  # value<32 bits
-		$value = Bit::Vector->new_Hex($bits, $value->to_Hex);
-		$rst_val = $value->to_Hex;
-	    }
-	    $rst_val = $fl->sprint_hex_value ($rst_val,$bits);
-	    $fl->printf ("   parameter %-26s %12s%s\n",
-			 $define . " =", $rst_val.";",
+	    my $prt_val = _param_write_value($defref, $fl);
+	    $fl->printf ("   parameter %-26s %13s%s\n",
+			 $define . " =", $prt_val.";",
 			 $cmt
 			 );
+	}
+    }
+
+    foreach my $classref ($self->enums_sorted) {
+	my @fields = ($classref->fields_sorted());
+	my $i=0;
+	foreach my $fieldref (@fields) {
+	    if ($i==0) {
+		$fl->printf ("   parameter %s\n",
+			     "// synopsys enum En_$classref->{name}"
+			     );
+	    }
+	    my $prt_val = _param_write_value($fieldref, $fl, 'tohex');
+	    $fl->printf ("\t     %-26s %13s\n",
+			 "EP_" . $classref->{name} . "_" . $fieldref->{name}." =",
+			 $prt_val.(($i==$#fields) ? ";" : ","),
+			 );
+	    $i++;
 	}
     }
 
@@ -715,7 +766,7 @@ sub info_cpp_write {
     $fl->printf ("#   define RFWRSIDE  VregsRegEntry::REGFL_WRSIDE\n");
     $fl->printf ("#   define RFNORTEST VregsRegEntry::REGFL_NOREGTEST\n");
     $fl->printf ("#   define RFNORDUMP VregsRegEntry::REGFL_NOREGDUMP\n");
-    $fl->printf ("    //rip->add_register( address,       size,   name,     rangeLow, rangeHi, spacing,\n");
+    $fl->printf ("    //rip->add_register( address,       size,   name,     spacing, rangeLow, rangeHi,\n");
     $fl->printf ("    //  rdMask,     wrMask,     rstVal,     rstMask,    flags);\n");
 
     foreach my $regref ($self->regs_sorted()) {
@@ -729,7 +780,7 @@ sub info_cpp_write {
 	    $size->subtract ($regref->{addr_end}, $regref->{addr}, 0);
 	}
 	$fl->printf ("    rip->add_register (%s, %s, \"%s\"",
-		     $fl->sprint_hex_value ($regref->{addr}, $self->{address_bits}),
+		     $fl->sprint_hex_value_add0 ($regref->{addr}, $self->{address_bits}),
 		     $fl->sprint_hex_value_drop0 ($size, $self->{address_bits}),
 		     $regref->{name});
 	if ($regref->{range} && ! $noarray) {

@@ -1,4 +1,4 @@
-# $Revision: #4 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #21 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -26,7 +26,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -48,6 +48,7 @@ sub new {
     my $self = $class->SUPER::new(bitarray=>[],
 				  attributes=>{},
 				  inherits_level=>0,
+				  subclass_level=>0,
 				  @_);
     $self->{pack} or die;  # Should have been passed as parameter
     $self->{pack}{types}{$self->{name}} = $self;
@@ -165,6 +166,8 @@ sub computes {
     my $typeref = shift;
     # Create vector describing bit layout of the word
     $typeref->_computes_words();
+    $typeref->_computes_inh_level_recurse(0);
+    #
     my $mnem_vec = "";
     my $last_bitref = 0;
     my $x = 0;
@@ -210,6 +213,29 @@ sub _computes_words {
     $self->{words} = $words;
 }
 
+sub _computes_inh_level_recurse {
+    my $self = shift;
+    my $level = shift;
+    if ($self->{subclass_level} > $level) {
+	$level = $self->{subclass_level};
+    }
+    $self->{subclass_level} = $level;
+    # If a class is a baseclass of this class, the baseclass needs bigger level.
+    if (my $ityperef = $self->{inherits_typeref}) {
+	$ityperef->_computes_inh_level_recurse($level+1);
+    }
+    # If a class is used as a field in this class, the used class needs bigger level.
+    foreach my $fieldref ($self->fields) {
+	my $ityperef = $fieldref->{pack}->find_type($fieldref->{type});
+	if ($ityperef) {
+	    $ityperef->_computes_inh_level_recurse($level+1);
+	}
+    }
+    #print STDERR "LEVEL $self->{name} $level;\n";
+}
+
+######################################################################
+
 sub fields {
     my $typeref = shift;
     return (values %{$typeref->{fields}});
@@ -217,7 +243,8 @@ sub fields {
 
 sub fields_sorted {
     my $typeref = shift;
-    return (sort {$b->{bitlist}[0] <=> $a->{bitlist}[0]}
+    return (sort {$b->{bitlist}[0] <=> $a->{bitlist}[0]
+		  || $a->{name} cmp $b->{name}}
 	    (values %{$typeref->{fields}}));
 }
 
@@ -230,7 +257,8 @@ sub fields_sorted_inherited {
 	    push @flds, $fld;
 	}
     }
-    return (sort {$b->{bitlist}[0] <=> $a->{bitlist}[0]}
+    return (sort {$b->{bitlist}[0] <=> $a->{bitlist}[0]
+		      || $a->{name} cmp $b->{name}}
 	    @flds);
 }
 

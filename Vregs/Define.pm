@@ -1,4 +1,4 @@
-# $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #15 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -26,7 +26,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 #Fields:
 #	{name}			Field name (Subclass)

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#$Revision: #1 $$Date: 2002/09/16 $$Author: lab $
+#$Revision: #3 $$Date: 2002/08/30 $$Author: wsnyder $
 ######################################################################
 #
 # This program is Copyright 2001 by Wilson Snyder.
@@ -191,7 +191,7 @@ if ($opt_headers) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: #1 $$Date: 2002/09/16 $$Author: lab $ ', "\n";
+    print '$Revision: #3 $$Date: 2002/08/30 $$Author: wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);

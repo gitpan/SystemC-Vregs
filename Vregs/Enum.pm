@@ -1,4 +1,4 @@
-# $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #18 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -26,7 +26,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 ######################################################################
 ######################################################################
@@ -77,7 +77,8 @@ sub check {
 
 sub fields_sorted {
     my $typeref = shift;
-    return (sort {$a->{rst_val} <=> $b->{rst_val}}
+    return (sort {$a->{rst_val} <=> $b->{rst_val}
+		  || $a->{name} cmp $b->{name} }
 	    (values %{$typeref->{fields}}));
 }
 

@@ -1,4 +1,4 @@
-// $Revision: #1 $$Date: 2002/09/16 $$Author: lab $ -*- C++ -*-
+// $Revision: #10 $$Date: 2003/03/26 $$Author: gwaters $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -51,17 +51,24 @@ typedef address_t size64_t;
 // Macros to control compile-time debugging options
 
 #ifndef VREGS_ENUM_DEF_INITTER
-#define VREGS_ENUM_DEF_INITTER(invalidValue)
+# define VREGS_ENUM_DEF_INITTER(invalidValue)
 //	: m_e(invalidValue)
 #endif
 
+#ifndef VREGS_WORDIDX_CHK
+# define VREGS_WORDIDX_CHK(TypeName, numWords, idx)
+//	{ if (idx >= numWords)
+//	   cerr <<"Setter " #TypeName ".w(" <<idx <<", val) arg1 is beyond "
+//		<<numWords <<"-word struct.\n"; }
+#endif
+
 #ifndef VREGS_SETFIELD_CHK
-#define VREGS_SETFIELD_CHK(identStr, value, u_maxVal)
-//	assert(value <= u_maxVal);  // identStr is "Structname.fieldName"
+# define VREGS_SETFIELD_CHK(identStr, value, u_maxVal)
+//	{ assert(value <= u_maxVal); } // identStr is "Structname.fieldName"
 #endif
 
 #ifndef VREGS_STRUCT_DEF_CTOR
-#define VREGS_STRUCT_DEF_CTOR(TypeName, numWords)
+# define VREGS_STRUCT_DEF_CTOR(TypeName, numWords)
 //	TypeName () { for (int i=0; i<numWords; i++) w(i, 0xdeadbeef); }
 #endif
 

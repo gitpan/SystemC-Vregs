@@ -1,4 +1,4 @@
-# $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #25 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -23,7 +23,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 ######################################################################
 # Default rules

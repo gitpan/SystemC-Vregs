@@ -1,4 +1,4 @@
-# $Revision: #2 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #27 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -58,6 +58,7 @@ sub parse_file {
 sub clean_html_text {
     $_ = shift;
     s/\&nbsp;/ /g;	# Why didn't HTML::TableExtract handle this?
+    s/\&\#8209;/-/g;	# Unicode nonbreaking hyphen (0x2011)
     s/\240/ /g;		# ISO-Latin1 nonbreaking space
     s/\255//g;		# ISO-Latin1 soft hyphen
     s/[\t\n\r ]+/ /g;
@@ -71,8 +72,8 @@ sub clean_html_text {
     s/\223/\"/g;	# ISO-Latin1 left double-quote
     s/\224/\"/g;	# ISO-Latin1 right double-quote
     s/\225/\*/g;	# ISO-Latin1 bullet
-    s/\226/-/g;		# ISO-Latin1 en-dash
-    s/\227/--/g;	# ISO-Latin1 em-dash (0x97)
+    s/\226/-/g;		# ISO-Latin1 en-dash (0x96) (Unicode &#8211;)
+    s/\227/--/g;	# ISO-Latin1 em-dash (0x97) (Unicode &#8212;)
     s/\267/\*/g;	# ISO-Latin1 middle dot (0xB7)
     return $_;
 }
@@ -180,6 +181,9 @@ sub clean_html_file {
     $wholefile =~ s%<\/?span\s*>%%smg;
     $wholefile =~ s%<\/?o:p>%%smg;
     $wholefile =~ s% width=\d+ % %smg;
+
+    # Microsoft Word changebars
+    $wholefile =~ s%<a href=\"#author\d+">\[Author\s+\S+:\s+at\s+\S+\s+\S+\s+\d+\s+\S+\s+\d+\s*\]\s*</a>%%smg;
 
     my $fh = IO::File->new(">$filename") or die "%Error: $! writing $filename\n";
     print $fh $wholefile;

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Revision: #1 $$Date: 2002/09/16 $$Author: lab $
+# $Revision: #7 $$Date: 2002/08/13 $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 
 use strict;

@@ -5,6 +5,28 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in Vregs 1.241 6/9/2003
+
+***	Added error if a derrived class is extended to more words then its base
+	class.  Use the '-stretchable' attribute on the base class to disable this.
+	Also check at runtime the word set methods, unless -stretchable is used.
+
+***	Added enum values to parameter files
+	These include a enum declaration for Synopsys and the author's
+	verilog-mode for emacs.  This allows the enumeration values to be
+	decoded into verilog strings.
+
+****	With vspec --rm switch, remove MS Word change bar comments
+	This enables use of wvHtml to convert MSWord doc files to html.
+
+****	Attributes in special columns of register bits are now passed
+	through into .vregs files.
+
+****	Fix structs referencing structs declared later in the same package.
+
+****	Add/drop leading 0s in define values to make correctly widthed numbers.
+
+
 * Changes in Vregs 1.240 12/13/2002
 
 **	Added subclassing of enumerations.  
@@ -43,7 +65,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ****	Added dump() methods for internal debugging.
 
 
-* Changes in Vregs 1.240 3/11/2002
+* Changes in Vregs 1.210 3/11/2002
 
 ***	Allow duplicate enumeration values.  The ascii() method will
 	print the first sorted enumeration text.
@@ -116,7 +138,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Revision: #6 $$Date: 2002/12/13 $$Author: wsnyder $
+$Revision: #40 $$Date: 2003/06/09 $$Author: wsnyder $
 ----------------------------------------------------------------------
 Copyright information:
 

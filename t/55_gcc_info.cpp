@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Revision: #1 $$Date: 2002/09/16 $$Author: lab $
+// $Revision: #6 $$Date: 2002/07/16 $$Author: wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 
 #include "VregsRegInfo.h"

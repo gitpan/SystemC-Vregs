@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Revision: #1 $$Date: 2002/09/16 $$Author: lab $
+@c $Revision: #9 $$Date: 2002/08/30 $$Author: wsnyder $
 @c %**start of header
 @setfilename readme.info
 @settitle Perl SystemC::Vregs Installation

@@ -1,4 +1,4 @@
-# $Revision: #2 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #33 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -24,7 +24,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 ######################################################################
 #### Implementation
@@ -77,6 +77,11 @@ sub close_prep {
     my $self = shift;
     $self->print (@{$self->{close_text}});
     @{$self->{close_text}} = ();
+}
+
+sub text_to_output {
+    my $self = shift;
+    return join('',@{$self->{text}},@{$self->{close_text}});
 }
 
 sub close {
@@ -208,12 +213,22 @@ sub sprint_hex_value {
     }
 }
 
+sub sprint_hex_value_add0 {
+    my ($self,$valuestr,$bits) = @_;
+    # Print the hex number, adding leading 0s to make it the proper width
+    $valuestr = "0".$valuestr;	# Force conversion to string in case is Bit::Vector
+    $valuestr=~ s/^0+([0-9a-f])/$1/i;
+    my $add = int(($bits+3)/4) - length($valuestr);
+    $valuestr = "0"x$add . $valuestr if $add>=1;
+    print "ADD $valuestr $add  ".("0"x$add)."\n" if $SystemC::Vregs::Debug;
+    return $self->sprint_hex_value ($valuestr, $bits);
+}
+
 sub sprint_hex_value_drop0 {
     my ($self,$valuestr,$bits) = @_;
     $valuestr = "0".$valuestr;	# Force conversion to string in case is Bit::Vector
-    $valuestr=~ s/^0+//;
-    $valuestr = "0" if $valuestr !~ /^[0-9a-f]/i;
-    $self->sprint_hex_value ($valuestr, $bits);
+    $valuestr=~ s/^0+(\d)/$1/;
+    return $self->sprint_hex_value ($valuestr, $bits);
 }
 
 ######################################################################

@@ -30,6 +30,7 @@ t/50_gcc_hdr.t
 t/55_gcc_info.cpp
 t/55_gcc_info.t
 t/test_utils.pl
+t/vregs_enums.v
 vreg
 vregs-mode.el
 vregs_spec.doc

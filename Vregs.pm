@@ -1,8 +1,8 @@
-# $Revision: #5 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #102 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
+# This program is Copyright 2003 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
@@ -32,7 +32,7 @@ use Carp;
 use vars qw($Debug $Bit_Access_Regexp @ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 ######################################################################
 #### Constants
@@ -89,6 +89,15 @@ sub addr_const_vec {
 ######################################################################
 #### Access
 
+sub find_define {
+    my $pack = shift;
+    my $name = shift;
+    foreach my $packref ($pack, @{$pack->{libraries}}) {
+	my $regref = $packref->{defines}{$name};
+	return $regref if $regref;
+    }
+    return undef;
+}
 sub find_enum {
     my $pack = shift;
     my $name = shift;
@@ -151,7 +160,8 @@ sub regs_sorted {
 }
 sub types_sorted {
     my $pack = shift;
-    return (sort {($a->{inherits_level} <=> $b->{inherits_level})
+    return (sort {($b->{subclass_level} <=> $a->{subclass_level})
+		      || ($a->{inherits_level} <=> $b->{inherits_level})
 		      || ($a->{name} cmp $b->{name})}
 	    (values %{$pack->{types}}));
 }
@@ -237,6 +247,7 @@ sub new_define {
     my $bittableref = shift;  my @bittable = @{$bittableref};
     my $flagref = shift;	# Hash of {heading} = value_of_heading
     # Create a new enumeration
+    return if $#bittable<0;   # Empty list of defines
 
     #print ::Dumper(\$flagref, $bittableref);
     ($flagref->{Defines}) or die;
@@ -497,8 +508,11 @@ sub new_register {
 	    # Take special user defined fields and add to table
 	    for (my $colnum=0; $colnum<=$#{$bittable[0]}; $colnum++) {
 		my $col = $bittable[0][$colnum];
+		$col =~ s/\s+//;
 		if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
-		    $bitref->{attributes}{$1} = $row->[$colnum];
+		    my $var = $1;
+		    my $val = $row->[$colnum]||"";
+		    $bitref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._0-9]+)$/;
 		}
 	    }
 	}
@@ -623,12 +637,12 @@ sub regs_read {
 	    $regref = undef;
 	    ($flags =~ /^\s*$/) or $typeref->warn("$fileline: Bad flags \"$flags\"\n");
 	}
-	elsif ($line =~ /^bit\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+"(.*)"$/ ) {
+	elsif ($line =~ /^bit\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+([^\"]*)"(.*)"$/ ) {
 	    if (!$typeref) {
 		die "%Error: $filename:$.: bit without previous type declaration\n";;
 	    }
 	    my $bit_mnem = $1;
-	    my $bits = $2; my $acc = $3; my $type = $4; my $rst = $5; my $desc = $6;
+	    my $bits = $2; my $acc = $3; my $type = $4; my $rst = $5; my $flags=$6; my $desc=$7;
 	    my $bitref = new SystemC::Vregs::Bit
 		(pack => $self,
 		 name => $bit_mnem,
@@ -639,6 +653,7 @@ sub regs_read {
 		 desc => $desc,
 		 type => $type,
 	     );
+	    $bitref->{attributes}{$1} = $2 while ($flags =~ s/-([a-zA-Z][a-zA-Z0-9_]*)=(\S*)\b//);
 	}
 	elsif ($line =~ /^enum\s+(\S+)\s*(.*)$/) {
 	    my $name = $1; my $flags = $2;
@@ -809,6 +824,7 @@ sub SystemC::Vregs::Type::_create_defines {
 
     # Make bit alias
     foreach my $bitref (values %{$typeref->{fields}}) {
+	next if $bitref->ignore;
 	{   # Wide-word defines
 	    my $rnum = 0;  $rnum = 1 if $#{$bitref->{bitlist_range}};
 	    foreach my $bitrange (reverse @{$bitref->{bitlist_range}}) {
@@ -1117,9 +1133,14 @@ sub SystemC::Vregs::Bit::_vregs_write_type {
     my $descflags = "";
     $descflags = ".  Overlaps $self->{overlaps}." if $self->{overlaps};
 
-    printf $fh "\tbit\t%-13s %s\t%-4s %-11s %-11s \"%s%s\"\n"
+    printf $fh "\tbit\t%-13s %s\t%-4s %-11s %-11s"
 	,$self->{name},$self->{bits},$self->{access}
-        ,$self->{type},$self->{rst},$self->{desc},$descflags;
+        ,$self->{type},$self->{rst};
+    foreach my $var (keys %{$self->{attributes}}) {
+	my $val = $self->{attributes}{$var};
+	print $fh "\t-$var=$val";
+    }
+    printf $fh " \"%s%s\"\n", $self->{desc},$descflags;
 }
 
 sub SystemC::Vregs::Type::_vregs_write_type {
@@ -1272,6 +1293,11 @@ Returns list of SystemC::Vregs::Enum objects.
 =item exit_if_error
 
 Exits if any errors were detected by check().
+
+=item find_define
+
+Returns SystemC::Vregs::Define object with a name matching the passed
+parameter, or undef if not found.
 
 =item find_enum
 

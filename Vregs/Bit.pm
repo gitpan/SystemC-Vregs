@@ -1,4 +1,4 @@
-# $Revision: #3 $$Date: 2002/12/13 $$Author: wsnyder $
+# $Revision: #28 $$Date: 2003/06/09 $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -25,7 +25,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.240';
+$VERSION = '1.241';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -63,6 +63,10 @@ sub DESTROY {
     }
 }
 sub delete { $_[0]->DESTROY(); }
+sub ignore {
+    my $self = shift;
+    return $self->{attributes}{Deleted};
+}
 
 sub is_overlap_ok {
     my $self = shift;
@@ -74,6 +78,7 @@ sub is_overlap_ok {
     return 1 if lc $other->{overlaps} eq "allowed";
     return 1 if lc $self->{overlaps} eq lc $other->{name};
     return 1 if lc $other->{overlaps} eq lc $self->{name};
+    return 1 if $self->ignore || $other->ignore;
     return 0;
 }
 
@@ -302,6 +307,7 @@ sub computes_type {
 	} elsif ($rst =~ /^[A-Z][A-Z0-9_]*$/) {
 	    $rstvec = 0;
 	    my $mnemref = $bitref->{pack}->find_enum($bitref->{type});
+	    $mnemref or $bitref->warn("Enum '$bitref->{type}' not found\n");
 	    if ($mnemref) {
 		my $vref = $mnemref->find_value($rst);
 		if (!$vref) {
