@@ -1,4 +1,4 @@
-// $Id: VregsClass.h,v 1.5 2001/09/19 15:12:46 wsnyder Exp $ -*- C++ -*-
+// $Id: VregsClass.h,v 1.7 2001/11/16 20:46:23 jdutton Exp $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -42,6 +42,29 @@ typedef uint64_t nint64_t;  // Uint stored in network order
 #ifndef _ADDRESS_T
 //typedef uint64_t address_t;
 typedef uint32_t address_t;
+#endif
+
+#ifndef	_SIZE64_T
+typedef address_t size64_t;
+#define _SIZE64_T
+#endif
+
+//======================================================================
+// Macros to control compile-time debugging options
+
+#ifndef VREGS_ENUM_DEF_INITTER
+#define VREGS_ENUM_DEF_INITTER(invalidValue)
+//	: m_e(invalidValue)
+#endif
+
+#ifndef VREGS_SETFIELD_CHK
+#define VREGS_SETFIELD_CHK(identStr, value, u_maxVal)
+//	assert(value <= u_maxVal);  // identStr is "Structname.fieldName"
+#endif
+
+#ifndef VREGS_STRUCT_DEF_CTOR
+#define VREGS_STRUCT_DEF_CTOR(TypeName, numWords)
+//	TypeName () { for (int i=0; i<numWords; i++) w(i, 0xdeadbeef); }
 #endif
 
 //======================================================================

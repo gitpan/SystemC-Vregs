@@ -1,4 +1,4 @@
-# $Id: Register.pm,v 1.27 2001/10/18 12:46:49 wsnyder Exp $
+# $Id: Register.pm,v 1.28 2001/11/26 15:31:44 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.100';
+$VERSION = '1.200';
 
 # mnem
 # addr

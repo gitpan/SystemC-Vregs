@@ -1,4 +1,4 @@
-# $Id: Outputs.pm,v 1.78 2001/10/18 12:46:49 wsnyder Exp $
+# $Id: Outputs.pm,v 1.86 2001/11/26 15:31:44 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -24,7 +24,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.100';
+$VERSION = '1.200';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -140,27 +140,10 @@ sub SystemC::Vregs::Enum::enum_write {
     $fl->printf("\t%-13s = 0x%x\t/* %s */\n"
 		,"MAX", (1<<$self->{bits}), "MAXIMUM+1");
     $fl->print ("    };\n");
-    $fl->print ("    enum en m_e;\n");
-    $fl->print ("    inline ${clname} () {};\n");
-    $fl->print ("    inline ${clname} (en _e) : m_e(_e) {};\n");
-    $fl->print ("    explicit inline ${clname} (int _e) : m_e(static_cast<en>(_e)) {};\n");
-    $fl->print ("    operator const char * () const { return ascii(); };\n");
-    $fl->print ("    operator en () const { return m_e; };\n");
-    $fl->print ("    const char * ascii () const;\n");
-    
     $pack->{rules}->execute_rule ('enum_end_before', $clname, $self);
     $fl->print ("  };\n");
     $pack->{rules}->execute_rule ('enum_end_after', $clname, $self);
-    
-    #$fl->print ("  OStream& operator <<(OStream &o, ${clname} &en) {\n");
-    #$fl->print ("    o << setiosflags(ios::left) << setw(5) << (const char*)en; return o;};\n");
-    $fl->print ("  inline bool operator== (${clname} lhs, ${clname} rhs) { return (lhs.m_e == rhs.m_e); }\n",
-		"  inline bool operator== (${clname} lhs, ${clname}::en rhs) { return (lhs.m_e == rhs); }\n",
-		"  inline bool operator== (${clname}::en lhs, ${clname} rhs) { return (lhs == rhs.m_e); }\n",
-		"  inline OStream& operator<< (OStream& lhs, const ${clname}& rhs) { return lhs << rhs.ascii(); }\n",
-		"  inline bool operator< (${clname} lhs, ${clname} rhs) { return lhs.m_e < rhs.m_e; }\n",
-		"\n",
-		);
+    $fl->print ("\n");
 }
 
 sub SystemC::Vregs::Enum::enum_cpp_write {
@@ -178,7 +161,7 @@ sub SystemC::Vregs::Enum::enum_cpp_write {
 	$fl->printf ("\tcase %s: return(\"%s\");\n"
 		     ,$fieldref->{name},$fieldref->{name});
     }
-    $fl->print ("  default: return (\"%E\");\n");
+    $fl->print ("  default: return (\"?E\");\n");
     $fl->print ("  }\n");
     $fl->print ("}\n\n");
     $pack->{rules}->execute_rule ('enum_cpp_after', $clname, $self);
@@ -246,18 +229,26 @@ sub SystemC::Vregs::Type::_class_h_write {
     }
 
     my @resets=();
-    push @resets, sprintf("\t%s::fieldsReset();\n",$self->{inherits}) if $self->{inherits};
+    push @resets, sprintf("\t%s::fieldsReset();\n", $self->{inherits}) if $self->{inherits};
     my @dumps = ();
+    $fl->printf("\n");
 
     foreach my $bitref ($self->fields_sorted()) {
 	(my $lc_mnem = $bitref->{name}) =~ s/^(.)/lc $1/xe;
 	my $typecast = "";
-	$typecast = "($bitref->{type})" if $bitref->{cast_needed};
+	$typecast = $bitref->{type} if $bitref->{cast_needed};
 	$typecast = "(void*)" if $bitref->{type} eq 'void*';	# Damn C++
 	my $L = ($bitref->{numbits}>32)?'LL':'';
 
         my $extract = "";
         my $deposit = "";
+	if ($bitref->{numbits} < 32 && $bitref->{numbits} > 1) {
+	    # Don't bother adding code to check boolean fields.
+	    $deposit .=
+		sprintf(" VREGS_SETFIELD_CHK%s(\"%s.%s\", b, 0x%xU)\n\t\t\t\t\t\t",
+			($L ? "_$L" : ""), $clname, $lc_mnem,
+			(1 << $bitref->{numbits})-1);
+	}
         foreach my $bitrange (@{$bitref->{bitlist_range_32}}) {
 	    my ($msb,$lsb,$nbits,$srcbit) = @{$bitrange};
 	    my $low_mod = $lsb % 32;
@@ -269,20 +260,20 @@ sub SystemC::Vregs::Type::_class_h_write {
 	    my $mask = $deposit_mask << $low_mod;
 	    $mask = -1 if $high_mod==31 && $low_mod==0;
 	    
-	    $extract .= "|" if $extract ne "";
+	    $extract .= " |" if $extract ne "";
 	    if ($high_mod==31 && $low_mod==0 && $srcbit==0) {
 		# Whole word, skip the B.S.
-		$extract .= "w(${word})";
-		$deposit .= "w(${word}, (uint32_t)(b));";
+		$extract .= " w(${word})";
+		$deposit .= " w(${word}, (uint32_t)(b));";
 	    } else {
-		my $tobit = "<<$srcbit$L";
+		my $tobit = "<<$srcbit)";
 		$tobit = "" if $srcbit==0;
-		my $frombit = ">>$srcbit$L";
+		my $frombit = ">>$srcbit)";
 		$frombit = "" if $srcbit==0;
-		$extract .= sprintf " (((w(${word})>>${low_mod}$L)&0x%x$L)$tobit)"
-		    , $deposit_mask;
-		$deposit .= sprintf "w(${word}, (w(${word})&0x%08x$L) | (((b$frombit)&0x%x$L)<<${low_mod}));"
-		    , ~$mask, $deposit_mask;
+		$extract .= sprintf " %s(w(${word})>>${low_mod} & 0x%x$L)$tobit"
+		    , ($tobit?"(":""), $deposit_mask;
+		$deposit .= sprintf " w(${word}, (w(${word})&0x%08x$L) | ((%sb$frombit&0x%x$L)<<${low_mod}));"
+		    , ~$mask, ($frombit?"(":""), $deposit_mask;
 	    }
 	}
 
@@ -292,28 +283,34 @@ sub SystemC::Vregs::Type::_class_h_write {
 	    if ($rst =~ /^[a-z]/i && $bitref->{type}) {	# Probably a enum value
 		$rst = "$bitref->{type}::$rst";
 	    }
-	    #$fl->printf("\tconst static %s %s = %s;\n", $bitref->{type},
+	    #$fl->printf("\tstatic const %s %s = %s;\n", $bitref->{type},
 	    #		uc($lc_mnem)."_RST", $rst);
 	    push @resets, sprintf("\t%s(%s);\n", $lc_mnem, $rst);
 	}
 
 	# Mask after shifting on reads, so the mask is a smaller constant.
 	$fl->private_not_public ($bitref->{access} !~ /R/);
-	$fl->printf("\tinline %s\t%-13s () const ", $bitref->{type}, $lc_mnem);
-	$fl->print("{ return (${typecast}(${extract})); };");
+	my $typEnd = 11 + length $bitref->{type};
+	$fl->printf("    inline %s%s%-13s () const ",
+		    $bitref->{type}, ($typEnd < 16 ? "\t\t" : $typEnd < 24 ? "\t" : " "),
+		    $lc_mnem);
+	$fl->print("{ return ${typecast}(${extract} ); }");
 	#printf $fl "\t//%s", $bitref->{desc};
 	$fl->printf("\n");
 
 	$fl->private_not_public ($bitref->{access} !~ /W/);
-	$fl->printf("\tinline void\t%-13s (%s b) ", $lc_mnem, $bitref->{type});
-	$fl->print("{ ${deposit} };");
+	$fl->printf("    inline void\t\t%-13s (%s b) ", $lc_mnem, $bitref->{type});
+	$fl->print("{${deposit} }");
 	#printf $fl "\t//%s", $bitref->{desc};
 	$fl->printf("\n");
 
 	push @dumps, "\"$bitref->{name}=\"<<$lc_mnem()"
     }
 
+    $fl->printf("\n");
     $fl->private_not_public (0);
+    $fl->printf("    VREGS_STRUCT_DEF_CTOR(%s, %s)\t// (typeName, numWords)\n",
+		$clname, $words);
     $fl->print("    void fieldsZero () {\n",
 	       "\tfor (int i=0; i<${words}; i++) w(i,0);\n",
 	       "    };\n");
@@ -334,7 +331,7 @@ sub SystemC::Vregs::Type::_class_h_write {
     
     # Put const's last to avoid GDB stupidity
     $fl->private_not_public (0);
-    $fl->printf("    const static size_t SIZE = %d;\n", $words*4);
+    $fl->printf("    static const size_t SIZE = %d;\n", $words*4);
 
     $pack->{rules}->execute_rule ('class_end_before', $clname, $self);
     $fl->print("};\n");
@@ -409,7 +406,7 @@ sub SystemC::Vregs::Type::_class_cpp_write {
     $fl->print("OStream& operator<< (OStream& lhs, const ${clname}::DumpOstream rhs) {\n",
 	       "    return ((${clname}*)rhs.obj())->_dump(lhs,rhs.prefix());\n",
 	       "}\n");
-    $fl->print("OStream& ${clname}::_dump (OStream& lhs, const char* pf) const {\n",);
+    $fl->printf("OStream& ${clname}::_dump (OStream& lhs, const char*%s) const {\n",((($#dumps>0) || $self->{inherits}) ? ' pf':''));
     unshift @dumps, "(($self->{inherits}*)(this))->dump(pf)" if $self->{inherits};
     if ($#dumps<0) {
 	$fl->print("    return lhs;\n");
@@ -587,11 +584,15 @@ sub info_cpp_write {
     # Dump c pli routines
 
     $self->create_defines(1);
-    my $fl = SystemC::Vregs::File->open(language=>'C', @_);
+    my $fl = SystemC::Vregs::File->open(rules => $self->{rules},
+					language=>'C', @_);
 
     $fl->print ("// Not for direct use -- VregsRegInfo.h provides all accessors\n"
-		."\n"
-		."#include \"VregsRegInfo.h\"\n"
+		."\n");
+
+    $self->{rules}->execute_rule ('info_cpp_file_before', 'file_body', $self);
+
+    $fl->print ("#include \"VregsRegInfo.h\"\n"
 		."#include \"$self->{name}_info.h\"\n"
 	        ."\n");
 		
@@ -659,40 +660,7 @@ sub info_cpp_write {
     $fl->printf ("#   undef RFWRSIDE\n");
     $fl->print ("};\n\n");
 
-#    #########  vregs_val_bits
-#    $fl->print ("const char *vregs_val_bits (\n"
-#		 ."   address_t addr, uint32_t data, const char *prefix, const char *postfix)\n"
-#		 ."/* Return character string for printing data, null if bad */\n"
-#		 ."{\n"
-#		 ."    static char buf[1000];\n"
-#		 ."    int regnum;\n"
-#		 ."    uint32_t lookup = vregs_lookup (addr);\n"
-#		 ."    if (lookup==0) return (NULL);\n"
-#		 ."    regnum = lookup & 0xffff;\n"
-#		 ."    buf[0]='\\0';\n"
-#		 ."    switch (regnum) {\n");
-#    foreach my $regref ($self->regs_sorted()) {
-#	 my $reg_mnem   = $regref->{name};
-#	 # Each field include:
-#	 #    $prefix "_" $bitfield "=" $data $postfix
-#	 my $fmt = ""; my $vars="";
-#	 foreach my $bitref (sort {$a->{bit_high} <=> $b->{bit_high}}
-#			     (values %{$regref->{fields}})) {
-#	     my $bit_mnem = $bitref->{name};
-#	     my $bit_high = $bitref->{bit_high};
-#	     my $bit_low  = $bitref->{bit_low};
-#	     $fmt .= "%s_${bit_mnem}=";
-#	     $fmt .= "0x" if ($bit_high - $bit_low)>3;
-#	     $fmt .= "%x%s";
-#	     my $vdata = sprintf "(data>>%d)&0x%x", $bit_low, (1<<($bit_high-$bit_low+1))-1;
-#	     $vdata = "data" if ($bit_low==0 && $bit_high==31);
-#	     $vars .= ", prefix, $vdata, postfix";
-#	 }
-#	 if ($fmt ne "") {
-#	     $fl->printf ("    case 0x%x: ", $ids{$reg_mnem});
-#	     $fl->print ("sprintf (buf, \"$fmt\" $vars); break;\n");
-#	 }
-#    }
+    $self->{rules}->execute_rule ('info_cpp_file_after', 'file_body', $self);
 
     $fl->close();
 }

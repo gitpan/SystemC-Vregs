@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.h,v 1.8 2001/09/18 14:02:57 wsnyder Exp $ -*- C++ -*-
+// $Id: VregsRegInfo.h,v 1.10 2001/10/23 19:53:44 wsnyder Exp $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -40,9 +40,9 @@
 class VregsRegEntry {
 private:
     address_t		m_address;	// Address of entry 0, word 0 of register
-    size_t		m_size;		// Size in bytes of the register
+    size64_t		m_size;		// Size in bytes of the register
     const char*		m_name;		// Ascii name of the register
-    size_t		m_entSize;	// Size of a single entry
+    size64_t		m_entSize;	// Size of a single entry
     long		m_lowEntNum;	// Low entry number (for RAMs)
     void*		m_userinfo;	// Reserved for users (not used here)
 
@@ -59,8 +59,8 @@ public:
 //protected:
     // CREATORS
     friend class VregsRegInfo {};
-    VregsRegEntry(address_t addr, size_t size,
-		  const char* name, size_t entSize, long lowEntNum,
+    VregsRegEntry(address_t addr, size64_t size,
+		  const char* name, size64_t entSize, long lowEntNum,
 		  uint32_t rdMask, uint32_t wrMask,
 		  uint32_t rstVal, uint32_t rstMask, uint32_t flags)
 	: m_address(addr), m_size(size), m_name(name)
@@ -71,9 +71,9 @@ public:
 
 public:
     // CONSTANTS
-    const static uint32_t REGFL_RDSIDE	= 0x1;	// Register has read side effects
-    const static uint32_t REGFL_WRSIDE	= 0x2;	// Register has write side effects
-    const static uint32_t REGFL_TEST	= 0x4;	// Register should be extensively tested
+    static const uint32_t REGFL_RDSIDE	= 0x1;	// Register has read side effects
+    static const uint32_t REGFL_WRSIDE	= 0x2;	// Register has write side effects
+    static const uint32_t REGFL_TEST	= 0x4;	// Register should be extensively tested
 
     // MANIPULATORS
     void 		userinfo (void* userinfo) { m_userinfo = userinfo; }
@@ -82,8 +82,8 @@ public:
     // ACCESSORS
     address_t		address (void) const { return m_address; }
     const char* 	name (void) const { return m_name; }
-    size_t	 	size (void) const { return m_size; }
-    size_t	 	entSize (void) const { return m_entSize; }
+    size64_t	 	size (void) const { return m_size; }
+    size64_t	 	entSize (void) const { return m_entSize; }
     long 		lowEntNum (void) const { return m_lowEntNum; }
     void* 		userinfo (void) const { return m_userinfo; }
 
@@ -107,7 +107,7 @@ public:
     // ACCESSORS - Derrived from above functions
     // True if this is a entry of a multiple entry structure
     bool		isRanged (void) const { return entSize() != 0; }
-    size_t		entries (void) const {
+    size64_t		entries (void) const {
 				if (!isRanged()) return lowEntNum()+1;
 				return (max ((long)(size()/entSize()), lowEntNum())+1); }
     address_t		addressEnd (void) const { return address() + size(); }
@@ -130,19 +130,19 @@ public:
 
     // MANIPULATORS
     void	add_register (VregsRegEntry* regentp);
-    void	add_register (address_t addr, size_t size, const char* name,
+    void	add_register (address_t addr, size64_t size, const char* name,
 			      uint32_t spacing, uint32_t rangelow, uint32_t rangehigh,
 			      uint32_t rdMask, uint32_t wrMask,
 			      uint32_t rstVal, uint32_t rstMask, uint32_t flags);
-    void	add_register (address_t addr, size_t size, const char* name,
+    void	add_register (address_t addr, size64_t size, const char* name,
 			      uint32_t rdMask, uint32_t wrMask,
 			      uint32_t rstVal, uint32_t rstMask, uint32_t flags) {
 	add_register (addr, size, name, 0, 0, 0,
 		      rdMask,wrMask,rstVal,rstMask,flags); }
-    void	add_register (address_t addr, size_t size, const char* name) {
+    void	add_register (address_t addr, size64_t size, const char* name) {
 	add_register (addr, size, name, 0, 0, 0,
 		      ~0,~0,0,0,0); }
-    void	add_register (address_t addr, size_t size, const char* name,
+    void	add_register (address_t addr, size64_t size, const char* name,
 			      uint32_t spacing, uint32_t rangelow, uint32_t rangehigh
 			      ) {
 	add_register (addr, size, name, spacing, rangelow, rangehigh,
@@ -152,7 +152,7 @@ public:
 
     // MANIPULATORS - Lookups
     VregsRegEntry* find_by_addr (address_t addr);
-    const char*	addr_name (address_t addr, char* buffer, size_t length); // Return "name" of address
+    const char*	addr_name (address_t addr, char* buffer, size64_t length); // Return "name" of address
 
     // MANIPULATORS - Iterating through all registers.
     class iterator {

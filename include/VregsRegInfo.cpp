@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.cpp,v 1.7 2001/09/18 14:02:57 wsnyder Exp $ -*- C++ -*-
+// $Id: VregsRegInfo.cpp,v 1.8 2001/10/23 19:53:44 wsnyder Exp $ -*- C++ -*-
 //======================================================================
 //
 // This program is Copyright 2001 by Wilson Snyder.
@@ -47,7 +47,7 @@ void VregsRegInfo::add_register (VregsRegEntry* regentp)
 }
 
 void VregsRegInfo::add_register (
-    address_t addr, size_t size, const char* name,
+    address_t addr, size64_t size, const char* name,
     uint32_t spacing, uint32_t rangeLow, uint32_t rangeHigh,
     uint32_t rdMask, uint32_t wrMask,
     uint32_t rstVal, uint32_t rstMask, uint32_t flags)
@@ -107,7 +107,7 @@ VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr)
 }
 
 const char* VregsRegInfo::addr_name (
-    address_t addr, char* buffer, size_t length)
+    address_t addr, char* buffer, size64_t length)
     // If there is a register at this address, return string representing it.
     // Returns buffer.
 {

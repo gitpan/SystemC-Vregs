@@ -5,6 +5,32 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in Vregs 1.200 11/26/2001
+
+**	Allow replacement of enumeration before/after rules.
+
+***	Fixed bug where enumerations in registers would cause wrong
+	reset value in _info.cpp
+
+***	Made sizes in vregs_info be a 64 bit integer.
+
+**	Added macros for compile-time hooks to add debugging checks, listed
+	below.  See them in include/VregsClass.h.
+
+***	Define VREGS_ENUM_DEF_INITTER(badValue) to make the default ctor
+	for enum-classes initialize the enum.  Otherwise it's undefined.
+
+***	Define VREGS_SETFIELD_CHK(str,val,u_max) to validate the argument
+	before stuffing it into struct.field "str".  Otherwise Vregs classes
+	silently truncate the argument.
+
+***	Define VREGS_STRUCT_DEF_CTOR(TypeName, numWords) if you want structs
+	to have a default contructor, e.g. to initialize the words to
+	0xdeadbeef.  Otherwise Vregs structs are initially undefined (just
+	like a C++ array of uint32_t).
+
+****	Changed enumeration ascii() default to "?E" instead of "%E"
+
 * Changes in Vregs 1.100 10/18/2001
 
 **	Added rules for .cpp files: before_enum_cpp,
@@ -44,7 +70,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.11 2001/10/18 12:46:46 wsnyder Exp $
+$Id: NEWS,v 1.16 2001/11/26 15:31:41 wsnyder Exp $
 ----------------------------------------------------------------------
 Copyright information:
 

@@ -1,4 +1,4 @@
-# $Id: Define.pm,v 1.7 2001/10/18 12:46:49 wsnyder Exp $
+# $Id: Define.pm,v 1.8 2001/11/26 15:31:44 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.100';
+$VERSION = '1.200';
 
 ######################################################################
 ######################################################################

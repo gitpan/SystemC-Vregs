@@ -1,4 +1,4 @@
-# $Id: Bit.pm,v 1.6 2001/10/18 12:46:49 wsnyder Exp $
+# $Id: Bit.pm,v 1.9 2001/11/26 15:31:44 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -27,7 +27,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.100';
+$VERSION = '1.200';
 
 #desc
 #type
@@ -236,6 +236,7 @@ sub computes_type {
     $typeref->{lastflg} = 1 if ($access =~ /L/);
     $typeref->{rdside} = 1 if ($access =~ /R[^W]*S/);
     $typeref->{wrside} = 1 if ($access =~ /W[^R]*S/);
+    $typeref->{wrside} = 1 if ($access =~ /W1C/);
 
     my $bitsleft = $bitref->{numbits}-1;
     foreach my $bit (@{$bitref->{bitlist}}) {
@@ -260,8 +261,15 @@ sub computes_type {
 	    my $value = hex $rst;
 	    $rstvec = (($value & (1<<($bitsleft))) ? 1:0);
 	} elsif ($rst =~ /^[A-Z0-9_]+$/) {
-	    # We're not checking anyways
 	    $rstvec = 0;
+	    my $mnemref = $bitref->{pack}->find_enum($bitref->{type});
+	    if ($mnemref) {
+		my $vref = $mnemref->find_value($rst);
+		if (!$vref) {
+		    $bitref->warn("Field '$rst' not found as member of enum '$bitref->{type}'\n");
+		}
+		$rstvec = 1 if ($vref->{rst_val} & (1<<$bitsleft));
+	    }
 	} else {
 	    $bitref->warn ("Odd reset form: $rst\n");
 	}
@@ -271,7 +279,7 @@ sub computes_type {
 	    = { bitref=>$bitref,
 		write => (($access =~ /W/)?1:0),
 		read  => (($access =~ /R/)?1:0),
-		write_side => (($access =~ /W[^R]*S/)?1:0),
+		write_side => (($access =~ /(W[^R]*S|W1C)/)?1:0),
 		read_side  => (($access =~ /R[^W]*S/)?1:0),
 		rstvec => $rstvec,
 	    };

@@ -1,4 +1,4 @@
-# $Id: Rules.pm,v 1.11 2001/10/18 12:46:49 wsnyder Exp $
+# $Id: Rules.pm,v 1.16 2001/11/26 15:31:44 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -25,7 +25,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.100';
+$VERSION = '1.200';
 
 ######################################################################
 # Default rules
@@ -38,11 +38,33 @@ sub _default_rules {
 	 ."#include <stdint.h>      /*uint32_t*/\n"
 	 ."#include <VregsClass.h>\n"
 	 );
+    before_enum_end
+	(prog=> sub {
+	    my ($self,$name) = @_;
+	    fprint ("    enum en m_e;\n"
+		    ."    inline ${name} () VREGS_ENUM_DEF_INITTER(MAX) {}\n"
+		    ."    inline ${name} (en _e) : m_e(_e) {}\n"
+		    ."    explicit inline ${name} (int _e) : m_e(static_cast<en>(_e)) {}\n"
+		    ."    operator const char * () const { return ascii(); }\n"
+		    ."    operator en () const { return m_e; }\n"
+		    ."    const char * ascii () const;\n"
+		    );});
+    after_enum_end
+	(prog=> sub {
+	    my ($self,$name) = @_;
+	    fprint("  inline bool operator== (${name} lhs, ${name} rhs) { return (lhs.m_e == rhs.m_e); }\n",
+		   "  inline bool operator== (${name} lhs, ${name}::en rhs) { return (lhs.m_e == rhs); }\n",
+		   "  inline bool operator== (${name}::en lhs, ${name} rhs) { return (lhs == rhs.m_e); }\n",
+		   "  inline bool operator< (${name} lhs, ${name} rhs) { return lhs.m_e < rhs.m_e; }\n",
+		   "  inline OStream& operator<< (OStream& lhs, const ${name}& rhs) { return lhs << rhs.ascii(); }\n"
+		   );});
 }
 
 ######################################################################
 # Rules the __rules.pl file calls
 
+sub before_info_cpp_file{_declare_rule (rule=>'info_cpp_file_before', @_); }
+sub  after_info_cpp_file{_declare_rule (rule=>'info_cpp_file_after', @_); }
 sub before_file_body    {_declare_rule (rule=>'file_body_before', @_); }
 sub  after_file_body    {_declare_rule (rule=>'file_body_after', @_); }
 sub before_class_begin { _declare_rule (rule=>'class_begin_before', @_); }
@@ -117,9 +139,9 @@ sub execute_rule {
 	if ($name =~ $rvec->{name}) {
 	    print "Rule execute $name (self=$invoke_self)\n" if $SystemC::Vregs::Debug;
 	    {
-		use vars qw ($self);
+		use vars qw ($self $name);
 		local $self = $invoke_self;
-		&{$rvec->{prog}};
+		&{$rvec->{prog}}($invoke_self, $name);
 	    }
 	    if ($rvec->{replace}) {
 		print "  Last rule (replace)\n" if $SystemC::Vregs::Debug;
@@ -175,7 +197,7 @@ SystemC::Vregs::Rules - Rules for outputting class headers
     before_file_body    (replace => 1,
 	                 text => "#include \"myinclude.h\"\n",);
     before_enum_begin (  name => qr/_mine$/,
-	                 text => "    const static bool  MINE = true\n", );
+	                 text => "    static const bool  MINE = true\n", );
     after_enum_end (     name => 'Foo',
 	                 prog => sub { fprint "   // enum foo\n"; }, );
 

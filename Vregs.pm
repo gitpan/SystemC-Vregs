@@ -1,4 +1,4 @@
-# $Id: Vregs.pm,v 1.75 2001/10/18 12:46:46 wsnyder Exp $
+# $Id: Vregs.pm,v 1.76 2001/11/26 15:31:41 wsnyder Exp $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -34,7 +34,7 @@ use Carp;
 use vars qw($Debug $Bit_Access_Regexp @ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.100';
+$VERSION = '1.200';
 
 ######################################################################
 #### Constants
