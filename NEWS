@@ -5,6 +5,12 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in Vregs 1.245 7/22/2004
+
+***	Add operator!= to enum classes for GCC 3.0
+
+***	Support parsing of Netscape Composer documents.  [Reed Lawson]
+
 * Changes in Vregs 1.244 1/27/2004
 
 ****	Documentation fixes.
@@ -14,7 +20,6 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ***	Add before_any_file rule.  
 
 ****	Documentation fixes.  [Mike Castle]
-
 
 * Changes in Vregs 1.242 9/4/2003
 
@@ -23,7 +28,6 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 ***	Add CRESET_ defines for the default values of non-zero, non-bool fields.
 	[John DeRoo]
-
 
 * Changes in Vregs 1.241 6/9/2003
 
@@ -45,7 +49,6 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ****	Fix structs referencing structs declared later in the same package.
 
 ****	Add/drop leading 0s in define values to make correctly widthed numbers.
-
 
 * Changes in Vregs 1.240 12/13/2002
 
@@ -83,7 +86,6 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 ****	Warn about empty bit descriptions.
 
 ****	Added dump() methods for internal debugging.
-
 
 * Changes in Vregs 1.210 3/11/2002
 
@@ -91,7 +93,6 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 	print the first sorted enumeration text.
 
 ****	Fix ORing in of ranged addresses.  [Greg Waters]
-
 
 * Changes in Vregs 1.200 11/26/2001
 
@@ -118,7 +119,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 	like a C++ array of uint32_t).
 
 ****	Changed enumeration ascii() default to "?E" instead of "%E"
-
+
 * Changes in Vregs 1.100 10/18/2001
 
 **	Added rules for .cpp files: before_enum_cpp,
@@ -143,22 +144,19 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 	This allows other parsers to pick off the fields they need.
 
 ****	Fixed E_ enum defines to be in hex, not decimal.
-
 
 * Changes in Vregs 1.000 9/03/2001
 
 **	First publicized release.
 
 ***	Added ENUM ascii() methods to cpp instead of inlined .h
-
 
 * Changes in Vregs 0.1 6/27/2001
 
 ****	Package Released as Beta
-
 
 ----------------------------------------------------------------------
-$Revision: #49 $$Date: 2004/01/27 $$Author: wsnyder $
+$Revision: #52 $$Date: 2004/07/22 $$Author: ws150726 $
 ----------------------------------------------------------------------
 Copyright information:
 

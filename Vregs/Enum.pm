@@ -1,4 +1,4 @@
-# $Revision: #23 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #26 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 ######################################################################
 ######################################################################
@@ -56,7 +56,10 @@ sub check_name {
 	$self->warn ("Enum names must match [capitals][alphanumerics]'\n: $field");
 	return;
     }
-    if (my $lang = SystemC::Vregs::Language::is_keyword(lc $field)) {
+    # Because the enum is always capitalized, we don't add the 'lc' here.
+    my $lang = (SystemC::Vregs::Language::is_keyword($field)
+		|| SystemC::Vregs::Language::is_keyword(uc $field));
+    if ($lang) {
 	$self->warn ("Name matches a $lang language keyword: ", lc $field, "\n");
     }
 }
@@ -183,7 +186,7 @@ sub check {
     $self->clean_rst();
     $self->check_name();
     $self->expand_subenums();
-    ($self->{desc}) or $self->info("(Soon warn) Empty description, please document it.\n");
+    ($self->{desc}) or $self->warn("Empty description, please document it.\n");
 }
 
 sub dump {
@@ -212,7 +215,7 @@ SystemC::Vregs::Enum - Definition object
 
 This package contains a blessed hash object for each enumeration.
 
-=item FIELDS
+=head1 FIELDS
 
 These fields may be specified with the new() function, and accessed
 via the self hash: $self->{field}.
@@ -243,7 +246,7 @@ objects.
 
 =back
 
-=item METHODS
+=head1 METHODS
 
 =over 4
 

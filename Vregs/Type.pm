@@ -1,4 +1,4 @@
-# $Revision: #27 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #29 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -295,7 +295,7 @@ SystemC::Vregs::Type - Type object
 This package contains a blessed hash object for each class and register
 definition.
 
-=item FIELDS
+=head1 FIELDS
 
 These fields may be specified with the new() function, and accessed
 via the self hash: $self->{field}.
@@ -321,7 +321,7 @@ Reference to the package (SystemC::Vregs) object self is a member of.
 
 =back
 
-=item DERIVED FIELDS
+=head1 DERIVED FIELDS
 
 These fields are valid only after check() is called.
 
@@ -334,7 +334,7 @@ object (if any.)
 
 =back
 
-=item METHODS
+=head1 METHODS
 
 =over 4
 

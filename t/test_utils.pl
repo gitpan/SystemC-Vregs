@@ -1,5 +1,4 @@
-#!/usr/local/bin/perl -w
-# $Revision: #10 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #13 $$Date: 2004/07/22 $$Author: ws150726 $
 # DESCRIPTION: Perl ExtUtils: Common routines required by package tests
 #
 # Copyright 2001-2004 by Wilson Snyder.  This program is free software;
@@ -13,6 +12,8 @@ $GCC  = "g++ -Wall -Werror -I. -I../include ";
 
 mkdir 'test_dir',0777;
 
+use lib "../Verilog/blib/lib";	# For maintainer testing in project areas
+use lib "../Verilog/blib/arch";	# For maintainer testing in project areas
 if (!$ENV{HARNESS_ACTIVE}) {
     use lib "blib/lib";
     use lib "blib/arch";

@@ -1,4 +1,4 @@
-# $Revision: #39 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #41 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -19,7 +19,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 ######################################################################
 #### Implementation
@@ -462,7 +462,7 @@ The output data is stored in an array and dumped when the file is complete.
 This allows the file to only be written if the data changes, to reduce
 makefile rebuilding.
 
-=item FIELDS
+=head1 FIELDS
 
 These fields may be specified with the new() function.
 
@@ -485,7 +485,7 @@ which is an @ISA of SystemC::Vregs::Language.
 
 =back
 
-=item ACCESSORS
+=head1 ACCESSORS
 
 =over 4
 
@@ -495,7 +495,7 @@ Returns the type of file, for example 'C'.
 
 =back
 
-=item OUTPUT FUNCTIONS
+=head1 OUTPUT FUNCTIONS
 
 =over 4
 

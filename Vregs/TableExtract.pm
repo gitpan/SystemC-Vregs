@@ -1,4 +1,4 @@
-# $Revision: #36 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #41 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -55,31 +55,38 @@ sub clean_html_text {
     $_ = shift;
     # HTML escapes to normal Latin1 ASCII
     $_ = HTML::Entities::decode($_);
+    # Hack: Decode two-byte UTF-8 chars without checking that the HTML body
+    # uses UTF-8 encoding.  wvHtml writes HTML in UTF-8 encoding when the
+    # .doc file comes from StarOffice7.
+    s{[\302\303].}{
+	my ($a, $b) = unpack("CC", $&);
+	(($b & 0xC0) != 0x80 ? $&	# Not a 2-byte UTF-8 char.
+	 : pack("C", ($a & 0x3)<<6 | ($b & 0x3f) ))
+    }eg;
     # Latin1 decoding
-    s/\240/ /g;		# ISO-Latin1 nonbreaking space
-    s/\255//g;		# ISO-Latin1 soft hyphen
     # Substituting 2 or 3 periods for 'elipses' causes Vspecs to truncate
     # the field description at the periods, so use dashes.
-    s/\205/--/g;	# ISO-Latin1 horizontal elipses (0x85)
+    s/\205/-/g;		# ISO-Latin1 horizontal elipses (0x85)
     s/\221/\'/g;	# ISO-Latin1 left single-quote
     s/\222/\'/g;	# ISO-Latin1 right single-quote
     s/\223/\"/g;	# ISO-Latin1 left double-quote
     s/\224/\"/g;	# ISO-Latin1 right double-quote
     s/\225/\*/g;	# ISO-Latin1 bullet
     s/\226/-/g;		# ISO-Latin1 en-dash (0x96)
-    s/\227/--/g;	# ISO-Latin1 em-dash (0x97)
+    s/\227/-/g;		# ISO-Latin1 em-dash (0x97)
     s/\230/~/g;		# ISO-Latin1 small tilde
     s/\233/>/g;		# ISO-Latin1 single right angle quote
+    s/\240/ /g;		# ISO-Latin1 nonbreaking space
     s/\246/\|/g;	# ISO-Latin1 broken vertical bar
-    s/\255//g;		# ISO-Latin1 soft hyphen
+    s/\255//g;		# ISO-Latin1 soft hyphen (0xAD)
     s/\264/\'/g;	# ISO-Latin1 spacing acute
     s/\267/\*/g;	# ISO-Latin1 middle dot (0xB7)
     # These are automatically removed by HTML::Entities in Perl 5.7 and greater
     s/\&\#8209;/-/g;	# ISOpub nonbreaking hyphen (U+2011, &#8209;)
-    s/\&\#8211;/--/g;	# ISOpub en-dash (U+2013, &#8211;)
-    s/\&ndash;/--/g;	# ISOpub en-dash (U+2013, &#8211;)
-    s/\&\#8212;/--/g;	# ISOpub em-dash (U+2014, &#8212;)
-    s/\&mdash;/--/g;	# ISOpub em-dash (U+2014, &#8212;)
+    s/\&\#8211;/-/g;	# ISOpub en-dash (U+2013, &#8211;)
+    s/\&ndash;/-/g;	# ISOpub en-dash (U+2013, &#8211;)
+    s/\&\#8212;/-/g;	# ISOpub em-dash (U+2014, &#8212;)
+    s/\&mdash;/-/g;	# ISOpub em-dash (U+2014, &#8212;)
     s/\&\#8216;/\'/g;	# ISOnum left single-quote (U+2018, &#8216;)
     s/\&lsquo;/\'/g;	# ISOnum left single-quote (U+2018, &#8216;)
     s/\&\#8217;/\'/g;	# ISOnum right single-quote (U+2019, &#8217;)
@@ -88,17 +95,18 @@ sub clean_html_text {
     s/\&ldquo;/\"/g;	# ISOnum left double-quote (U+201C, &#8220;)
     s/\&\#8221;/\"/g;	# ISOnum right double-quote (U+201D, &#8221;)
     s/\&rdquo;/\"/g;	# ISOnum right double-quote (U+201D, &#8221;)
-    s/\&\#8230;/--/g;	# ISOpub horizontal elipses (U+2026, &#8230;)
-    s/\&hellip;/--/g;	# ISOpub horizontal elipses (U+2026, &#8230;)
+    s/\&\#8230;/-/g;	# ISOpub horizontal elipses (U+2026, &#8230;)
+    s/\&hellip;/-/g;	# ISOpub horizontal elipses (U+2026, &#8230;)
     # Compress spacing
     s/\`/\'/g;
     s/[\t\n\r ]+/ /g;
+    s/^ *//g;
     return $_;
 }
 
 sub start {
     my $self = shift;
-    if ($_[0] eq 'p') {
+    if ($_[0] eq 'p' || $_[0] =~ /^h[0-9]/) {
 	#print "<p>\n" if $Debug;
 	$self->{_vregs_first_word_in_p} = 1;
     }
@@ -212,6 +220,7 @@ sub clean_html_file {
     $wholefile =~ s%<\/?span\s*>%%smg;
     $wholefile =~ s%<\/?o:p>%%smg;
     $wholefile =~ s% width=\d+ % %smg;
+    $wholefile =~ s%<!\[if !supportEmptyParas\]>\&nbsp;<!\[endif\]>%%smg;
 
     # Microsoft Word changebars
     $wholefile =~ s%<a href=\"#author\d+">\[Author\s+\S+:\s+at\s+\S+\s+\S+\s+\d+\s+\S+\s+\d+\s*\]\s*</a>%%smg;

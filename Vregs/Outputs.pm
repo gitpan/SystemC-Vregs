@@ -1,4 +1,4 @@
-# $Revision: #124 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #126 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -864,7 +864,7 @@ SystemC::Vregs::Outputs - Outputting Vregs Code
 This package contains additional SystemC::Vregs methods.  These methods
 are used to output various types of files.
 
-=item METHODS
+=head1 METHODS
 
 =over 4
 

@@ -1,4 +1,4 @@
-# $Revision: #35 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #38 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -81,7 +81,7 @@ sub check_desc {
     my $self = shift;
     $self->{overlaps} = $1 if ($self->{desc} =~ /\boverlaps\s+([a-zA-Z0-9_]+)/i);
     $self->{desc} = $self->clean_sentence($self->{desc});
-    ($self->{desc}) or $self->info("(Soon warn) Empty description, please document it.\n");
+    ($self->{desc}) or $self->warn("Empty description, please document it.\n");
 }
 
 sub check_name {
@@ -91,7 +91,9 @@ sub check_name {
     ($field =~ /^[A-Z][A-Za-z0-9]*$/)
 	or $self->warn ("Bit mnemonics must start with capitals and contain only alphanumerics.\n");
     $self->{name} = $field;
-    if (my $lang = SystemC::Vregs::Language::is_keyword(lc $field)) {
+    my $lang = SystemC::Vregs::Language::is_keyword(lc $field);
+    if ($lang && (lc $lang ne "verilog")) {
+	# For now, we don't emmit verilog structures, so don't burden the world
 	$self->warn ("Name matches a $lang language keyword: ", lc $field, "\n");
     }
 }
@@ -421,7 +423,7 @@ SystemC::Vregs::Bit - Bit object
 This package contains a blessed hash object for each bit field in a
 SystemC::Vregs::Type.
 
-=item FIELDS
+=head1 FIELDS
 
 These fields may be specified with the new() function, and accessed
 via the self hash: $self->{field}.
@@ -463,7 +465,7 @@ Type of the field, from the type column of the field definition.
 
 =back
 
-=item DERIVED FIELDS
+=head1 DERIVED FIELDS
 
 These fields are valid only after check() is called.
 
@@ -476,7 +478,7 @@ hash with the bit field reference and status on that bit.
 
 =back
 
-=item METHODS
+=head1 METHODS
 
 =over 4
 

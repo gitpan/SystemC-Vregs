@@ -1,0 +1,14 @@
+# http://module-build.sourceforge.net/META-spec.html
+#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
+name:         SystemC-Vregs
+version:      1.245
+version_from: Vregs.pm
+installdirs:  site
+requires:
+    Bit::Vector:                   0
+    HTML::Parser:                  0
+    HTML::TableExtract:            0
+    Verilog::Language:             2.1
+
+distribution_type: module
+generated_by: ExtUtils::MakeMaker version 6.17

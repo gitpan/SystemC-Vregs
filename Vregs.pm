@@ -1,4 +1,4 @@
-# $Revision: #110 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #114 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -24,16 +24,20 @@ use SystemC::Vregs::Number;
 use SystemC::Vregs::Rules;
 use strict;
 use Carp;
-use vars qw($Debug $Bit_Access_Regexp @ISA $VERSION);
+use vars qw($Debug @ISA $VERSION
+	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 ######################################################################
 #### Constants
 
 # Regexp matching valid bit access
 $Bit_Access_Regexp = '^(RS?|)(WS?|W1CS?|)L?'."\$";
+
+# Loaded by user programs to prevent keyword warnings
+%Ignore_Keywords = ();
 
 ######################################################################
 ######################################################################
@@ -1261,11 +1265,11 @@ __END__
 
 =head1 NAME
 
-Vregs - Utility routines used by vregs
+SystemC::Vregs - Utility routines used by vregs
 
 =head1 SYNOPSIS
 
-  use Vregs;
+  use SystemC::Vregs;
 
 =head1 DESCRIPTION
 
@@ -1274,10 +1278,10 @@ definitions, classes, and registers.
 
 =head1 METHODS
 
-=over 4
-
 See also SystemC::Vregs::Outputs for details on functions that write out
 various header files.
+
+=over 4
 
 =item new
 

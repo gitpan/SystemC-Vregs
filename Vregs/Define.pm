@@ -1,4 +1,4 @@
-# $Revision: #20 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #23 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -68,7 +68,7 @@ sub new_push {
 sub clean_desc {
     my $self = shift;
     $self->{desc} = $self->clean_sentence($self->{desc});
-    ($self->{desc}) or $self->info("(Soon warn) Empty description, please document it.\n");
+    ($self->{desc}) or $self->warn("Empty description, please document it.\n");
 }
 
 sub clean_rst {
@@ -135,7 +135,7 @@ SystemC::Vregs::Define - Definition object
 
 This package contains a blessed hash object for each definition.
 
-=item FIELDS
+=head1 FIELDS
 
 These fields may be specified with the new() function, and accessed
 via the self hash: $self->{field}.
@@ -165,7 +165,7 @@ Reset value for the object.
 
 =back
 
-=item DERIVED FIELDS
+=head1 DERIVED FIELDS
 
 These fields are valid only after check() is called.
 
@@ -177,7 +177,7 @@ The reset value, expressed as a hex string.
 
 =back
 
-=item METHODS
+=head1 METHODS
 
 =over 4
 

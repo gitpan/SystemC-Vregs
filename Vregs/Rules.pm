@@ -1,4 +1,4 @@
-# $Revision: #32 $$Date: 2004/01/27 $$Author: wsnyder $
+# $Revision: #34 $$Date: 2004/07/22 $$Author: ws150726 $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.244';
+$VERSION = '1.245';
 
 ######################################################################
 # Default rules
@@ -64,6 +64,9 @@ sub _default_rules {
 	    fprint("  inline bool operator== (${name} lhs, ${name} rhs) { return (lhs.m_e == rhs.m_e); }\n",
 		   "  inline bool operator== (${name} lhs, ${name}::en rhs) { return (lhs.m_e == rhs); }\n",
 		   "  inline bool operator== (${name}::en lhs, ${name} rhs) { return (lhs == rhs.m_e); }\n",
+		   "  inline bool operator!= (${name} lhs, ${name} rhs) { return (lhs.m_e != rhs.m_e); }\n",
+		   "  inline bool operator!= (${name} lhs, ${name}::en rhs) { return (lhs.m_e != rhs); }\n",
+		   "  inline bool operator!= (${name}::en lhs, ${name} rhs) { return (lhs != rhs.m_e); }\n",
 		   "  inline bool operator< (${name} lhs, ${name} rhs) { return lhs.m_e < rhs.m_e; }\n",
 		   "  inline OStream& operator<< (OStream& lhs, const ${name}& rhs) { return lhs << rhs.ascii(); }\n"
 		   );});
