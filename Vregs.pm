@@ -1,4 +1,4 @@
-# $Revision: 1.122 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
+# $Revision: 1.122 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw($Debug @ISA $VERSION
 	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.260';
+$VERSION = '1.261';
 
 ######################################################################
 #### Constants
@@ -234,8 +234,9 @@ sub new_item {
     #Create a new register/class/enum, called from the html parser
     print "new_item:",::Dumper(\$flagref, $bittableref) if $SystemC::Vregs::TableExtract::Debug;
 
-    $flagref->{Register} = $flagref->{Class} if $flagref->{Class};
     if ($flagref->{Register}) {
+	new_register (@_);
+    } elsif ($flagref->{Class}) {
 	new_register (@_);
     } elsif ($flagref->{Enum}) {
 	new_enum (@_);
@@ -358,8 +359,8 @@ sub new_register {
     my $flagref = shift;	# Hash of {heading} = value_of_heading
     # Create a new register
 
-    ($flagref->{Register}) or die;
-    my $classname = $flagref->{Register};
+    my $classname = $flagref->{Register} || $flagref->{Class};
+    (defined $classname) or die;
 
     #print "new_register!\n",::Dumper(\$flagref,\@bittable);
 
@@ -367,7 +368,7 @@ sub new_register {
     $range = $1 if ($classname =~ s/(\[[^\]]+])//);
     $classname =~ s/\s+$//;
 
-    my $is_register = ($classname =~ /^R_/ || $flagref->{Address});
+    my $is_register = ($flagref->{Register} || $flagref->{Address});
     
     my $inherits = "";
     if ($classname =~ s/\s*:\s*(\S+)$//) {
@@ -1149,27 +1150,28 @@ sub SystemC::Vregs::Bit::_vregs_write_type {
     my $descflags = "";
     $descflags = ".  Overlaps $self->{overlaps}." if $self->{overlaps};
 
-    printf $fh "\tbit\t%-13s %s\t%-4s %-11s %-11s"
-	,$self->{name},$self->{bits},$self->{access}
-        ,$self->{type},$self->{rst};
+    $fh->printf_tabify("\tbit\t%-15s\t%-7s\t%-3s %-11s\t%-7s\t"
+		       ,$self->{name},$self->{bits},$self->{access}
+		       ,$self->{type},$self->{rst});
+
     foreach my $var (keys %{$self->{attributes}}) {
 	my $val = $self->{attributes}{$var};
-	print $fh "\t-$var=$val";
+	$fh->print("\t-$var=$val");
     }
-    printf $fh " \"%s%s\"\n", $self->{desc},$descflags;
+    $fh->printf(" \"%s%s\"\n", $self->{desc},$descflags);
 }
 
 sub SystemC::Vregs::Type::_vregs_write_type {
     my $self = shift;
     my $fh = shift;
-    print $fh "   type\t$self->{name}";
+    $fh->print("   type\t$self->{name}");
     if ($self->{inherits}) {
-	print $fh "\t:$self->{inherits}";
+	$fh->print("\t:$self->{inherits}");
     }
     foreach my $var (sort (keys %{$self->{attributes}})) {
-	print $fh "\t-$var";
+	$fh->print("\t-$var");
     }
-    print $fh "\n";
+    $fh->print("\n");
     foreach my $fieldref ($self->fields_sorted()) {
 	$fieldref->_vregs_write_type($fh);
     }
@@ -1180,27 +1182,29 @@ sub regs_write {
     my $self = shift;
     my $filename = shift;
 
-    my $fh = IO::File->new(">$filename") or croak "%Error: $! $filename.";
+    my $fh = SystemC::Vregs::File->open(language=>'Verilog',
+					filename=>$filename,
+					noheader=>1);
 
-    print $fh "// DESCR"."IPTION: Register Layout: Generated AUTOMATICALLY by vregs\n";
-    print $fh "//\n";
-    print $fh "// Format:\n";
-    print $fh "//\tpackage {name}\n";
-    print $fh "//\treg   {name} {type}[vec] 0x{address} {spacing}\n";
-    print $fh "//\ttype  {name}\n";
-    print $fh "//\tbit   {name} {bits} {access} {type} {reset} {description}\n";
-    print $fh "//\tenum  {name}\n";
-    print $fh "//\tconst {name} {value} {description}\n";
-    print $fh "\n";
-    print $fh "package $self->{name}";
+    $fh->print("// DESCR"."IPTION: Register Layout: Generated AUTOMATICALLY by vregs\n");
+    $fh->print("//\n");
+    $fh->print("// Format:\n");
+    $fh->print("//\tpackage {name}\n");
+    $fh->print("//\treg   {name} {type}[vec] 0x{address} {spacing}\n");
+    $fh->print("//\ttype  {name}\n");
+    $fh->print("//\tbit   {name} {bits} {access} {type} {reset} {description}\n");
+    $fh->print("//\tenum  {name}\n");
+    $fh->print("//\tconst {name} {value} {description}\n");
+    $fh->print("\n");
+    $fh->print("package $self->{name}");
     foreach my $var (keys %{$self->{attributes}}) {
-	print $fh "\t-$var";
+	$fh->print("\t-$var");
     }
-    print $fh "\n";
-    print $fh "//Rebuild with: $self->{rebuild_comment}\n" if $self->{rebuild_comment};
-    print $fh "\n";
+    $fh->print("\n");
+    $fh->print("//Rebuild with: $self->{rebuild_comment}\n") if $self->{rebuild_comment};
+    $fh->print("\n");
 
-    print $fh "//",'*'x70,"\n// Registers\n";
+    $fh->print("//",'*'x70,"\n// Registers\n");
     my %printed;
     foreach my $regref ($self->regs_sorted) {
 	my $classname = $regref->{name} || "x";
@@ -1211,9 +1215,9 @@ sub regs_write {
 	} else {
 	    (my $nor = $classname) =~ s/^R_//;
 	    my $type = "Vregs${nor}";
-	    printf $fh "  reg\t$classname\t$type$range\t0x%s\t0x%s\t"
-		, $addr->to_Hex, $regref->{spacing}->to_Hex;
-	    print $fh "\n";
+	    $fh->printf("  reg\t$classname\t$type$range\t0x%s\t0x%s\t"
+			, $addr->to_Hex, $regref->{spacing}->to_Hex);
+	    $fh->print("\n");
 
 	    my $typeref = $regref->{typeref};
 	    if (!$printed{$typeref}) {
@@ -1223,7 +1227,7 @@ sub regs_write {
 	}
     }
 
-    print $fh "//",'*'x70,"\n// Classes\n";
+    $fh->print("//",'*'x70,"\n// Classes\n");
     foreach my $typeref ($self->types_sorted) {
 	if (!$printed{$typeref}) {
 	    $printed{$typeref} = 1;
@@ -1231,27 +1235,27 @@ sub regs_write {
 	}
     }
 
-    print $fh "//",'*'x70,"\n// Enumerations\n";
+    $fh->print("//",'*'x70,"\n// Enumerations\n");
     foreach my $classref ($self->enums_sorted) {
 	my $classname = $classref->{name} || "x";
-	printf $fh "   enum\t$classname";
+	$fh->printf("   enum\t$classname");
 	foreach my $var (keys %{$classref->{attributes}}) {
-	    print $fh "\t-$var";
+	    $fh->print("\t-$var");
 	}
-	print $fh "\n";
+	$fh->print("\n");
 	    
 	foreach my $fieldref ($classref->fields_sorted()) {
 	    next if $fieldref->{omit_from_vregs_file};
-	    printf $fh "\tconst\t%-13s\t%s\t\"%s\"\n"
-		,$fieldref->{name},$fieldref->{rst},$fieldref->{desc};
+	    $fh->printf("\tconst\t%-13s\t%s\t\"%s\"\n"
+			,$fieldref->{name},$fieldref->{rst},$fieldref->{desc});
 	}
     }
 
-    print $fh "//",'*'x70,"\n// Defines\n";
+    $fh->print("//",'*'x70,"\n// Defines\n");
     foreach my $fieldref ($self->defines_sorted) {
 	next if !$fieldref->{is_manual};
-	printf $fh "\tdefine\t%-13s\t%s\t\"%s\"\n"
-	    ,$fieldref->{name},$fieldref->{rst},$fieldref->{desc};
+	$fh->printf("\tdefine\t%-13s\t%s\t\"%s\"\n"
+		    ,$fieldref->{name},$fieldref->{rst},$fieldref->{desc});
     }
 
     $fh->close();

@@ -1,4 +1,4 @@
-# $Revision: 1.133 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
+# $Revision: 1.133 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.260';
+$VERSION = '1.261';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -53,16 +53,18 @@ sub open {
 	#$self->{template}->read (filename=>$template_filename);
     }
 
-    $self->print("// -*- C++ -*-\n") if ($self->{C});
-    $self->print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n") if ($self->{XML});
-    $self->comment("DO NOT EDIT -- Generated automatically by vregs\n");
-    if ($self->{C}) {
-	$self->comment_pre("\\file\n");
-	$self->comment_pre("\\brief Register Information: Generated automatically by vregs\n");
-    } else {
-	$self->comment("DESC"."RIPTION: Register Information: Generated automatically by vregs\n");
+    if (!$self->{noheader}) {
+	$self->print("// -*- C++ -*-\n") if ($self->{C});
+	$self->print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n") if ($self->{XML});
+	$self->comment("DO NOT EDIT -- Generated automatically by vregs\n");
+	if ($self->{C}) {
+	    $self->comment_pre("\\file\n");
+	    $self->comment_pre("\\brief Register Information: Generated automatically by vregs\n");
+	} else {
+	    $self->comment("DESC"."RIPTION: Register Information: Generated automatically by vregs\n");
+	}
+	$self->comment_pre("\n");
     }
-    $self->comment_pre("\n");
 
     if ($self->{rules}) {
 	$self->{rules}->filehandle($self);
@@ -86,8 +88,10 @@ sub close {
 
     $self->{rules}->execute_rule ('any_file_after', 'any_file', $self) if $self->{rules};
 
-    $self->print("\n");
-    $self->comment ("DO NOT EDIT -- Generated automatically by vregs\n");
+    if (!$self->{noheader}) {
+	$self->print("\n");
+	$self->comment ("DO NOT EDIT -- Generated automatically by vregs\n");
+    }
 
     $self->SUPER::close();
 }
@@ -114,6 +118,43 @@ sub set_private {
     my $self = shift;
     my $private = shift;
     $self->{private} = $private;
+}
+
+sub printf_tabify {
+    my $self = shift;
+    my $line = sprintf(shift,@_);
+    $self->print($self->tabify($line));
+}
+
+sub tabify {
+    my $self = shift;
+    my $line = join('',@_);
+    # Convert any space-tabs to just tabs
+    my $out='';
+    my $col=0;
+    my $spaces=0;
+    for (my $i=0; $i<length($line); $i++) {
+	my $c = substr($line,$i,1);
+	if ($c eq "\n") {
+	    $out .= $c;
+	    $col = 0;
+	    $spaces = 0;
+	} elsif ($c eq "\t") {
+	    my $wantcol = int(($col+$spaces+8)/8)*8;
+	    while ($wantcol > $col) {
+		$col = int(($col+8)/8)*8;
+		$out .= "\t";
+	    }
+	    $spaces = 0;
+	} elsif ($c eq " ") {
+	    $spaces++;
+	} else {
+	    if ($spaces) { $out .= ' 'x$spaces; $col+=$spaces; $spaces=0; }
+	    $out .= $c;
+	    $col++;
+	}
+    }
+    return $out;
 }
 
 # Pass throughs to SystemC::Vregs
@@ -337,9 +378,9 @@ sub SystemC::Vregs::Type::_class_h_write {
 	    my $word = int($lsb/32);
 	    (int($msb/32)==$word) or die "%Error: One _range cannot span two words\n";
 	    my $deposit_mask = (1<<$nbits)-1;
-	    $deposit_mask = -1 if $nbits==32;
+	    $deposit_mask = 0xffffffff if $nbits==32;
 	    my $mask = $deposit_mask << $low_mod;
-	    $mask = -1 if $high_mod==31 && $low_mod==0;
+	    $mask = 0xffffffff if $high_mod==31 && $low_mod==0;
 	    
 	    $extract .= " |" if $extract ne "";
 	    if ($high_mod==31 && $low_mod==0 && $srcbit==0) {
@@ -354,7 +395,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 		$extract .= sprintf " %s(w(${word})>>${low_mod} & 0x%x$L)$tobit"
 		    , ($tobit?"(":""), $deposit_mask;
 		$deposit .= sprintf " w(${word}, (w(${word})&0x%08x$L) | ((%sb$frombit&0x%x$L)<<${low_mod}));"
-		    , ~$mask, ($frombit?"(":""), $deposit_mask;
+		    , (~$mask&0xffffffff), ($frombit?"(":""), $deposit_mask;
 	    }
 	}
 

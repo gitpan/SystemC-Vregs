@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Revision: 1.11 $$Date: 2005-02-16 10:47:01 -0500 (Wed, 16 Feb 2005) $$Author: wsnyder $
+#$Revision: 1.11 $$Date: 2005-04-13 14:24:09 -0400 (Wed, 13 Apr 2005) $$Author: wsnyder $
 ######################################################################
 #
 # Copyright 2001-2005 by Wilson Snyder.  This program is free software;
@@ -58,6 +58,7 @@ my $opt_hash_pm = 1;
 my $opt_comments = 1;
 my $opt_rules;
 my $opt_rebuild_comment = "$0 @orig_argv";
+my $opt_vregs;
 our @opt_library_vregs = ();
 my %opt_attributes;
 if (! GetOptions (
@@ -74,6 +75,7 @@ if (! GetOptions (
 		  "rm"		=> \$opt_rm,
 		  "rules=s"	=> \$opt_rules,
 		  "v2k!"	=> sub { shift; $opt_attributes{v2k} = shift; },
+		  "vregs=s"	=> \$opt_vregs,
 		  # File Enables (if adding one, add to files! also)
 		  "class_h!"	=> \$opt_class_h,
 		  "class_cpp!"	=> \$opt_class_cpp,
@@ -101,6 +103,8 @@ if (! GetOptions (
 
 $opt_output.="/" if ($opt_output ne "" && $opt_output !~ m!/$!);
 $opt_package or die "%Error: No --package specified\n";
+
+$opt_vregs = "${opt_output}${opt_package}.vregs" if !defined $opt_vregs;
 
 my @vr_params = (address_bits=>40,
 		 comments=>$opt_comments,
@@ -141,12 +145,12 @@ if ($#Opt_Html_Files >= 0) {
     $vr->exit_if_error();
     $vr->check();
     $vr->exit_if_error();
-    $vr->regs_write ("${opt_output}${opt_package}.vregs");
+    $vr->regs_write ($opt_vregs);
 }
 	      
 if ($opt_headers) {
     my $v2 = new SystemC::Vregs (@vr_params);
-    $v2->regs_read ("${opt_output}${opt_package}.vregs");
+    $v2->regs_read ($opt_vregs);
     $v2->exit_if_error();
     $v2->check();
     $v2->exit_if_error();
@@ -189,7 +193,7 @@ if ($opt_headers) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 1.11 $$Date: 2005-02-16 10:47:01 -0500 (Wed, 16 Feb 2005) $$Author: wsnyder $ ', "\n";
+    print '$Revision: 1.11 $$Date: 2005-04-13 14:24:09 -0400 (Wed, 13 Apr 2005) $$Author: wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);
@@ -333,6 +337,11 @@ Defaults to the I<out_directory>/I<package>__rules.pl.
 
 Use Verilog-2001 constructs, such as localparam.  Identical to the v2k
 package attribute.
+
+=item -vregs
+
+Specify vregs format file to be read or written.  Defaults to be in the
+directory specified by --output with the filename I<package>.vregs.
 
 =back
 

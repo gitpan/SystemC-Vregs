@@ -1,4 +1,4 @@
-# $Revision: 1.43 $$Date: 2005-03-01 18:13:37 -0500 (Tue, 01 Mar 2005) $$Author: wsnyder $
+# $Revision: 1.43 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.260';
+$VERSION = '1.261';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -209,9 +209,17 @@ sub check_bits {
 		my $byte=$2; $bit=$3;
 		$bit += $byte*8 if $byte;
 	    }
-	    elsif ($busbit =~ /^(w(\d+)|)\[(\d+)\]$/) {
+	    elsif ($busbit =~ /^(h(\d+))\[(\d+)\]$/) {
+		my $byte=$2; $bit=$3;
+		$bit += $byte*16 if $byte;
+	    }
+	    elsif ($busbit =~ /^(w(\d+)|)\[(\d+)\]$/) {  # Default if no letter
 		my $word=$2; $bit=$3;
 		$bit += $word*32 if $word;
+	    }
+	    elsif ($busbit =~ /^(d(\d+))\[(\d+)\]$/) {
+		my $word=$2; $bit=$3;
+		$bit += $word*64 if $word;
 	    }
 	    else {
 		$bitref->warn ("Strange bits selection: '$field': $busbit\n");
