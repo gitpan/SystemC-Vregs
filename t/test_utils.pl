@@ -1,4 +1,4 @@
-# $Revision: 1.15 $$Date: 2005-01-12 16:35:09 -0500 (Wed, 12 Jan 2005) $$Author: wsnyder $
+# $Revision: 1.15 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Common routines required by package tests
 #
 # Copyright 2001-2005 by Wilson Snyder.  This program is free software;
@@ -8,7 +8,7 @@
 use vars qw($PERL $GCC);
 
 $PERL = "$^X -Iblib/arch -Iblib/lib";
-$GCC  = "g++ -Wall -Werror -I. -I../include ";
+$GCC  = "g++ -Wall -Werror -I. -I../t -I../include ";
 
 mkdir 'test_dir',0777;
 

@@ -1,4 +1,4 @@
-# $Revision: 1.49 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
+# $Revision: 1.49 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.261';
+$VERSION = '1.300';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -53,6 +53,12 @@ sub delete {
     my $self = shift;
     $self->{pack} or die;
     delete $self->{pack}{regs}{$self->{name}};
+}
+
+sub attribute_value {
+    my $self = shift;
+    my $attr = shift;
+    return $self->{typeref}->attribute_value($attr);
 }
 
 ######################################################################

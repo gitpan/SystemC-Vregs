@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 1.10 $$Date: 2004-12-04 15:13:30 -0500 (Sat, 04 Dec 2004) $$Author: wsnyder $
+# $Revision: 1.10 $$Date: 2005-05-27 15:18:47 -0400 (Fri, 27 May 2005) $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2001-2004 by Wilson Snyder.  This program is free software;
@@ -9,7 +9,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 7 }
+BEGIN { plan tests => 8 }
 BEGIN { require "t/test_utils.pl"; }
 
 use SystemC::Vregs::Language;
@@ -32,6 +32,9 @@ test_common (filename=>"test_dir/foo.tcl",
 	     );
 test_common (filename=>"test_dir/foo.xml",
 	     language=>'XML',
+	     );
+test_common (filename=>"test_dir/foo.lisp",
+	     language=>'Lisp',
 	     );
 
 sub test_common {

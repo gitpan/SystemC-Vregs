@@ -1,4 +1,4 @@
-# $Revision: 1.46 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
+# $Revision: 1.46 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -19,7 +19,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.261';
+$VERSION = '1.300';
 
 ######################################################################
 #### Implementation
@@ -290,6 +290,29 @@ sub comment_post {
 ######################################################################
 ######################################################################
 ######################################################################
+#### Lisp
+
+package SystemC::Vregs::Language::Lisp;
+use vars qw(@ISA);
+@ISA = qw(SystemC::Vregs::Language);
+use strict;
+
+sub is_keyword { return undef;}
+sub include_guard {}
+
+sub comment_start_char { return ";;"; }
+sub comment_end_char { return ""; }
+sub comment {
+    my $self = shift;
+    my $strg = join ('', @_);
+    $strg =~ s!\n(.)!\n;;$1!g;
+    $strg =~ s!\n\n!\n;;\n!og;
+    $self->print(";;".$strg);
+}
+
+######################################################################
+######################################################################
+######################################################################
 #### Perl
 
 package SystemC::Vregs::Language::Perl;
@@ -319,6 +342,7 @@ sub comment {
     my $self = shift;
     my $strg = join ('', @_);
     $strg =~ s!\n(.)!\n#$1!g;
+    $strg =~ s!\n\n!\n#\n!og;
     $self->print("#".$strg);
 }
 
@@ -406,6 +430,7 @@ sub comment {
     my $self = shift;
     my $strg = join ('', @_);
     $strg =~ s!\n(.)!\n;$1!g;
+    $strg =~ s!\n\n!\n;\n!og;
     $self->print (";".$strg);
 }
 
@@ -434,6 +459,7 @@ sub comment {
     my $self = shift;
     my $strg = join ('', @_);
     $strg =~ s!\n(.)!\n#$1!g;
+    $strg =~ s!\n\n!\n#\n!og;
     $self->print ("\#".$strg);
 }
 

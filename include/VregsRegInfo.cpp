@@ -1,4 +1,4 @@
-// $Revision: 1.18 $$Date: 2005-02-21 10:11:49 -0500 (Mon, 21 Feb 2005) $$Author: wsnyder $ -*- C++ -*-
+// $Revision: 1.18 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -20,7 +20,14 @@
 ///
 //======================================================================
 
+#include <sstream>
+
 #include "VregsRegInfo.h"
+
+//======================================================================
+// Statics
+
+VregsSpecsInfo::ByNameMap  VregsSpecsInfo::s_byName;
 
 //======================================================================
 // VregsRegEntry
@@ -115,29 +122,32 @@ VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr) {
     return NULL;
 }
 
-const char* VregsRegInfo::addr_name (address_t addr, char* buffer, size64_t length) {
+string VregsRegInfo::addr_name (address_t addr) {
     // If there is a register at this address, return string representing it.
-    // Returns buffer.
-    char* bufp = buffer;
-
-    *bufp = '\0';
     VregsRegEntry* rep = find_by_addr (addr);
     if (!rep) {
 	// No register here.
-	return bufp;
+	return "";
     }
 
-    int strsize = 0;
+    ostringstream os;
     if (rep->isRanged()) {
 	long thisent = (long)((addr - rep->address()) / rep->entSize());
-	strsize = snprintf (bufp, length, "%s[%lx]", rep->name(), thisent + rep->lowEntNum());
+	os <<rep->name()<<"["<<hex<<thisent + rep->lowEntNum()<<"]";
 	addr -= thisent * rep->entSize();
     } else {
-	strsize = snprintf (bufp, length, "%s", rep->name());
+	os <<rep->name();
     }
-    bufp += strsize; length -= strsize;
+
     if (addr != rep->address()) {
-	snprintf (bufp, length, "+%llx", (unsigned long long)(addr - rep->address()));
+	os <<"+"<<hex<<(unsigned long long)(addr - rep->address());
     }
+    return os.str();
+}
+
+const char* VregsRegInfo::addr_name (address_t addr, char* buffer, size64_t length) {
+    // If there is a register at this address, return string representing it.
+    // Else, return ""
+    snprintf (buffer, length, "%s", addr_name(addr).c_str());
     return buffer;
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Revision: 1.11 $$Date: 2005-04-13 14:24:09 -0400 (Wed, 13 Apr 2005) $$Author: wsnyder $
+#$Revision: 1.11 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 ######################################################################
 #
 # Copyright 2001-2005 by Wilson Snyder.  This program is free software;
@@ -25,7 +25,7 @@ use lib "$RealBin/blib/lib";
 use lib "$RealBin/blib/arch";
 use SystemC::Vregs;
 use SystemC::Vregs::Outputs;
-use SystemC::Vregs::OutputNamed;
+use SystemC::Vregs::OutputInfo;
 use SystemC::Vregs::TableExtract;
 
 use strict;
@@ -51,7 +51,6 @@ my $opt_class_cpp = 1;
 my $opt_defs_h = 1;
 my $opt_defs_pm = 1;
 my $opt_defs_v = 1;
-my $opt_named_cpp = 1;
 my $opt_info_cpp = 1;
 my $opt_param_v = 1;
 my $opt_hash_pm = 1;
@@ -82,7 +81,6 @@ if (! GetOptions (
 		  "defs_h!"	=> \$opt_defs_h,
 		  "defs_pm!"	=> \$opt_defs_pm,
 		  "defs_v!"	=> \$opt_defs_v,
-		  "named_cpp!"	=> \$opt_named_cpp,
 		  "info_cpp!"	=> \$opt_info_cpp,
 		  "hash_pm!"	=> \$opt_hash_pm,
 		  "param_v!"	=> \$opt_param_v,
@@ -93,7 +91,6 @@ if (! GetOptions (
 					 $opt_defs_pm = $ena;
 					 $opt_defs_v = $ena;
 					 $opt_hash_pm = $ena;
-					 $opt_named_cpp = $ena;
 					 $opt_info_cpp = $ena;
 					 $opt_param_v = $ena;
 				     },
@@ -178,10 +175,6 @@ if ($opt_headers) {
 	$v2->info_h_write (%p, filename=>"${opt_output}${opt_package}_info.h");
 	$v2->info_cpp_write (%p, filename=>"${opt_output}${opt_package}_info.cpp");
     }
-    if ($opt_named_cpp) {
-	$v2->named_h_write (%p, filename=>"${opt_output}${opt_package}_named.h");
-	$v2->named_cpp_write (%p, filename=>"${opt_output}${opt_package}_named.cpp");
-    }
     if ($opt_class_h) {
 	$v2->class_h_write (%p, filename=>"${opt_output}${opt_package}_class.h");
     }
@@ -193,7 +186,7 @@ if ($opt_headers) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 1.11 $$Date: 2005-04-13 14:24:09 -0400 (Wed, 13 Apr 2005) $$Author: wsnyder $ ', "\n";
+    print '$Revision: 1.11 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);

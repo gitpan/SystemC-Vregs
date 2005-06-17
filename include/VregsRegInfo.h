@@ -1,4 +1,4 @@
-// $Revision: 1.21 $$Date: 2005-02-21 14:12:14 -0500 (Mon, 21 Feb 2005) $$Author: wsnyder $ -*- C++ -*-
+// $Revision: 1.21 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -28,6 +28,7 @@
 #include <iostream>
 #include <map>
 #include <algorithm>
+#include <string>
 
 #include "VregsClass.h"
 
@@ -159,6 +160,7 @@ public:
     VregsRegEntry* find_by_addr (address_t addr);	///< Return register given address
     VregsRegEntry* find_by_next_addr (address_t addr);	///< Return register after address
     /// Return textual "name" of address
+    string	addr_name (address_t addr);
     const char*	addr_name (address_t addr, char* buffer, size64_t length);
 
     // MANIPULATORS
@@ -173,6 +175,63 @@ public:
     iterator	begin() { return m_byAddr.begin(); }	///< Begin iterator across all registers
     iterator	end()   { return m_byAddr.end(); }	///< End iterator across all registers
 
+    // ACCESSORS
+};
+
+//======================================================================
+// VregsSpecInfo
+/// Information on a single class name
+///  This is a subclass of each specification's _info class.
+
+class VregsSpecInfo {
+public:
+    // CONSTRUCTORS
+    VregsSpecInfo() {}
+    virtual ~VregsSpecInfo() {}
+    // METHODS
+    /// Name of the spec
+    virtual const char* name() = 0;
+    /// Add all defined registers to the global list
+    virtual void   addRegisters(VregsRegInfo* reginfop) = 0;
+    /// Is there a class by this name?
+    virtual bool   isClassName(const char* className) = 0;
+    /// How many class names?
+    virtual int    numClassNames() = 0;
+    /// Array of all class names
+    virtual const char** classNames() = 0;
+    /// Given a class name, dump in that format
+    virtual void   dumpClass(const char* className, void* datap,
+			     OStream& ost=COUT, const char* pf="\n\t") = 0;
+};
+
+//======================================================================
+// VregsSpecsInfo
+/// General information on all specs
+
+class VregsSpecsInfo {
+private:
+    typedef std::map<string,VregsSpecInfo*> ByNameMap;
+
+    static ByNameMap s_byName;		///< Each specification sorted by its name
+
+public:
+    // MANIPULATORS
+    /// Add a new specification, called at init time
+    static void	addSpec (const char* name, VregsSpecInfo* specp) {
+	s_byName.insert(make_pair(string(name),specp));
+    }
+
+    // MANIPULATORS
+    /// Iterate across all VregsSpecInfo's.
+    class iterator {
+	ByNameMap::iterator   s_nameIt;
+    public:
+	iterator(ByNameMap::iterator nameIt) : s_nameIt(nameIt) {};
+	inline iterator operator++() {++s_nameIt; return *this;};	///< prefix
+	inline operator VregsSpecInfo* () const { return (s_nameIt->second); };
+    };
+    static iterator	specsBegin() { return s_byName.begin(); }	///< Begin iterator across all specs
+    static iterator	specsEnd()   { return s_byName.end(); }		///< End iterator across all specs
     // ACCESSORS
 };
 

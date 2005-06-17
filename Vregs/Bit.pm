@@ -1,4 +1,4 @@
-# $Revision: 1.43 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
+# $Revision: 1.43 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.261';
+$VERSION = '1.300';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -93,7 +93,7 @@ sub check_name {
     $self->{name} = $field;
     my $lang = SystemC::Vregs::Language::is_keyword(lc $field);
     if ($lang && (lc $lang ne "verilog")) {
-	# For now, we don't emmit verilog structures, so don't burden the world
+	# For now, we don't emit verilog structures, so don't burden the world
 	$self->warn ("Name matches a $lang language keyword: ", lc $field, "\n");
     }
 }
@@ -196,7 +196,7 @@ sub check_bits {
     $field =~ s/,,+//g; $field =~ s/,$//;
     $bitref->{bits} = $field;
 
-    (defined $field && $field =~ /^[0-9wb]/) or $bitref->warn ("No bit range specified: '$field'\n");
+    (defined $field && $field =~ /^[0-9wbdh]/) or $bitref->warn ("No bit range specified: '$field'\n");
 
     # Split w[15:0],w[21] into 15,14,13,...
     $bitref->{bitlist} = [];

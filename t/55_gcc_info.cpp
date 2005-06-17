@@ -1,26 +1,27 @@
 // -*- C++ -*-
-// $Revision: 1.9 $$Date: 2004-12-04 15:13:30 -0500 (Sat, 04 Dec 2004) $$Author: wsnyder $
+// $Revision: 1.9 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 //
 // Copyright 2001-2004 by Wilson Snyder.  This program is free software;
 // you can redistribute it and/or modify it under the terms of either the GNU
 // General Public License or the Perl Artistic License.
 
+#include "gcc_common.h"
 #include "VregsRegInfo.h"
 
 // *** HACK ***  SO we don't need to compile multiple objects together...
-#include "vregs_spec_info.cpp"
 #include "VregsRegInfo.cpp"
+#include "vregs_spec_info.cpp"
+#include "vregs_spec_class.cpp"
 
 //======================================================================
 
 class vregs_HACK_info {
 public:
-    static void add_registers(VregsRegInfo* reginfop);
+    static void addRegisters(VregsRegInfo* reginfop);
 };
 
-void vregs_HACK_info::add_registers(VregsRegInfo* reginfop)
-{
+void vregs_HACK_info::addRegisters(VregsRegInfo* reginfop) {
     COUT << "vregs_spec_RegInfo Init\n";
 
     reginfop->add_register (0x1010, 4, "Reg_at_0x1010");
@@ -32,13 +33,12 @@ void vregs_HACK_info::add_registers(VregsRegInfo* reginfop)
 
 //======================================================================
 
-int main()
-{
+int main() {
     char buf[1000];
 
     VregsRegInfo* reginfop = new VregsRegInfo;
-    vregs_HACK_info::add_registers (reginfop);
-    vregs_spec_info::add_registers (reginfop);
+    vregs_HACK_info::addRegisters (reginfop);
+    vregs_spec_info.addRegisters (reginfop);
     reginfop->dump();
 
     VregsRegEntry* entp = reginfop->find_by_addr(0x1040);

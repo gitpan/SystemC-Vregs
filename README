@@ -98,6 +98,10 @@ This version of Vregs has been built and tested on:
      wish to use the register information classes produced by Vregs.
 
   8. Examine the example document under vregs_spec.doc and
-     vregs_spec.html.
+     vregs_spec.html.  This document is used to produce the header
+     files you see when you do a `make test'.
+
+  9. If you wish to examine data structures created by vregs, see the
+     vderegs.cpp program provided in the include directory.
 
 

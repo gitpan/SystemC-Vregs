@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Revision: 1.14 $$Date: 2005-01-12 16:35:09 -0500 (Wed, 12 Jan 2005) $$Author: wsnyder $
+@c $Revision: 1.14 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 @c %**start of header
 @setfilename readme.info
 @settitle Perl SystemC::Vregs Installation
@@ -130,6 +130,12 @@ wish to use the register information classes produced by Vregs.
 
 @item
 Examine the example document under vregs_spec.doc and vregs_spec.html.
+This document is used to produce the header files you see when you do
+a @samp{make test}.
+
+@item
+If you wish to examine data structures created by vregs, see the
+vderegs.cpp program provided in the include directory.
 
 @end enumerate
 

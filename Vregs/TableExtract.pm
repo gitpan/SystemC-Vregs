@@ -1,4 +1,4 @@
-# $Revision: 1.48 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
+# $Revision: 1.48 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.261';
+$VERSION = '1.300';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -46,6 +46,7 @@ sub parse_file {
     $self->{_fh} = $fh;
     $self->{_vregs_filename} = $filename;
     $self->{_vregs_num_tables} = -1;
+    $self->{_format} = '';   #latex2html
     $self->SUPER::parse_file ($fh);
     $self->start("p");
     $self->text("TableExtract_End_Of_File");
@@ -106,6 +107,15 @@ sub start {
     if ($_[0] eq 'p' || $_[0] =~ /^h[0-9]/) {
 	#print "<p>\n" if $Debug;
 	$self->{_vregs_first_word_in_p} = 1;
+	if ($self->{_format} eq 'latex2html'   # Latex2html doesn't do any </p>'s
+	    && $self->{_vregs_next_tag}
+	    && $self->{_vregs_next}{$self->{_vregs_next_tag}} ne "") {
+	    $self->{_vregs_next_tag} = undef;
+	}
+    }
+    if ($_[0] eq 'meta' && $_[1]->{content} && $_[1]->{content} =~ /latex2html/i) {
+	$self->{_format} = 'latex2html';
+	print "Format = latex2html\n" if $Debug;
     }
     $self->SUPER::start (@_);
 }

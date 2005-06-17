@@ -1,4 +1,4 @@
-# $Revision: 1.122 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
+# $Revision: 1.122 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw($Debug @ISA $VERSION
 	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.261';
+$VERSION = '1.300';
 
 ######################################################################
 #### Constants
@@ -158,7 +158,7 @@ sub find_reg_regexp {
 
 sub regs_sorted {
     my $pack = shift;
-    return (sort {$a->{addr}->Lexicompare($b->{addr})
+    return (sort {($a->{addr} && $b->{addr} && $a->{addr}->Lexicompare($b->{addr}))
 		      || $a->{name} cmp $b->{name}}
 	    (values %{$pack->{regs}}));
 }
@@ -180,6 +180,13 @@ sub defines_sorted {
 	    (values %{$pack->{defines}}));
 }
 
+sub attribute_value {
+    my $self = shift;
+    my $attr = shift;
+    return $self->{attributes}{$attr} if defined $self->{attributes}{$attr};
+    return undef;
+}
+
 ######################################################################
 #### html parsing
 
@@ -198,9 +205,9 @@ sub three_way_replace {
     my $sub_name = shift;
     # Take "FOO*", "BAR*", and "BARBAZ" and return "FOOBAZ"
 
-    $orig_name =~ /^([^*]*)[*]$/ or die;
+    $orig_name =~ /^([^*]*)[*]$/ or die "%Error: Missing * in original name: $orig_name";
     my $orig_name_prefix = $1;
-    $orig_inh =~ /^([^*]*)[*]$/ or die;
+    $orig_inh =~ /^([^*]*)[*]$/ or die "%Error: Missing * in inherit name: $orig_inh";
     my $orig_inh_prefix = $1;
     my $new_name = substr($sub_name,length($orig_inh_prefix));
     return ($orig_name_prefix . $new_name);
@@ -221,7 +228,7 @@ sub new_package {
 
     my $attr = $flagref->{Attributes}||"";
     while ($attr =~ s/-(\w+)//) {
-	$self->{attributes}{$1} = $1;
+	$self->{attributes}{$1} = 1;
 	print "PACK ATTR -$1\n" if $Debug;
     }
     ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
@@ -320,7 +327,7 @@ sub new_enum {
 
     my $attr = $flagref->{Attributes}||"";
     while ($attr =~ s/-(\w+)//) {
-	$classref->{attributes}{$1} = $1;
+	$classref->{attributes}{$1} = 1;
     }
     ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
 
@@ -350,6 +357,18 @@ sub new_enum {
 	     rst  => $row->[$const_col],
 	     desc => $desc,
 	     );
+
+
+	# Take special user defined fields and add to table
+	for (my $colnum=0; $colnum<=$#{$bittable[0]}; $colnum++) {
+	    my $col = $bittable[0][$colnum];
+	    $col =~ s/\s+//;
+	    if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
+		my $var = $1;
+		my $val = $row->[$colnum]||"";
+		$valref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._0-9]+)$/;
+	    }
+	}
     }
 }
 
@@ -388,7 +407,7 @@ sub new_register {
 
     # See also $typeref->{attributes}{lcfirst}, below.
     while ($attr =~ s/-(\w+)//) {
-	$typeref->{attributes}{$1} = $1;
+	$typeref->{attributes}{$1} = 1;
     }
     ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
 
@@ -640,10 +659,9 @@ sub regs_read {
 		 at => "${filename}:$.",
 		 );
 	    $typeref->inherits($inh);
-	    $typeref->{attributes}{$1} = 1 while ($flags =~ s/-([a-z][a-z0-9_]*)\b//);
+	    _regs_read_attributes($typeref, $flags);
 	    $regref->{typeref} = $typeref if $regref && $typemnem =~ /^R_/;
 	    $regref = undef;
-	    ($flags =~ /^\s*$/) or $typeref->warn("$fileline: Bad flags \"$flags\"\n");
 	}
 	elsif ($line =~ /^bit\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+([^\"]*)"(.*)"$/ ) {
 	    if (!$typeref) {
@@ -661,7 +679,7 @@ sub regs_read {
 		 desc => $desc,
 		 type => $type,
 	     );
-	    $bitref->{attributes}{$1} = $2 while ($flags =~ s/-([a-zA-Z][a-zA-Z0-9_]*)=(\S*)\b//);
+	    _regs_read_attributes($bitref, $flags);
 	}
 	elsif ($line =~ /^enum\s+(\S+)\s*(.*)$/) {
 	    my $name = $1; my $flags = $2;
@@ -670,11 +688,11 @@ sub regs_read {
 		 name => $name,
 		 at => "${filename}:$.",
 		 );
-	    $classref->{attributes}{$1} = 1 while ($flags =~ s/-([a-z][a-z0-9_]*)\b//);
+	    _regs_read_attributes($classref, $flags);
 	}
-	elsif ($line =~ /^const\s+(\S+)\s+(\S+)\s+"(.*)"$/ ) {
-	    my $name = $1;  my $rst=$2;  my $desc=$3;
-	    new SystemC::Vregs::Enum::Value
+	elsif ($line =~ /^const\s+(\S+)\s+(\S+)\s+([^\"]*)"(.*)"$/ ) {
+	    my $name = $1;  my $rst=$2;  my $flags=$3;  my $desc=$4;
+	    my $bitref = new SystemC::Vregs::Enum::Value
 		(pack => $self,
 		 name => $name,
 		 class => $classref,
@@ -682,6 +700,7 @@ sub regs_read {
 		 desc => $desc,
 		 at => "${filename}:$.",
 		 );
+	    _regs_read_attributes($bitref, $flags);
 	}
 	elsif ($line =~ /^define\s+(\S+)\s+(\S+)\s+"(.*)"$/ ) {
 	    my $name = $1;  my $rst=$2;  my $desc=$3;
@@ -697,7 +716,8 @@ sub regs_read {
 	elsif ($line =~ /^package\s+(\S+)\s*(.*)$/ ) {
 	    my $flags = $2;
 	    $self->{name} = $1;
-	    $self->{attributes}{$1} = 1 while ($flags =~ s/-([a-z]+)\b//);
+	    $self->{at} = "${filename}:$.";
+	    _regs_read_attributes($self, $flags);
 	}
 	else {
 	    die "%Error: $fileline: Can't parse \"$line\"\n";
@@ -707,6 +727,15 @@ sub regs_read {
     ($got_a_line) or die "%Error: File empty or cpp error in $filename\n";
 
     $fh->close();
+}
+
+sub _regs_read_attributes {
+    my $obj = shift;
+    my $flags = shift;
+
+    $obj->{attributes}{$1} = $2 while ($flags =~ s/-([a-zA-Z][a-zA-Z0-9_]*)=(\S*)\b//);
+    $obj->{attributes}{$1} = 1  while ($flags =~ s/-([a-zA-Z][a-zA-Z0-9_]*)\b//);
+    ($flags =~ /^\s*$/) or $obj->warn ("Unparsable attributes setting: '$flags'");
 }
 
 sub regs_read_check {
@@ -1144,6 +1173,19 @@ sub dump {
 ######################################################################
 #### Saving
 
+sub SystemC::Vregs::Subclass::_vregs_write_attributes {
+    my $self = shift;
+    my $fh = shift;
+    foreach my $var (keys %{$self->{attributes}}) {
+	my $val = $self->{attributes}{$var};
+	if ($val eq '1') {
+	    $fh->print("\t-$var");
+	} else {
+	    $fh->print("\t-$var=$val");
+	}
+    }
+}
+
 sub SystemC::Vregs::Bit::_vregs_write_type {
     my $self = shift;
     my $fh = shift;
@@ -1153,11 +1195,7 @@ sub SystemC::Vregs::Bit::_vregs_write_type {
     $fh->printf_tabify("\tbit\t%-15s\t%-7s\t%-3s %-11s\t%-7s\t"
 		       ,$self->{name},$self->{bits},$self->{access}
 		       ,$self->{type},$self->{rst});
-
-    foreach my $var (keys %{$self->{attributes}}) {
-	my $val = $self->{attributes}{$var};
-	$fh->print("\t-$var=$val");
-    }
+    $self->_vregs_write_attributes($fh);
     $fh->printf(" \"%s%s\"\n", $self->{desc},$descflags);
 }
 
@@ -1168,9 +1206,7 @@ sub SystemC::Vregs::Type::_vregs_write_type {
     if ($self->{inherits}) {
 	$fh->print("\t:$self->{inherits}");
     }
-    foreach my $var (sort (keys %{$self->{attributes}})) {
-	$fh->print("\t-$var");
-    }
+    $self->_vregs_write_attributes($fh);
     $fh->print("\n");
     foreach my $fieldref ($self->fields_sorted()) {
 	$fieldref->_vregs_write_type($fh);
@@ -1196,11 +1232,11 @@ sub regs_write {
     $fh->print("//\tenum  {name}\n");
     $fh->print("//\tconst {name} {value} {description}\n");
     $fh->print("\n");
+
     $fh->print("package $self->{name}");
-    foreach my $var (keys %{$self->{attributes}}) {
-	$fh->print("\t-$var");
-    }
+    $self->_vregs_write_attributes($fh);
     $fh->print("\n");
+
     $fh->print("//Rebuild with: $self->{rebuild_comment}\n") if $self->{rebuild_comment};
     $fh->print("\n");
 
@@ -1239,15 +1275,15 @@ sub regs_write {
     foreach my $classref ($self->enums_sorted) {
 	my $classname = $classref->{name} || "x";
 	$fh->printf("   enum\t$classname");
-	foreach my $var (keys %{$classref->{attributes}}) {
-	    $fh->print("\t-$var");
-	}
+	$classref->_vregs_write_attributes($fh);
 	$fh->print("\n");
 	    
 	foreach my $fieldref ($classref->fields_sorted()) {
 	    next if $fieldref->{omit_from_vregs_file};
-	    $fh->printf("\tconst\t%-13s\t%s\t\"%s\"\n"
-			,$fieldref->{name},$fieldref->{rst},$fieldref->{desc});
+	    $fh->printf("\tconst\t%-13s\t%s"
+			,$fieldref->{name},$fieldref->{rst});
+	    $fieldref->_vregs_write_attributes($fh);
+	    $fh->printf("\t\"%s\"\n",$fieldref->{desc});
 	}
     }
 
@@ -1382,7 +1418,7 @@ L<SystemC::Vregs::Define>,
 L<SystemC::Vregs::Enum>,
 L<SystemC::Vregs::Language>,
 L<SystemC::Vregs::Number>,
-L<SystemC::Vregs::OutputNamed>
+L<SystemC::Vregs::OutputInfo>
 L<SystemC::Vregs::Outputs>
 L<SystemC::Vregs::Register>,
 L<SystemC::Vregs::Subclass>,

@@ -1,5 +1,6 @@
 Changes
 COPYING
+include/vderegs.cpp
 include/VregsClass.h
 include/VregsRegInfo.cpp
 include/VregsRegInfo.h
@@ -18,6 +19,9 @@ t/50_gcc_hdr.cpp
 t/50_gcc_hdr.t
 t/55_gcc_info.cpp
 t/55_gcc_info.t
+t/60_gcc_vderegs.cpp
+t/60_gcc_vderegs.t
+t/gcc_common.h
 t/test_utils.pl
 t/vregs_enums.v
 vreg
@@ -28,7 +32,7 @@ Vregs/Define.pm
 Vregs/Enum.pm
 Vregs/Language.pm
 Vregs/Number.pm
-Vregs/OutputNamed.pm
+Vregs/OutputInfo.pm
 Vregs/Outputs.pm
 Vregs/Register.pm
 Vregs/Rules.pm

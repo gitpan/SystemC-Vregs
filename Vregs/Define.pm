@@ -1,4 +1,4 @@
-# $Revision: 1.28 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
+# $Revision: 1.28 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.261';
+$VERSION = '1.300';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -81,6 +81,7 @@ sub clean_rst {
     my $val = Verilog::Language::number_value ($field);
     if (!defined $val) { return $self->warn ("Value of constant unparsable: $field\n"); }
     $self->{rst_val} = sprintf("%x",$val);
+    # Note Enum and Bit rst_vals are decimal, Define rst_vals are hex.  Yuk.
 
     if (defined $self->{class}{bits}
 	&& ($self->{class}{bits} != $bits)) {
@@ -88,6 +89,11 @@ sub clean_rst {
 			    .$self->{class}{bits}."\n");
     }
     $self->{class}{bits} = $bits;
+
+    if ($bits && $bits<32 && hex($self->{rst_val}||"0")>= (1<<$bits)) {
+	$self->warn ("Define value wider then width: ".$self->{rst}." > width "
+		     .$self->{class}{bits}."\n");
+    }
 }
 
 sub check_name {

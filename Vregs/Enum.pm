@@ -1,4 +1,4 @@
-# $Revision: 1.31 $$Date: 2005-05-23 10:23:27 -0400 (Mon, 23 May 2005) $$Author: wsnyder $
+# $Revision: 1.31 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.261';
+$VERSION = '1.300';
 
 ######################################################################
 ######################################################################
@@ -49,12 +49,27 @@ sub find_value {
     return $self->{fields}{$name};
 }
 
+sub attribute_value {
+    my $self = shift;
+    my $attr = shift;
+    return $self->{attributes}{$attr} if defined $self->{attributes}{$attr};
+    return $self->{pack}{attributes}{$attr} if defined $self->{pack}{attributes}{$attr};
+    return undef;
+}
+
+#======
+
 sub check_name {
     my $self = shift;
     my $field = $self->{name};
-    if ($field !~ /^[A-Z][a-zA-Z0-9_]*$/) {
-	$self->warn ("Enum names must match [capitals][alphanumerics]'\n: $field");
-	return;
+    if ($self->attribute_value('allowlc')) {
+	if ($field !~ /^[a-zA-Z][a-zA-Z0-9_]*$/) {
+	    return $self->warn ("Enum names must match [alpha][alphanumerics_]'\n: $field");
+	}
+    } else {
+	if ($field !~ /^[A-Z][a-zA-Z0-9_]*$/) {
+	    return $self->warn ("Enum names must match [capitals][alphanumerics_]'\n: $field");
+	}
     }
     # Because the enum is always capitalized, we don't add the 'lc' here.
     my $lang = (SystemC::Vregs::Language::is_keyword($field)
@@ -134,22 +149,27 @@ sub clean_rst {
 			    .$self->{class}{bits}."\n");
     }
     $self->{class}{bits} = $bits;
+
+    if ($bits && $bits<32 && ($self->{rst_val}||0) >= (1<<$bits)) {
+	$self->warn ("Enum value wider then width: ".$self->{rst}." > width "
+		     .$self->{class}{bits}."\n");
+    }
 }
 
 sub check_name {
     my $self = shift;
     my $field = $self->{name};
     my $class = $self->{class};
-    if ($field !~ /^[A-Z][A-Z0-9_]*$/) {
-	return $self->warn ("Enum field names must match [capital][capitalnumerics_]: $field\n");
+
+    if ($class->attribute_value('allowlc')) {
+	if ($field !~ /^[a-zA-Z][a-zA-Z0-9_]*$/) {
+	    return $self->warn ("Enum field names must match [capital][alphanumerics_]: $field\n");
+	}
+    } else {
+	if ($field !~ /^[A-Z][A-Z0-9_]*$/) {
+	    return $self->warn ("Enum field names must match [capital][capitalnumerics_]: $field\n");
+	}
     }
-    #my $prefix = $1;
-    #if (defined $class->{value_prefix}
-    #	 && ($class->{value_prefix} ne $prefix)) {
-    #	 return $self->warn ("Enum field name $field doesn't have class specific prefix: "
-    #			     .$class->{value_prefix}."\n");
-    #}
-    #$class->{value_prefix} = $prefix;
 }
 
 sub expand_subenums {
