@@ -1,4 +1,4 @@
-# $Revision: 1.122 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
+# $Revision: 1.122 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw($Debug @ISA $VERSION
 	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.300';
+$VERSION = '1.301';
 
 ######################################################################
 #### Constants

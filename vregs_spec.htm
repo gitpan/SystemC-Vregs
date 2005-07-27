@@ -38,7 +38,7 @@ that the SystemC::Vregs package understands.</p>
 <p class=MsoNormal>Please see</p>
 
 <p class=MsoNormal>            man
-vregs</p>
+vreg</p>
 
 <p class=MsoNormal>and</p>
 
@@ -632,8 +632,8 @@ field occupies.  Bit numbers are then
 expressed in MSB:LSB order.  Bits can be
 of any width; there is no restriction of their being less then 32.  For readability w#[] indicates the bits in
 the brackets are in a given 32-bit word, 32 times the # will be added to the
-bit numbers in the brackets.  Likewise b#
-for 8-bit bytes, h# for 16-bit halfwords, and d# for 64-bit doublewords. For
+bit numbers in the brackets.  Likewise
+b# for 8-bit bytes, h# for 16-bit halfwords, and d# for 64-bit doublewords. For
 example w3[10] is bit 10 in longword 3, equivelent to writing [106]  (3*32+10 = 106). Fields may consist of
 multiple disjoint segments, separated by commas.  (w0[15:13] or w0[15,14,13] or w0[15],w0[14],w0[13] are all
 equivelent.)</p>
@@ -1115,14 +1115,14 @@ identical registers.  If all the fields
 are identical to the base register, the derrived register can completely
 elimintate it’s field table.  As a
 extension of this, you can specify a wildcard “Derrived* : Base*”; which will
-pull all Base registers into the Derrived section; when this is done, the
-address specified is added to the address specified in the Base’s declaration,
-and the end address is checked against the Base’s ending address.</p>
+pull all Base registers into the Derrived section; when this is done, the address
+specified is added to the address specified in the Base’s declaration, and the
+end address is checked against the Base’s ending address.</p>
 
 <p class=RegDescBody>The address is specified in hex, with a
 leading 0x.  The maximum width of the
-address is coded into the vregs program; it defaults to 40 bits, which is
-sufficient for most projects.</p>
+address is coded into the vregs program; it defaults to 40 bits, which is sufficient
+for most projects.</p>
 
 <p class=RegDescBody>A attribute of –noimplementation specifies
 the register has not been implemented, and should be ignored by Vregs.  A attribute of –noregtest specifies testing

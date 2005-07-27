@@ -1,4 +1,4 @@
-# $Revision: 1.48 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
+# $Revision: 1.48 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.300';
+$VERSION = '1.301';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -192,6 +192,7 @@ sub text {
 		my @bittable = ($table->rows);
 		foreach my $row (@bittable) {
 		    @$row = map {
+			$_ = '' if !defined $_;  # TableExtract may return '' if empty column
 			$_ = clean_html_text($_);
 			$_ =~ s/<[^>]+>//ig; #$_="" if /SupportEmptyParas/i;  # Microsloth Word junk
 			$_ =~ s/^[ \t\n\r]+//sig;

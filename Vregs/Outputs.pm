@@ -1,4 +1,4 @@
-# $Revision: 1.133 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
+# $Revision: 1.133 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.300';
+$VERSION = '1.301';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -317,7 +317,8 @@ sub SystemC::Vregs::Type::_class_h_write {
 		 $bit++) {
 		my $bitent = $self->{bitarray}[$bit];
 		next if !$bitent;
-		$wr_masks[$word] |= (1<<$bit) if ($bitent->{write});
+		$wr_masks[$word] |= (1<<($bit & ($self->{pack}->{data_bits}-1)))
+		    if ($bitent->{write});
 	    }
 	}
 	if ($self->{words}<2) {
@@ -689,6 +690,7 @@ sub param_write {
 
     $fl->comment_pre
 	(("*"x70)."\n"
+	 ."\tP_{defname}             Define values as a parameter\n"
 	 ."\tRAP_{regname}           Register address as a parameter\n"
 	 ."\tCMP_{regname}_WRITABLE  Register RdWr bit-mask as a parameter\n"
 	 ."\n"
@@ -712,7 +714,8 @@ sub param_write {
 	my $cmt = "";
 	$cmt = "\t// ${comment}" if $self->{comments};
 
-	if ($define =~ s/^(RA|CM)_/${1}P_/) {
+	if ($define =~ s/^(RA|CM)_/${1}P_/
+	    || ($defref->{is_manual} && $define =~ s/^(.*)$/P_$1/)) {
 	    my $prt_val = _param_write_value($defref, $fl);
 	    $fl->printf ("   %s %-26s %13s%s\n",
 			 ($self->attribute_value('v2k') ? 'localparam':'parameter'),

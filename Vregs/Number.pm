@@ -1,4 +1,4 @@
-# $Revision: 1.22 $$Date: 2005-06-17 14:47:20 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
+# $Revision: 1.22 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use vars qw($VERSION @ISA);
 use Bit::Vector;
 
 @ISA = qw (Bit::Vector);	# For now, let Bit::Vector do all the work
-$VERSION = '1.300';
+$VERSION = '1.301';
 
 ######################################################################
 ######################################################################

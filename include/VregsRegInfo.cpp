@@ -1,4 +1,4 @@
-// $Revision: 1.18 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $ -*- C++ -*-
+// $Revision: 1.18 $$Date: 2005-06-21 16:56:25 -0400 (Tue, 21 Jun 2005) $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -23,11 +23,6 @@
 #include <sstream>
 
 #include "VregsRegInfo.h"
-
-//======================================================================
-// Statics
-
-VregsSpecsInfo::ByNameMap  VregsSpecsInfo::s_byName;
 
 //======================================================================
 // VregsRegEntry

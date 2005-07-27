@@ -1,4 +1,4 @@
-// $Revision: 1.21 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $ -*- C++ -*-
+// $Revision: 1.21 $$Date: 2005-06-21 16:56:25 -0400 (Tue, 21 Jun 2005) $$Author: wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -212,13 +212,14 @@ class VregsSpecsInfo {
 private:
     typedef std::map<string,VregsSpecInfo*> ByNameMap;
 
-    static ByNameMap s_byName;		///< Each specification sorted by its name
-
+    static ByNameMap& sByName() {	///< Each specification sorted by its name
+	static ByNameMap singleton; return singleton;
+    };
 public:
     // MANIPULATORS
     /// Add a new specification, called at init time
     static void	addSpec (const char* name, VregsSpecInfo* specp) {
-	s_byName.insert(make_pair(string(name),specp));
+	sByName().insert(make_pair(string(name),specp));
     }
 
     // MANIPULATORS
@@ -230,8 +231,8 @@ public:
 	inline iterator operator++() {++s_nameIt; return *this;};	///< prefix
 	inline operator VregsSpecInfo* () const { return (s_nameIt->second); };
     };
-    static iterator	specsBegin() { return s_byName.begin(); }	///< Begin iterator across all specs
-    static iterator	specsEnd()   { return s_byName.end(); }		///< End iterator across all specs
+    static iterator	specsBegin() { return sByName().begin(); }	///< Begin iterator across all specs
+    static iterator	specsEnd()   { return sByName().end(); }		///< End iterator across all specs
     // ACCESSORS
 };
 
