@@ -17,6 +17,8 @@ t/20_vregsparse.t
 t/25_vregshdrs.t
 t/50_gcc_hdr.cpp
 t/50_gcc_hdr.t
+t/51_gcc_str.c
+t/51_gcc_str.t
 t/55_gcc_info.cpp
 t/55_gcc_info.t
 t/60_gcc_vderegs.cpp

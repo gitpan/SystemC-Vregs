@@ -1,4 +1,4 @@
-// $Revision: 1.15 $$Date: 2005-02-21 10:11:49 -0500 (Mon, 21 Feb 2005) $$Author: wsnyder $ -*- C++ -*-
+// $Id: VregsClass.h 5416 2005-08-25 12:47:15Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -23,8 +23,10 @@
 #ifndef _VREGSCLASS_H_
 #define _VREGSCLASS_H_
 
+#ifdef __cplusplus
 #include <iostream>
 using namespace std;
+#endif
 
 //======================================================================
 // Standard types
@@ -97,6 +99,7 @@ typedef address_t size64_t; ///< Size of register in bytes
 /// to explode, so we just store a void* and cast in the vregs output.
 /// We then define a operator to take the VregsOstream object and put it out.
 
+#ifdef __cplusplus
 template <class T>
 class VregsOstream {
     const void*	m_obj;		///< Object to dump
@@ -107,5 +110,6 @@ public:
     inline const void* obj() const { return m_obj; }
     inline const char* prefix() const { return m_prefix; }
 };
+#endif
 
 #endif //guard

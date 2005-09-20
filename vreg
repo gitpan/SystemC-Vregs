@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Revision: 1.11 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
+#$Id: vreg 5416 2005-08-25 12:47:15Z wsnyder $
 ######################################################################
 #
 # Copyright 2001-2005 by Wilson Snyder.  This program is free software;
@@ -53,6 +53,7 @@ my $opt_defs_pm = 1;
 my $opt_defs_v = 1;
 my $opt_info_cpp = 1;
 my $opt_param_v = 1;
+my $opt_struct_h = 1;
 my $opt_hash_pm = 1;
 my $opt_comments = 1;
 my $opt_rules;
@@ -76,23 +77,25 @@ if (! GetOptions (
 		  "v2k!"	=> sub { shift; $opt_attributes{v2k} = shift; },
 		  "vregs=s"	=> \$opt_vregs,
 		  # File Enables (if adding one, add to files! also)
-		  "class_h!"	=> \$opt_class_h,
 		  "class_cpp!"	=> \$opt_class_cpp,
+		  "class_h!"	=> \$opt_class_h,
 		  "defs_h!"	=> \$opt_defs_h,
 		  "defs_pm!"	=> \$opt_defs_pm,
 		  "defs_v!"	=> \$opt_defs_v,
-		  "info_cpp!"	=> \$opt_info_cpp,
 		  "hash_pm!"	=> \$opt_hash_pm,
+		  "info_cpp!"	=> \$opt_info_cpp,
 		  "param_v!"	=> \$opt_param_v,
+		  "struct_h!"	=> \$opt_struct_h,
 		  "files!"	=> sub { shift; my $ena = shift;
-					 $opt_class_h = $ena;
 					 $opt_class_cpp = $ena;
+					 $opt_class_h = $ena;
 					 $opt_defs_h = $ena;
 					 $opt_defs_pm = $ena;
 					 $opt_defs_v = $ena;
 					 $opt_hash_pm = $ena;
 					 $opt_info_cpp = $ena;
 					 $opt_param_v = $ena;
+					 $opt_struct_h = $ena;
 				     },
 		  )) {
     usage();
@@ -181,12 +184,15 @@ if ($opt_headers) {
     if ($opt_class_cpp) {
 	$v2->class_cpp_write (%p, filename=>"${opt_output}${opt_package}_class.cpp");
     }
+    if ($opt_struct_h) {
+	$v2->struct_h_write (%p, filename=>"${opt_output}${opt_package}_struct.h");
+    }
 }
 
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 1.11 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $ ', "\n";
+    print '$Id: vreg 5416 2005-08-25 12:47:15Z wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);
@@ -271,7 +277,7 @@ Suppresses creating the _class.cpp file.
 
 =item --noclass_h
 
-Suppresses creating the _class.h file.
+Suppresses creating the _class.h C++ file.
 
 =item --nodefs_h
 
@@ -285,6 +291,10 @@ Suppresses creating the _defs.pl file.
 
 Suppresses creating the _defs.v file.
 
+=item --nohash_pm
+
+Suppresses creating the _hash.pm file.
+
 =item --noinfo_cpp
 
 Suppresses creating the _info.cpp file.
@@ -293,10 +303,15 @@ Suppresses creating the _info.cpp file.
 
 Suppresses creating the _defs.pm file.
 
+=item --nostruct_h
+
+Suppresses creating the _struct.h C file.
+
 =item --nofiles
 
 Suppresses creating all files. Equivalent to: --noclass_h --noclass_cpp
 --nodefs_h --nodefs_pm --nodefs_v --noinfo_cpp --nohash_pm --noparams_v
+--nostruct_h
 
 You can then use specific enables after the --nofiles to turn on the
 desired files, for example: --nofiles --class_h --defs_h --hash_pm 

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 1.10 $$Date: 2005-05-27 15:18:47 -0400 (Fri, 27 May 2005) $$Author: wsnyder $
+# $Id: 10_language.t 5416 2005-08-25 12:47:15Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2001-2004 by Wilson Snyder.  This program is free software;
@@ -9,7 +9,7 @@
 use strict;
 use Test;
 
-BEGIN { plan tests => 8 }
+BEGIN { plan tests => 9 }
 BEGIN { require "t/test_utils.pl"; }
 
 use SystemC::Vregs::Language;
@@ -17,6 +17,9 @@ ok(1);
 
 test_common (filename=>"test_dir/foo.c",
 	     language=>'C',
+	     );
+test_common (filename=>"test_dir/foo.cpp",
+	     language=>'CPP',
 	     );
 test_common (filename=>"test_dir/foo.s",
 	     language=>'Assembler',

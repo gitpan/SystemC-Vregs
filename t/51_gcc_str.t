@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 55_gcc_info.t 4305 2005-08-02 13:21:57Z wsnyder $
+# $Id: 51_gcc_str.t 5416 2005-08-25 12:47:15Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2001-2004 by Wilson Snyder.  This program is free software;
@@ -13,13 +13,13 @@ BEGIN { plan tests => 3 }
 BEGIN { require "t/test_utils.pl"; }
 
 print "Prep\n";
-run_system ("cp t/55_gcc_info.cpp test_dir/55_gcc_info.cpp");
+run_system ("cp t/51_gcc_str.c test_dir/51_gcc_str.c");
 ok(1);
 
 print "Compiling\n";
-run_system ("cd test_dir && ${GCC} 55_gcc_info.cpp -o 55_gcc_info");
+run_system ("cd test_dir && ${GCCC} -Dbool=char 51_gcc_str.c -o 51_gcc_str");
 ok(1);
 
 print "Running\n";
-run_system ("cd test_dir && ./55_gcc_info");
+run_system ("cd test_dir && ./51_gcc_str");
 ok(1);

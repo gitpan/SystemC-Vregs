@@ -1,4 +1,4 @@
-# $Revision: 1.48 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: TableExtract.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 @ISA = qw(HTML::TableExtract);
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -29,7 +29,7 @@ use HTML::Entities ();
 		       Defines=>1,
 		       Enum=>1,
 		       Register=>1,
-		       TableExtract_End_Of_File=>1,
+		       Vregs_End_Of_Decl=>1,
 		       );
 %Find_Headers = (%Find_Start_Headers,
 		 Address=>1,
@@ -49,7 +49,7 @@ sub parse_file {
     $self->{_format} = '';   #latex2html
     $self->SUPER::parse_file ($fh);
     $self->start("p");
-    $self->text("TableExtract_End_Of_File");
+    $self->text("Vregs_End_Of_Decl");
     $fh->close();
 }
 
@@ -174,7 +174,8 @@ sub text {
 		$self->{_vregs_next_tag} = $text;
                 $self->{_vregs_next}{$self->{_vregs_next_tag}} = "";
                 $self->{_vregs_first_endp} = 0;
-                $self->{_vregs_next} = undef if $text eq 'TableExtract_End_Of_File';
+                $self->{_vregs_next} = undef if $text eq 'Vregs_End_Of_Decl';
+		$self->{_vregs_next_tag} = undef if $text eq 'Vregs_End_Of_Decl';
 	    }
 	    elsif ($self->{_vregs_next_tag}) {
 		print "TAG '$self->{_vregs_next_tag}' '$text'\n" if $Debug;

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Revision: 1.9 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
+// $Id: 60_gcc_vderegs.cpp 4305 2005-08-02 13:21:57Z wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 //
 // Copyright 2001-2005 by Wilson Snyder.  This program is free software;

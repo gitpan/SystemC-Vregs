@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 1.8 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
+# $Id: 60_gcc_vderegs.t 4305 2005-08-02 13:21:57Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2001-2005 by Wilson Snyder.  This program is free software;

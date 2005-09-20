@@ -1,4 +1,4 @@
-# $Revision: 1.34 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: Type.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 # Fields:
 #	{name}			Field name (Subclass)

@@ -1,4 +1,4 @@
-# $Revision: 1.28 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: Define.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -78,9 +78,17 @@ sub clean_rst {
     my $bits = Verilog::Language::number_bits ($field);
     if (!$bits) { return $self->warn ("Number of bits in constant not specified: $field\n"); }
     $self->{bits} = $bits;
-    my $val = Verilog::Language::number_value ($field);
-    if (!defined $val) { return $self->warn ("Value of constant unparsable: $field\n"); }
-    $self->{rst_val} = sprintf("%x",$val);
+    if ($field =~ /\'s?h([0-9a-f_]+)$/i) {
+	# Prevent overflowing 32 bits by keeping the number in hex form
+	my $valhex = lc $1;
+	$valhex =~ s/_//g;
+	$self->{rst_val} = $valhex;
+    } else {
+	my $val = Verilog::Language::number_value ($field);
+	if (!defined $val) { return $self->warn ("Value of constant unparsable: $field\n"); }
+	$self->{rst_val} = sprintf("%x",$val);
+    }
+
     # Note Enum and Bit rst_vals are decimal, Define rst_vals are hex.  Yuk.
 
     if (defined $self->{class}{bits}

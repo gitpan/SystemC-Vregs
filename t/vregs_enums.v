@@ -1,4 +1,4 @@
-// $Revision: 1.5 $$Date: 2005-01-12 16:35:09 -0500 (Wed, 12 Jan 2005) $$Author: wsnyder $ -*- Verilog -*-
+// $Id: vregs_enums.v 4305 2005-08-02 13:21:57Z wsnyder $ -*- Verilog -*-
 //====================================================================
 // DESCRIPTION: Manual test case showing use of AUTOASCII
 //

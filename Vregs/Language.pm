@@ -1,4 +1,4 @@
-# $Revision: 1.46 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: Language.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -19,7 +19,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 ######################################################################
 #### Implementation
@@ -119,6 +119,7 @@ sub language {
 sub is_keyword {
     my $sym = shift;
     return (SystemC::Vregs::Language::C::is_keyword($sym) && "C"
+	    || SystemC::Vregs::Language::CPP::is_keyword($sym) && "CPP"
 	    || SystemC::Vregs::Language::Perl::is_keyword($sym) && "Perl"
 	    || SystemC::Vregs::Language::Verilog::is_keyword($sym) && "Verilog"
 	    || SystemC::Vregs::Language::Assembler::is_keyword($sym) && "Assembler"
@@ -285,6 +286,21 @@ sub comment_post {
     my $strg = join ('', @_);
     $strg =~ s!\n(.)!\n///< $1!og;
     $self->print("///< $strg");
+}
+
+######################################################################
+######################################################################
+######################################################################
+#### CPP
+
+package SystemC::Vregs::Language::CPP;
+use Carp;
+use vars qw(@ISA %Keywords);
+@ISA = qw(SystemC::Vregs::Language::C);
+use strict;
+
+sub is_keyword {
+    return SystemC::Vregs::Language::C::is_keyword(@_);
 }
 
 ######################################################################

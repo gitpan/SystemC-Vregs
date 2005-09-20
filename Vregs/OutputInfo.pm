@@ -1,4 +1,4 @@
-# $Revision: 1.19 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: OutputInfo.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::OutputInfo;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 use SystemC::Vregs::Outputs;
 use SystemC::Vregs::Number;
@@ -33,7 +33,7 @@ sub info_h_write {
     my $self = shift;
     # Dump headers for class name based accessors
 
-    my $fl = SystemC::Vregs::File->open(language=>'C',
+    my $fl = SystemC::Vregs::File->open(language=>'CPP',
 					rules => $self->{rules},
 					@_);
     $fl->include_guard();
@@ -72,7 +72,7 @@ sub info_cpp_write {
     # Dump headers for class name based accessors
 
     my $fl = SystemC::Vregs::File->open(rules => $self->{rules},
-					language=>'C', @_);
+					language=>'CPP', @_);
 
     my $name = $self->{name};
     my $nameInfo = $name."_info";
@@ -162,9 +162,9 @@ sub info_cpp_write {
 		     $regref->{name});
 	if ($regref->{range} && ! $noarray) {
 	    $fl->printf (", %s, %s, %s,\n",
-			 $fl->sprint_hex_value_drop0 ($regref->{spacing},32),
-			 $fl->sprint_hex_value_drop0 ($regref->{range_low},32),
-			 $fl->sprint_hex_value_drop0 ($regref->{range_high_p1},32));
+			 $fl->sprint_hex_value_drop0 ($regref->{spacing}, $self->{address_bits}),
+			 $fl->sprint_hex_value_drop0 ($regref->{range_low}, $self->{address_bits}),
+			 $fl->sprint_hex_value_drop0 ($regref->{range_high_p1}, $self->{address_bits}));
 	} else {
 	    $fl->print (",\n");
 	}

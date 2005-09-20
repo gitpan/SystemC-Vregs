@@ -1,4 +1,4 @@
-// $Revision: 1.21 $$Date: 2005-06-21 16:56:25 -0400 (Tue, 21 Jun 2005) $$Author: wsnyder $ -*- C++ -*-
+// $Id: VregsRegInfo.h 4511 2005-08-04 19:21:29Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -44,7 +44,7 @@ private:
     size64_t		m_size;		///< Size in bytes of the register
     const char*		m_name;		///< Ascii name of the register
     size64_t		m_entSize;	///< Size of a single entry
-    long		m_lowEntNum;	///< Low entry number (for RAMs)
+    uint64_t		m_lowEntNum;	///< Low entry number (for RAMs)
     void*		m_userinfo;	///< Reserved for users (not used here)
 
     uint32_t		m_rdMask;	///< Readable mask (1 in bit indicates is readable)
@@ -59,7 +59,7 @@ public:
     friend class VregsRegInfo;
     // Create new register, called by vregs generated headers
     VregsRegEntry(address_t addr, size64_t size,
-		  const char* name, size64_t entSize, long lowEntNum,
+		  const char* name, size64_t entSize, uint64_t lowEntNum,
 		  uint32_t rdMask, uint32_t wrMask,
 		  uint32_t rstVal, uint32_t rstMask, uint32_t flags)
 	: m_address(addr), m_size(size), m_name(name)
@@ -85,7 +85,7 @@ public:
     const char* 	name () const { return m_name; }	///< Register name
     size64_t	 	size () const { return m_size; }	///< Total size in bytes
     size64_t	 	entSize () const { return m_entSize; }	///< One array entry in bytes
-    long 		lowEntNum () const { return m_lowEntNum; }	///< Low bound of array
+    uint64_t 		lowEntNum () const { return m_lowEntNum; }	///< Low bound of array
     void* 		userinfo () const { return m_userinfo; }	///< Userdata
 
     // We don't allow visibility to the uint that gives the value of these fields
@@ -113,7 +113,7 @@ public:
     /// Return number of entries (array elements)
     size64_t		entries() const {
 				if (!isRanged()) return lowEntNum()+1;
-				return (max ((long)(size()/entSize()), lowEntNum())+1); }
+				return (max ((uint64_t)(size()/entSize()), lowEntNum())+1); }
     /// Ending address of the register + 1
     address_t		addressEnd() const { return address() + size(); }
 };
@@ -137,7 +137,7 @@ public:
     /// Add a new register, called by vregs classes
     void	add_register (VregsRegEntry* regentp);
     void	add_register (address_t addr, size64_t size, const char* name,
-			      uint32_t spacing, uint32_t rangelow, uint32_t rangehigh,
+			      uint64_t spacing, uint64_t rangelow, uint64_t rangehigh,
 			      uint32_t rdMask, uint32_t wrMask,
 			      uint32_t rstVal, uint32_t rstMask, uint32_t flags);
     void	add_register (address_t addr, size64_t size, const char* name,
@@ -149,7 +149,7 @@ public:
 	add_register (addr, size, name, 0, 0, 0,
 		      ~0,~0,0,0,0); }
     void	add_register (address_t addr, size64_t size, const char* name,
-			      uint32_t spacing, uint32_t rangelow, uint32_t rangehigh
+			      uint64_t spacing, uint64_t rangelow, uint64_t rangehigh
 			      ) {
 	add_register (addr, size, name, spacing, rangelow, rangehigh,
 		      ~0,~0,0,0,0); }

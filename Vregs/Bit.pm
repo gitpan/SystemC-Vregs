@@ -1,4 +1,4 @@
-# $Revision: 1.43 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: Bit.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,9 +18,15 @@ use SystemC::Vregs::Number;
 use Bit::Vector::Overload;
 
 use strict;
-use vars qw (@ISA $VERSION);
+use vars qw (@ISA $VERSION %Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.301';
+$VERSION = '1.310';
+
+foreach my $kwd (qw( w dw fieldsZero fieldsReset
+		     ))
+{ $Keywords{$kwd} = 1; }
+
+######################################################################
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -91,7 +97,8 @@ sub check_name {
     ($field =~ /^[A-Z][A-Za-z0-9]*$/)
 	or $self->warn ("Bit mnemonics must start with capitals and contain only alphanumerics.\n");
     $self->{name} = $field;
-    my $lang = SystemC::Vregs::Language::is_keyword(lc $field);
+    my $lang = (SystemC::Vregs::Language::is_keyword(lc $field)
+		|| ($Keywords{lc($field)} && "Vregs"));
     if ($lang && (lc $lang ne "verilog")) {
 	# For now, we don't emit verilog structures, so don't burden the world
 	$self->warn ("Name matches a $lang language keyword: ", lc $field, "\n");

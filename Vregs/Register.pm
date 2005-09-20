@@ -1,4 +1,4 @@
-# $Revision: 1.49 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: Register.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -114,6 +114,7 @@ sub check_name {
 sub check_addrtext {
     my $regref = shift;
     my $addrtext = $regref->{addrtext};
+    $addrtext =~ s/\s+$//;
 
     my $inher_min;
     if ($addrtext =~ s/\s*[|]\s*\b(R_[0-9a-zA-Z_]+)\b//) {
@@ -148,7 +149,7 @@ sub check_addrtext {
     $regref->{addr} = $regref->{pack}->addr_text_to_vec($addrtext);
     if ($inher_min) {
 	$regref->{addr}->add(      $regref->{addr},  $inher_min, 0);
-	$regref->{addr_end}->add(  $regref->{addr},  $inher_min, 0) if $regref->{addr_end};
+	$regref->{addr_end}->add(  $regref->{addr_end},  $inher_min, 0) if $regref->{addr_end};
     }
 }
 
@@ -217,7 +218,8 @@ sub check_end {
     my $regref = shift;
     if ($regref->{addr_end_wildcard}) {
 	($regref->{addr_end}->Lexicompare($regref->{addr_end_wildcard}) < 0)
-	    or $regref->warn ("Register exceeds upper boundary in wildcarded declaration: ", $regref->{addr_end}," ", $regref->{addr_end_wildcard}, "\n");
+	    or $regref->warn ("Register exceeds upper boundary in wildcarded declaration: ",
+			      $regref->{addr},"-",$regref->{addr_end}," > ", $regref->{addr_end_wildcard}, "\n");
     }
 }
 

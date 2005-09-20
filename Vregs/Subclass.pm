@@ -1,4 +1,4 @@
-# $Revision: 1.29 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: Subclass.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,7 +18,7 @@ package SystemC::Vregs::Subclass;
 use strict;
 use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 $Errors = 0;
 

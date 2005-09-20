@@ -1,4 +1,4 @@
-# $Revision: 1.39 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: Rules.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,19 +18,21 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 ######################################################################
 # Default rules
 
 sub _default_rules {
     before_file_body
-	(text=>
-	 "#include <iostream>\n"
-	 ."#include <netinet/in.h>  /*ntoh*/\n"
-	 ."#include <stdint.h>      /*uint32_t*/\n"
-	 ."#include <VregsClass.h>\n"
-	 );
+	(prog=> sub {
+	    my ($self,$name) = @_;
+	    fprint ("#include <iostream>\n") if fhandle()->{CPP};
+	    fprint ("#include <netinet/in.h>  /*ntoh*/\n"
+		    ."#include <stdint.h>      /*uint32_t*/\n"
+		    ."#include <VregsClass.h>\n"
+		    );
+	});
     before_enum_end
 	(prog=> sub {
 	    my ($self,$name) = @_;
@@ -38,13 +40,23 @@ sub _default_rules {
 		    ."    inline ${name} () VREGS_ENUM_DEF_INITTER(MAX) {}\n"
 		    ."    inline ${name} (en _e) : m_e(_e) {}\n"
 		    ."    explicit inline ${name} (int _e) : m_e(static_cast<en>(_e)) {}\n"
-		    ."    operator const char * () const { return ascii(); }\n"
+		    ."    operator const char* () const { return ascii(); }\n"
 		    ."    operator en () const { return m_e; }\n"
-		    ."    const char * ascii () const;\n"
+		    ."    const char* ascii() const;\n"
 		    );
 	    if ($self->attribute_value('descfunc')) {
-		fprint ("    const char * description () const;\n");
+		fprint ("    const char* description() const;\n");
 	    }
+	    fprint ("    class iterator {\n"
+		    ."	en m_e; public:\n"
+		    ."	inline iterator(en item) : m_e(item) {};\n"
+		    ."	iterator operator++();\n"
+		    ."	inline operator ${name} () const { return ${name}(m_e); }\n"
+		    ."	inline ${name} operator*() const { return ${name}(m_e); }\n"
+		    ."    };\n"
+		    ."    static iterator begin() { return iterator(".($self->fields_first_name||"MAX")."); }\n"
+		    ."    static iterator end()   { return iterator(MAX); }\n"
+		    );
 	});
     before_class_dump
 	(prog => sub {

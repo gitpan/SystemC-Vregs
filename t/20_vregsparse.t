@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 1.10 $$Date: 2004-12-04 15:13:30 -0500 (Sat, 04 Dec 2004) $$Author: wsnyder $
+# $Id: 20_vregsparse.t 4305 2005-08-02 13:21:57Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2001-2004 by Wilson Snyder.  This program is free software;

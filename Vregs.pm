@@ -1,4 +1,4 @@
-# $Revision: 1.122 $$Date: 2005-07-27 09:55:32 -0400 (Wed, 27 Jul 2005) $$Author: wsnyder $
+# $Id: Vregs.pm 6461 2005-09-20 18:28:58Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw($Debug @ISA $VERSION
 	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.301';
+$VERSION = '1.310';
 
 ######################################################################
 #### Constants
@@ -566,8 +566,8 @@ sub _choose_columns {
 	    # Strip comments in the header
 	    # Allow ignoring these columns entirely
 	    #print "HR $h '$headref->[$h]'  '$colheads[$h]'\n";
-	    $colused[$h] = 1 if $colheads[$h] eq "";
 	}
+	$colused[$h] = 1 if $colheads[$h] eq "";
     }
   headchk:
     foreach my $fld (@{$fieldref}) {

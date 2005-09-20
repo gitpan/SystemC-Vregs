@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Revision: 1.9 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $
+// $Id: 55_gcc_info.cpp 6159 2005-09-13 20:36:56Z wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 //
 // Copyright 2001-2004 by Wilson Snyder.  This program is free software;
@@ -50,6 +50,13 @@ int main() {
     COUT << "address 1040 is: " << reginfop->addr_name(0x1040, buf,1000) << endl;
     COUT << "address 2013 is: " << reginfop->addr_name(0x2013, buf,1000) << endl;
     COUT << "address 3013 is: " << reginfop->addr_name(0x3013, buf,1000) << endl;
+
+    COUT << "ExSuperEnum values:";
+    for (ExSuperEnum::iterator it=ExSuperEnum::begin(); it!=ExSuperEnum::end(); ++it) {
+	COUT << " "<<*it;
+	COUT << "(0x"<<hex<<(int)(*it)<<")";
+    }
+    COUT << endl;
 
     return (0);
 }

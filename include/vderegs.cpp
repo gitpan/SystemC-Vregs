@@ -1,4 +1,4 @@
-// $Revision: #13 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $  -*- C++ -*-
+// $Id: vderegs.cpp 4305 2005-08-02 13:21:57Z wsnyder $  -*- C++ -*-
 //====================================================================
 //
 // Copyright 2002-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -270,7 +270,7 @@ static struct option long_options[] = {
 };
 
 static void usage() {
-    COUT <<"vderegs: #$Revision: #13 $$Date: 2005-06-17 14:45:25 -0400 (Fri, 17 Jun 2005) $$Author: wsnyder $\n" <<endl;
+    COUT <<"vderegs: #$Id: vderegs.cpp 4305 2005-08-02 13:21:57Z wsnyder $\n" <<endl;
     COUT <<"vderegs is part of SystemC::Vregs, available from http://www.veripool.com/\n" <<endl;
     COUT << "Usage: dedfa [OPTION]...\n"
 	 << "--multi     \tPrint \"EOM\\n\" to frame each response (for piped I/O)\n"

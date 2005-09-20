@@ -1,4 +1,4 @@
-// $Revision: 1.18 $$Date: 2005-06-21 16:56:25 -0400 (Tue, 21 Jun 2005) $$Author: wsnyder $ -*- C++ -*-
+// $Id: VregsRegInfo.cpp 4511 2005-08-04 19:21:29Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2005 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -46,7 +46,7 @@ void VregsRegInfo::add_register (VregsRegEntry* regentp) {
 
 void VregsRegInfo::add_register (
     address_t addr, size64_t size, const char* name,
-    uint32_t spacing, uint32_t rangeLow, uint32_t rangeHigh,
+    uint64_t spacing, uint64_t rangeLow, uint64_t rangeHigh,
     uint32_t rdMask, uint32_t wrMask,
     uint32_t rstVal, uint32_t rstMask, uint32_t flags)
 {
