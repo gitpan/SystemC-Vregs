@@ -1,23 +1,23 @@
-# $Id: Outputs.pm 6461 2005-09-20 18:28:58Z wsnyder $
+# $Id: Outputs.pm 12022 2006-01-16 21:55:21Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 ######################################################################
 
 package SystemC::Vregs::Outputs;
 use File::Basename;
 use Carp;
 use vars qw($VERSION);
-$VERSION = '1.310';
+$VERSION = '1.320';
 
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
@@ -132,11 +132,11 @@ sub fn {
     if ($self->{CPP}) {
 	$self->print ("    $proto ",@_);
     } else {
-	$suffix = "_".$suffix if $suffix;
 	my $const = ($proto =~ s/const\s*$//) ? "const ":"";
 
-	$proto =~ m/\s+(\S+)\s*\(/;
-	my $fname = "${clname}_$1${suffix}";						 
+	$proto =~ m/\s*(\S+)\s*\(/;
+	my $fname = lcfirst "${clname}_$1";
+	$fname .= "_".$suffix if $suffix;
 	if ($self->{private}) {
 	    $self->{func_private}{$fname} = $self->{private};
 	    $fname .= "_private";
@@ -153,17 +153,20 @@ sub call_str {
     my $self = shift;
     my $clname = shift;
     my $suffix = shift;
-    my $func = shift;
+    my $call = shift;
     # Call a function with C++ semantics, mangle into C if necessary
     # return as *string*
     if ($self->{CPP}) {
-	return join('',"$func",@_);
+	return join('',"$call",@_);
     } else {
-	$suffix = "_".$suffix if $suffix;
-	$func =~ s/(\S+)\s*\(/${clname}_$1${suffix}(/;
-        $func =~ s/\(/(thisp,/ or croak "%Error: No args in func call '$func',";
-        $func =~ s/,\s*\)/)/;
-	return join('',$func,@_);
+	$call =~ m/\s*(\S+)\s*\(/;
+	my $fname = lcfirst "${clname}_$1";
+	$fname .= "_".$suffix if $suffix;
+	$fname .= "_private" if $self->{func_private}{$fname};
+	$call =~ s/(\S+)\s*\(/${fname}(/;
+        $call =~ s/\(/(thisp,/ or croak "%Error: No args in func call '$call',";
+        $call =~ s/,\s*\)/)/;
+	return join('',$call,@_);
     }
 }
 
@@ -225,7 +228,7 @@ sub SystemC::Vregs::Enum::enum_write {
     $fl->print ("class $clname {\n");
     $fl->print ("public:\n");
     $pack->{rules}->execute_rule ('enum_begin_after', $clname, $self);
-    
+
     $fl->print ("    enum en {\n");
     $self->_enum_write_center($pack,$fl);
     $fl->print ("    };\n");
@@ -521,7 +524,7 @@ sub SystemC::Vregs::Type::_class_h_write {
     $fl->printf("\n");
 
     my @fields = $c ? ($self->fields_sorted_inherited()) : ($self->fields_sorted());
-	
+
     foreach my $bitref (@fields) {
 	next if $bitref->ignore;
 	(my $lc_mnem = $bitref->{name}) =~ s/^(.)/lc $1/xe;
@@ -551,7 +554,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 	    $deposit_mask = 0xffffffff if $nbits==32;
 	    my $mask = $deposit_mask << $low_mod;
 	    $mask = 0xffffffff if $high_mod==31 && $low_mod==0;
-	    
+
 	    $extract .= " |" if $extract ne "";
 	    if ($high_mod==31 && $low_mod==0 && $srcbit==0) {
 		# Whole word, skip the B.S.
@@ -564,10 +567,42 @@ sub SystemC::Vregs::Type::_class_h_write {
 		$frombit = "" if $srcbit==0;
 		$extract .= sprintf " %s(${wget}${word})>>${low_mod} & 0x%x$L)$tobit"
 		    , ($tobit?"(":""), $deposit_mask;
-		$deposit .= sprintf " ${wset}${word}, (${wget}${word})&0x%08x$L) | ((%sb$frombit&0x%x$L)<<${low_mod}));"
-		    , (~$mask&0xffffffff), ($frombit?"(":""), $deposit_mask;
+		my $b = "b";
+		$b = "(".$b.$frombit if $frombit;
+		$b = "((uint32_t)($b))" if $bitref->{type} ne 'uint32_t';
+		$deposit .= sprintf " ${wset}${word}, (${wget}${word})&0x%08x$L)"
+		    ." | ((%s&0x%x$L)<<${low_mod}));"
+		    , (~$mask&0xffffffff),
+		    , $b
+		    , $deposit_mask;
 	    }
 	}
+
+	# Mask after shifting on reads, so the mask is a smaller constant.
+	$fl->private_not_public ($bitref->{access} !~ /R/, $pack);
+	my $typEnd = 11 + length $bitref->{type};
+	$fl->fn($clname,"",sprintf("inline %s%s%-13s () const",
+				   $bitref->{type}, ($typEnd < 16 ? "\t\t" : $typEnd < 24 ? "\t" : " "),
+				   $lc_mnem)
+		,"{ return ${typecast}(${extract} ); }\n");
+	if ($self->attribute_value('public_rdwr_accessors') && $fl->{private} && $fl->{CPP}) {
+	    $fl->private_not_public(0);
+	    $fl->fn($clname,"",sprintf("inline %s%s%-13s () const",
+				       $bitref->{type}, ($typEnd < 16 ? "\t\t" : $typEnd < 24 ? "\t" : " "),
+				       $lc_mnem."_private")
+		    ,"{ return $lc_mnem(); }\n");
+	}
+
+	$fl->private_not_public ($bitref->{access} !~ /W/, $pack);
+	$fl->fn($clname,"set",sprintf("inline void\t\t%-13s (%s b)", $lc_mnem, $bitref->{type})
+		,"{${deposit} }\n");
+	if ($self->attribute_value('public_rdwr_accessors') && $fl->{private} && $fl->{CPP}) {
+	    $fl->private_not_public(0);
+	    $fl->fn($clname,"set",sprintf("inline void\t\t%-13s (%s b)", $lc_mnem."_private", $bitref->{type})
+		    ,"{ ${lc_mnem}(b); }\n");
+	}
+
+	push @dumps, "\"$bitref->{name}=\"<<$lc_mnem()";
 
 	if ($bitref->{rst} ne 'X') {
 	    my $rst = $bitref->{rst};
@@ -583,20 +618,6 @@ sub SystemC::Vregs::Type::_class_h_write {
 	    #		uc($lc_mnem)."_RST", $rst);
 	    push @resets, $fl->call_str($clname,"set",sprintf("\t%s(%s);\n", $lc_mnem, $rst));
 	}
-
-	# Mask after shifting on reads, so the mask is a smaller constant.
-	$fl->private_not_public ($bitref->{access} !~ /R/, $pack);
-	my $typEnd = 11 + length $bitref->{type};
-	$fl->fn($clname,"",sprintf("inline %s%s%-13s () const",
-				   $bitref->{type}, ($typEnd < 16 ? "\t\t" : $typEnd < 24 ? "\t" : " "),
-				   $lc_mnem)
-		,"{ return ${typecast}(${extract} ); }\n");
-
-	$fl->private_not_public ($bitref->{access} !~ /W/, $pack);
-	$fl->fn($clname,"set",sprintf("inline void\t\t%-13s (%s b)", $lc_mnem, $bitref->{type})
-		,"{${deposit} }\n");
-
-	push @dumps, "\"$bitref->{name}=\"<<$lc_mnem()"
     }
 
     $fl->printf("\n");
@@ -606,7 +627,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 		    $clname, $words);
     }
 
-    $fl->fn($clname,"","void fieldsZero()"
+    $fl->fn($clname,"","inline void fieldsZero()"
 	    ,"{\n");
     if ($words>=8) {
 	$fl->print("\t${cForInt}i=0; i<${words}; i++) ${wset}i,0);\n");
@@ -620,7 +641,7 @@ sub SystemC::Vregs::Type::_class_h_write {
     }
     $fl->print("    };\n");
 
-    $fl->fn($clname,"","void fieldsReset()"
+    $fl->fn($clname,"","inline void fieldsReset()"
 	    ,"{\n"
 	    ,"\t",$fl->call_str($clname,"","fieldsZero();\n")
 	    ,@resets
@@ -638,7 +659,7 @@ sub SystemC::Vregs::Type::_class_h_write {
 		   "    DumpOstream dump(const char* prefix=\"\\n\\t\") const;\n",
 		   "    OStream& _dump(OStream& lhs, const char* pf) const;\n",
 		   "    void dumpCout() const; // For GDB\n",);
-    
+
 	# Put const's last to avoid GDB stupidity
 	$fl->private_not_public (0, $pack);
 	$fl->printf("    static const size_t SIZE = %d;\n", $words*4);
@@ -784,7 +805,7 @@ sub SystemC::Vregs::Type::_class_cpp_write {
     # For usage in GDB
     $fl->print("void ${clname}::dumpCout () const { COUT<<this->dump(\"\\n\\t\")<<endl; }\n",);
     $pack->{rules}->execute_rule ('class_cpp_after', $clname, $self);
-    
+
     $fl->print("\n");
 }
 
@@ -858,6 +879,8 @@ sub defs_write {
     $fl->print ("//Verilint  34 off //WARNING: Unused macro\n") if $fl->{Verilog};
     $fl->print("\n");
 
+    $self->{rules}->execute_rule ('defines_file_before', $fl->{filename}, $self);
+
     my $firstauto = 1;
     foreach my $defref ($self->defines_sorted) {
 	if ($firstauto && !$defref->{is_manual}) {
@@ -884,6 +907,8 @@ sub defs_write {
 	}
     }
 
+    $self->{rules}->execute_rule ('defines_file_after', $fl->{filename}, $self);
+
     $fl->close();
 }
 
@@ -897,7 +922,7 @@ sub _param_write_value {
     my $tohex = shift;
 
     # Create max value that fits in 32 bits, just once for speed
-    $_Param_Write_Value_Bit32 ||= $self->{pack}->addr_const_vec(0xffffffff);  
+    $_Param_Write_Value_Bit32 ||= $self->{pack}->addr_const_vec(0xffffffff);
     my $bit32 = $_Param_Write_Value_Bit32;
 
     my $rst_val = $self->{rst_val};
@@ -907,6 +932,7 @@ sub _param_write_value {
     if (defined $bits && defined $value && ref $value) {
 	$bits = 32 if ($bits==32
 		       || $self->{pack}{param_always_32bits}
+		       || (!defined $self->{pack}{param_always_32bits} && !$self->{pack}->attribute_value('v2k'))
 		       || ($value->Lexicompare($bit32)<=0));  # value<32 bits
 	$value = Bit::Vector->new_Hex($bits, $value->to_Hex);
 	$rst_val = $value->to_Hex;
@@ -947,11 +973,11 @@ sub param_write {
 	my $define  = $defref->{name};
 	my $value   = $defref->{val};
 	my $comment = $defref->{desc};
-	    
+
 	my $cmt = "";
 	$cmt = "\t// ${comment}" if $self->{comments};
 
-	if ($define =~ s/^(RA|CM)_/${1}P_/
+	if ($define =~ s/^(RA|CM|RBASEA)_/${1}P_/
 	    || ($defref->{is_manual} && $define =~ s/^(.*)$/P_$1/)) {
 	    my $prt_val = _param_write_value($defref, $fl);
 	    $fl->printf ("   %s %-26s %13s%s\n",
@@ -1065,7 +1091,7 @@ addresses into names.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2001-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

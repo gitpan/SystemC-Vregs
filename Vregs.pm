@@ -1,8 +1,8 @@
-# $Id: Vregs.pm 6461 2005-09-20 18:28:58Z wsnyder $
+# $Id: Vregs.pm 12022 2006-01-16 21:55:21Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -28,7 +28,7 @@ use vars qw($Debug @ISA $VERSION
 	    $Bit_Access_Regexp %Ignore_Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.310';
+$VERSION = '1.320';
 
 ######################################################################
 #### Constants
@@ -406,8 +406,8 @@ sub new_register {
     $typeref->inherits($inherits);
 
     # See also $typeref->{attributes}{lcfirst}, below.
-    while ($attr =~ s/-(\w+)//) {
-	$typeref->{attributes}{$1} = 1;
+    while ($attr =~ s/-([a-zA-Z_0-9]+)\s*=?\s*([a-zA-Z._0-9]+)?//) {
+	$typeref->{attributes}{$1} = (defined $2 ? $2 : 1);
     }
     ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
 
@@ -1398,7 +1398,7 @@ Returns list of SystemC::Vregs::Type objects.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2001-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

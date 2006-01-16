@@ -1,8 +1,8 @@
-# $Id: Rules.pm 6461 2005-09-20 18:28:58Z wsnyder $
+# $Id: Rules.pm 12022 2006-01-16 21:55:21Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -18,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.310';
+$VERSION = '1.320';
 
 ######################################################################
 # Default rules
@@ -43,6 +43,7 @@ sub _default_rules {
 		    ."    operator const char* () const { return ascii(); }\n"
 		    ."    operator en () const { return m_e; }\n"
 		    ."    const char* ascii() const;\n"
+		    ."    inline bool valid() const { return *ascii()!='?'; };\n"
 		    );
 	    if ($self->attribute_value('descfunc')) {
 		fprint ("    const char* description() const;\n");
@@ -89,6 +90,8 @@ sub _default_rules {
 
 sub before_any_file {	 _declare_rule (rule=>'any_file_before', @_); }
 sub  after_any_file {	 _declare_rule (rule=>'any_file_after', @_); }
+sub before_defines_file	{_declare_rule (rule=>'defines_file_before', @_); }
+sub  after_defines_file	{_declare_rule (rule=>'defines_file_after', @_); }
 sub before_info_cpp_file{_declare_rule (rule=>'info_cpp_file_before', @_); }
 sub  after_info_cpp_file{_declare_rule (rule=>'info_cpp_file_after', @_); }
 sub before_file_body    {_declare_rule (rule=>'file_body_before', @_); }
@@ -148,9 +151,11 @@ sub read {
 
     print "read_rule_file $filename\n" if $SystemC::Vregs::Debug;
     $! = $@ = undef;
+    my %preINC = %INC;
     my $rtn = do $filename;
     (!$@) or die "%Error: $filename: $@\n";
     (defined $rtn || !$!) or die "%Error: $filename: $!\n";
+    %INC = %preINC;  # Make sure double-do's both include
     #use Data::Dumper; print Dumper(\%Rules);
 }
 
@@ -348,7 +353,7 @@ Formatted print to the file.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2001-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

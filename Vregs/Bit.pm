@@ -1,8 +1,8 @@
-# $Id: Bit.pm 6461 2005-09-20 18:28:58Z wsnyder $
+# $Id: Bit.pm 12022 2006-01-16 21:55:21Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION %Keywords);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.310';
+$VERSION = '1.320';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))
@@ -94,8 +94,14 @@ sub check_name {
     my $self = shift;
     my $field = $self->{name};
     $field =~ s/^_//g;
-    ($field =~ /^[A-Z][A-Za-z0-9]*$/)
-	or $self->warn ("Bit mnemonics must start with capitals and contain only alphanumerics.\n");
+
+    if ($self->{typeref}->attribute_value('allowunder')) {
+	($field =~ /^[A-Z][A-Za-z0-9_]*$/)
+	    or $self->warn ("Bit mnemonics must start with capitals and contain only alphanumerics or underscores.\n");
+    } else {
+	($field =~ /^[A-Z][A-Za-z0-9]*$/)
+	    or $self->warn ("Bit mnemonics must start with capitals and contain only alphanumerics.\n");
+    }
     $self->{name} = $field;
     my $lang = (SystemC::Vregs::Language::is_keyword(lc $field)
 		|| ($Keywords{lc($field)} && "Vregs"));
@@ -511,7 +517,7 @@ Checks the object for errors, and parses to create derived Fields.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2001-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

@@ -1,8 +1,8 @@
-# $Id: Register.pm 6461 2005-09-20 18:28:58Z wsnyder $
+# $Id: Register.pm 12022 2006-01-16 21:55:21Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw (@ISA $VERSION);
 @ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.310';
+$VERSION = '1.320';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -171,6 +171,7 @@ sub check_range_spacing {
 	$regref->{range_low}  = $regref->{pack}->addr_text_to_vec($ltext);
 	(defined $regref->{range_high}) or $regref->warn ("Can't parse $htext in range $range\n");
 	(defined $regref->{range_low}) or $regref->warn ("Can't parse $htext in range $range\n");
+	($regref->{range_low} < $regref->{range_high}) or $regref->warn ("Register range specified in the wrong order. Use regname[high:low] instead.\n");
 	($spacing->Lexicompare($regref->{pack}->addr_const_vec(4)) >= 0)
 	    or $regref->warn ("Strange address spacing $spacing\n");
     }
@@ -314,7 +315,7 @@ Checks the object for errors, and parses to create derived fields.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2001-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

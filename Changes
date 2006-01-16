@@ -2,6 +2,21 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.320 1/16/2006
+
+**	Lowercase first letter of _struct.h accessor functions.
+
+**	Add Gnu Assembler format.
+
+***	With --public_rdwr_accessors attributes, make _private functions
+	in public: section for read-only or write-only bits.  [Peter Holmes]
+
+***	With -v2k, parameters will now exceed 32 bits when appropriate.
+
+***	Add valid() methods to enums.  [Bobby Woods-Corwin]
+
+****	Fix uint8_t shift deposit problems.  [Bryce Denney]
+
 * Vregs 1.310 9/20/2005
 
 **	Add _struct.h files for C (not C++) use.  [Larry Stewart]
@@ -214,12 +229,12 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 6461 2005-09-20 18:28:58Z wsnyder $
+$Id: Changes 12022 2006-01-16 21:55:21Z wsnyder $
 ----------------------------------------------------------------------
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 you can redistribute it and/or modify it under the terms of either the GNU
 General Public License or the Perl Artistic License.
 

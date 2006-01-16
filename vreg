@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-#$Id: vreg 5416 2005-08-25 12:47:15Z wsnyder $
+#$Id: vreg 12022 2006-01-16 21:55:21Z wsnyder $
 ######################################################################
 #
-# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -46,6 +46,7 @@ my $opt_output = "";
 my $opt_rm;
 my $opt_package;
 my $opt_headers;
+my $opt_asm_h = 1;
 my $opt_class_h = 1;
 my $opt_class_cpp = 1;
 my $opt_defs_h = 1;
@@ -59,12 +60,14 @@ my $opt_comments = 1;
 my $opt_rules;
 my $opt_rebuild_comment = "$0 @orig_argv";
 my $opt_vregs;
+my $opt_address_bits = 40;
 our @opt_library_vregs = ();
 my %opt_attributes;
 if (! GetOptions (
 		  "help"	=> \&usage,
 		  "debug"	=> \&debug,
 		  "<>"		=> \&parameter,
+		  "address_bits=i" => \$opt_address_bits,
 		  "headers!"	=> \$opt_headers,
 		  "html=s"	=> sub { shift; push @Opt_Html_Files, shift; },
 		  "library=s"	=> sub { shift; push @opt_library_vregs, shift; },
@@ -77,6 +80,7 @@ if (! GetOptions (
 		  "v2k!"	=> sub { shift; $opt_attributes{v2k} = shift; },
 		  "vregs=s"	=> \$opt_vregs,
 		  # File Enables (if adding one, add to files! also)
+		  "asm_h!"	=> \$opt_asm_h,
 		  "class_cpp!"	=> \$opt_class_cpp,
 		  "class_h!"	=> \$opt_class_h,
 		  "defs_h!"	=> \$opt_defs_h,
@@ -87,6 +91,7 @@ if (! GetOptions (
 		  "param_v!"	=> \$opt_param_v,
 		  "struct_h!"	=> \$opt_struct_h,
 		  "files!"	=> sub { shift; my $ena = shift;
+					 $opt_asm_h = $ena;
 					 $opt_class_cpp = $ena;
 					 $opt_class_h = $ena;
 					 $opt_defs_h = $ena;
@@ -106,7 +111,7 @@ $opt_package or die "%Error: No --package specified\n";
 
 $opt_vregs = "${opt_output}${opt_package}.vregs" if !defined $opt_vregs;
 
-my @vr_params = (address_bits=>40,
+my @vr_params = (address_bits=>$opt_address_bits,
 		 comments=>$opt_comments,
  		 rebuild_comment=>$opt_rebuild_comment,
 		 attributes=>\%opt_attributes,
@@ -125,7 +130,7 @@ foreach my $vlib (@opt_library_vregs) {
 
 @vr_params = (@vr_params,
 	      libraries=>\@opt_library_vr,
-	      param_always_32bits=>1,);
+	      param_always_32bits=>undef,);
 
 my $vr = new SystemC::Vregs (@vr_params,
 			     name=>$opt_package,
@@ -168,6 +173,9 @@ if ($opt_headers) {
     if ($opt_defs_pm) {
 	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_defs.pm", language=>'Perl',);
     }
+    if ($opt_asm_h) {
+	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_asm.h", language=>'Gas',);
+    }
     if ($opt_hash_pm) {
 	$v2->hash_write (%p, filename=>"${opt_output}${opt_package}_hash.pm", language=>'Perl',);
     }
@@ -192,7 +200,7 @@ if ($opt_headers) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Id: vreg 5416 2005-08-25 12:47:15Z wsnyder $ ', "\n";
+    print '$Id: vreg 12022 2006-01-16 21:55:21Z wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);
@@ -264,6 +272,10 @@ Reads the specified filename and creates a .vregs file from the html.
 
 Specifies a package to be used to resolve subclasses.  The library package
 will only be read, not changed in any way.
+
+=item --noasm_h
+
+Suppresses creating the _asm.h file.
 
 =item --nocomments
 
@@ -357,7 +369,7 @@ directory specified by --output with the filename I<package>.vregs.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2001-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

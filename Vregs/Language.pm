@@ -1,8 +1,8 @@
-# $Id: Language.pm 6461 2005-09-20 18:28:58Z wsnyder $
+# $Id: Language.pm 12022 2006-01-16 21:55:21Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2005 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -19,7 +19,7 @@ use strict;
 use vars qw(@ISA $VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.310';
+$VERSION = '1.320';
 
 ######################################################################
 #### Implementation
@@ -453,6 +453,27 @@ sub comment {
 ######################################################################
 ######################################################################
 ######################################################################
+#### Gas Assembler
+
+package SystemC::Vregs::Language::Gas;
+use vars qw(@ISA);
+@ISA = qw(SystemC::Vregs::Language);
+use strict;
+
+sub is_keyword {
+    my $sym = shift;
+    return undef;
+}
+
+sub sprint_hex_value {
+    my ($self,$value,$bits) = @_;
+    # Never a ULL postfix
+    return "0x".$value;
+}
+
+######################################################################
+######################################################################
+######################################################################
 #### Tcl
 
 package SystemC::Vregs::Language::Tcl;
@@ -613,7 +634,7 @@ Output printf text.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2001-2005 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
