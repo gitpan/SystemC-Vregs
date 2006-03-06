@@ -1,4 +1,4 @@
-# $Id: TableExtract.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: TableExtract.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -15,8 +15,8 @@
 
 package SystemC::Vregs::TableExtract;
 
-@ISA = qw(HTML::TableExtract);
-$VERSION = '1.320';
+use base qw(HTML::TableExtract);
+$VERSION = '1.400';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);

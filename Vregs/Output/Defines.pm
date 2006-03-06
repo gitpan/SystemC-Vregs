@@ -1,0 +1,169 @@
+# $Id: Defines.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# Author: Wilson Snyder <wsnyder@wsnyder.org>
+######################################################################
+#
+# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+######################################################################
+
+package SystemC::Vregs::Output::Defines;
+
+require 5.005;
+use SystemC::Vregs;
+use SystemC::Vregs::File;
+use strict;
+use Carp;
+use vars qw($VERSION);
+
+$VERSION = '1.400';
+
+######################################################################
+# CONSTRUCTOR
+
+sub new {
+    my $class = shift;
+    my $self = {@_};
+    bless $self, $class;
+    return $self;
+}
+
+######################################################################
+# METHODS
+
+sub write {
+    my $self = shift;
+    my %params = (pack => $self->{pack},
+		  @_);
+    my $pack = $params{pack} or croak "%Error: No pack=> parameter passed,";
+
+    $pack->create_defines(1);
+    my $fl = SystemC::Vregs::File->open(rules => $pack->{rules},
+					@_);
+    $fl->comment_pre("\n");
+    $fl->comment_pre("package $pack->{name}\n");
+    $fl->comment_pre("\n");
+
+    $fl->comment_pre
+	(("*"x70)."\n"
+	 ."   General convention:\n"
+	 ."     RA_{regname}     Register beginning address\n"
+	 ."     RAE_{regname}    Register ending address + 1\n"
+	 ."     RAC_{regname}    Number of entries in register\n"
+	 ."     RAM_{regname}    Register region address mask\n"
+	 ."     RRP_{regname}    Register RANGE spacing in bytes, if arrayed\n"
+	 ."     RRS_{regname}    Register RANGE size, if arrayed\n"
+	 ."\n"
+	 ."     RBASEA_{regs}    Register common-prefix starting address\n"
+	 ."     RBASEAE_{regs}   Register common-prefix ending address + 1\n"
+	 ."     RBASEAM_{regs}   Register common-prefix bit mask\n"
+	 ."\n"
+	 ."     E_{enum}_{alias}           Value of enumeration encoding\n"
+	 ."\n"
+	 ."     CM{w}_{class}_WRITABLE     Mask of all writable bits\n"
+	 ."     CB{w}_{class}_{field}_{f}  Class field starting bit\n"
+	 ."     CE{w}_{class}_{field}_{f}  Class field ending bit\n"
+	 ."     CR{w}_{class}_{field}_{f}  Class field range\n"
+	 ."          {w}=32=bit word number,  {f}=field number if discontinuous\n"
+	 );
+    $fl->print("\n");
+
+    $fl->include_guard();
+    $fl->print("\n");
+
+    $fl->print ("//Verilint  34 off //WARNING: Unused macro\n") if $fl->{Verilog};
+    $fl->print("\n");
+
+    $pack->{rules}->execute_rule ('defines_file_before', $fl->{filename}, $pack);
+
+    my $firstauto = 1;
+    foreach my $defref ($pack->defines_sorted) {
+	if ($firstauto && !$defref->{is_manual}) {
+	    $fl->print("\n\n");
+	    $fl->comment("Automatic Defines\n");
+	    $firstauto = 0;
+	}
+
+	my $define  = $defref->{name};
+	my $value   = $defref->{rst_val};
+	my $comment = $defref->{desc};
+	if (($fl->{C} || $fl->{CPP}) && $define =~ /^C[BER][0-9]/) {
+	    next;  # Skip for Perl/C++, not much point as we have structs
+	}
+	$value = $fl->sprint_hex_value_add0 ($value,$defref->{bits}) if (defined $defref->{bits});
+	if ($fl->{Perl} && ($defref->{bits}||0) > 32) {
+	    $fl->print ("#");
+	    $comment .= " (TOO LARGE FOR PERL)";
+	}
+	if (($defref->{is_verilog} && $fl->{Verilog})
+	    || ($defref->{is_perl} && $fl->{Perl})
+	    || (!$defref->{is_verilog} && !$defref->{is_perl})) {
+	    $fl->define ($define, $value, ($pack->{comments}?$comment:""));
+	}
+    }
+
+    $pack->{rules}->execute_rule ('defines_file_after', $fl->{filename}, $pack);
+
+    $fl->close();
+}
+
+######################################################################
+######################################################################
+######################################################################
+######################################################################
+1;
+__END__
+
+=pod
+
+=head1 NAME
+
+SystemC::Vregs::Output::Defines - Dump Vregs into Defines header format
+
+=head1 SYNOPSIS
+
+SystemC::Vregs::Output::Defines->new->write(pack=>$VregsPackageObject, filename=>$fn);
+
+=head1 DESCRIPTION
+
+This package dumps vregs format into a header file for various languages.
+It is called by the Vregs package.
+
+=head1 METHODS
+
+=over 4
+
+=item new()
+
+Create and return a new output class.
+
+=item $self->write(pack=>I<vregsPackage>, filename=>I<filename>)
+
+Creates a C++, Verilog, or Perl header file with defines.  The language
+parameter is used along with SystemC::Vregs::Language to produce the
+definitions in a language appropriate way.
+
+=back
+
+=head1 DISTRIBUTION
+
+Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
+
+=head1 AUTHORS
+
+Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<vreg>,
+L<SystemC::Vregs>
+
+=cut

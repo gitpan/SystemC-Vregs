@@ -1,4 +1,4 @@
-# $Id: Bit.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: Bit.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,9 +18,9 @@ use SystemC::Vregs::Number;
 use Bit::Vector::Overload;
 
 use strict;
-use vars qw (@ISA $VERSION %Keywords);
-@ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.320';
+use vars qw ($VERSION %Keywords);
+use base qw (SystemC::Vregs::Subclass);
+$VERSION = '1.400';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))

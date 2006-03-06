@@ -1,4 +1,4 @@
-# $Id: Subclass.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: Subclass.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,7 +18,7 @@ package SystemC::Vregs::Subclass;
 use strict;
 use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.320';
+$VERSION = '1.400';
 
 $Errors = 0;
 

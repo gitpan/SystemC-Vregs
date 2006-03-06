@@ -1,4 +1,4 @@
-# $Id: Vregs.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: Vregs.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -24,11 +24,11 @@ use SystemC::Vregs::Number;
 use SystemC::Vregs::Rules;
 use strict;
 use Carp;
-use vars qw($Debug @ISA $VERSION
-	    $Bit_Access_Regexp %Ignore_Keywords);
-@ISA = qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
+use vars qw ($Debug $VERSION
+	     $Bit_Access_Regexp %Ignore_Keywords);
+use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.320';
+$VERSION = '1.400';
 
 ######################################################################
 #### Constants
@@ -366,6 +366,7 @@ sub new_enum {
 	    if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
 		my $var = $1;
 		my $val = $row->[$colnum]||"";
+		$val =~ s/\s*\([^\)]*\)//g;
 		$valref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._0-9]+)$/;
 	    }
 	}
@@ -539,6 +540,7 @@ sub new_register {
 		if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
 		    my $var = $1;
 		    my $val = $row->[$colnum]||"";
+		    $val =~ s/\s*\([^\)]*\)//g;
 		    $bitref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._0-9]+)$/;
 		}
 	    }
@@ -1322,7 +1324,7 @@ definitions, classes, and registers.
 
 =head1 METHODS
 
-See also SystemC::Vregs::Outputs for details on functions that write out
+See also SystemC::Vregs::Output::* for details on functions that write out
 various header files.
 
 =over 4
@@ -1418,11 +1420,14 @@ L<SystemC::Vregs::Define>,
 L<SystemC::Vregs::Enum>,
 L<SystemC::Vregs::Language>,
 L<SystemC::Vregs::Number>,
-L<SystemC::Vregs::OutputInfo>
-L<SystemC::Vregs::Outputs>
 L<SystemC::Vregs::Register>,
 L<SystemC::Vregs::Subclass>,
 L<SystemC::Vregs::TableExtract>,
 L<SystemC::Vregs::Type>
+L<SystemC::Vregs::Output::Class>,
+L<SystemC::Vregs::Output::Defines>,
+L<SystemC::Vregs::Output::Hash>,
+L<SystemC::Vregs::Output::Info>,
+L<SystemC::Vregs::Output::Param>
 
 =cut

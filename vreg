@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Id: vreg 12022 2006-01-16 21:55:21Z wsnyder $
+#$Id: vreg 15061 2006-03-01 19:51:13Z wsnyder $
 ######################################################################
 #
 # Copyright 2001-2006 by Wilson Snyder.  This program is free software;
@@ -24,8 +24,11 @@ use lib "$RealBin/..";
 use lib "$RealBin/blib/lib";
 use lib "$RealBin/blib/arch";
 use SystemC::Vregs;
-use SystemC::Vregs::Outputs;
-use SystemC::Vregs::OutputInfo;
+use SystemC::Vregs::Output::Class;
+use SystemC::Vregs::Output::Defines;
+use SystemC::Vregs::Output::Hash;
+use SystemC::Vregs::Output::Info;
+use SystemC::Vregs::Output::Param;
 use SystemC::Vregs::TableExtract;
 
 use strict;
@@ -163,44 +166,56 @@ if ($opt_headers) {
     $v2->rules_read ($opt_rules||"${opt_output}${opt_package}__rules.pl");
 
     #$v2->regs_write ("${opt_output}${opt_package}.2.vregs");
-    my %p = (keep_timestamp => 1,);	# Don't write if the same
+    my %p = (pack=>$v2,
+	     keep_timestamp => 1,);	# Don't write if the same
     if ($opt_defs_v) {
-	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_defs.v", language=>'Verilog',);
+	SystemC::Vregs::Output::Defines->new->write
+	    (%p, filename=>"${opt_output}${opt_package}_defs.v", language=>'Verilog',);
     }
     if ($opt_defs_h) {
-	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_defs.h", language=>'C',);
+	SystemC::Vregs::Output::Defines->new->write
+	    (%p, filename=>"${opt_output}${opt_package}_defs.h", language=>'C',);
     }
     if ($opt_defs_pm) {
-	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_defs.pm", language=>'Perl',);
+	SystemC::Vregs::Output::Defines->new->write
+	    (%p, filename=>"${opt_output}${opt_package}_defs.pm", language=>'Perl',);
     }
     if ($opt_asm_h) {
-	$v2->defs_write (%p, filename=>"${opt_output}${opt_package}_asm.h", language=>'Gas',);
+	SystemC::Vregs::Output::Defines->new->write
+	    (%p, filename=>"${opt_output}${opt_package}_asm.h", language=>'Gas',);
     }
     if ($opt_hash_pm) {
-	$v2->hash_write (%p, filename=>"${opt_output}${opt_package}_hash.pm", language=>'Perl',);
+	SystemC::Vregs::Output::Hash->new->write
+	    (%p, filename=>"${opt_output}${opt_package}_hash.pm",);
     }
     if ($opt_param_v) {
-	$v2->param_write (%p, filename=>"${opt_output}${opt_package}_param.v", language=>'Verilog',);
+	SystemC::Vregs::Output::Param->new->write
+	    (%p, filename=>"${opt_output}${opt_package}_param.v",);
     }
     if ($opt_info_cpp) {
-	$v2->info_h_write (%p, filename=>"${opt_output}${opt_package}_info.h");
-	$v2->info_cpp_write (%p, filename=>"${opt_output}${opt_package}_info.cpp");
+	SystemC::Vregs::Output::Info->new->write_h
+	    (%p, filename=>"${opt_output}${opt_package}_info.h");
+	SystemC::Vregs::Output::Info->new->write_cpp
+	    (%p, filename=>"${opt_output}${opt_package}_info.cpp");
     }
     if ($opt_class_h) {
-	$v2->class_h_write (%p, filename=>"${opt_output}${opt_package}_class.h");
+	SystemC::Vregs::Output::Class->new->write_class_h
+	    (%p, filename=>"${opt_output}${opt_package}_class.h");
     }
     if ($opt_class_cpp) {
-	$v2->class_cpp_write (%p, filename=>"${opt_output}${opt_package}_class.cpp");
+	SystemC::Vregs::Output::Class->new->write_class_cpp
+	    (%p, filename=>"${opt_output}${opt_package}_class.cpp");
     }
     if ($opt_struct_h) {
-	$v2->struct_h_write (%p, filename=>"${opt_output}${opt_package}_struct.h");
+	SystemC::Vregs::Output::Class->new->write_struct_h
+	    (%p, filename=>"${opt_output}${opt_package}_struct.h");
     }
 }
 
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Id: vreg 12022 2006-01-16 21:55:21Z wsnyder $ ', "\n";
+    print '$Id: vreg 15061 2006-03-01 19:51:13Z wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);

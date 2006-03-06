@@ -1,8 +1,8 @@
 // -*- C++ -*-
-// $Id: 55_gcc_info.cpp 6159 2005-09-13 20:36:56Z wsnyder $
+// $Id: 55_gcc_info.cpp 15289 2006-03-06 15:45:36Z wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 //
-// Copyright 2001-2004 by Wilson Snyder.  This program is free software;
+// Copyright 2001-2006 by Wilson Snyder.  This program is free software;
 // you can redistribute it and/or modify it under the terms of either the GNU
 // General Public License or the Perl Artistic License.
 

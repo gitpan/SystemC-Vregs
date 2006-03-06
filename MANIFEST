@@ -32,10 +32,14 @@ Vregs.pm
 Vregs/Bit.pm
 Vregs/Define.pm
 Vregs/Enum.pm
+Vregs/File.pm
 Vregs/Language.pm
 Vregs/Number.pm
-Vregs/OutputInfo.pm
-Vregs/Outputs.pm
+Vregs/Output/Class.pm
+Vregs/Output/Defines.pm
+Vregs/Output/Hash.pm
+Vregs/Output/Info.pm
+Vregs/Output/Param.pm
 Vregs/Register.pm
 Vregs/Rules.pm
 Vregs/Subclass.pm

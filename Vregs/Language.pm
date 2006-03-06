@@ -1,4 +1,4 @@
-# $Id: Language.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: Language.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,10 +16,11 @@
 package SystemC::Vregs::Language;
 
 use strict;
-use vars qw(@ISA $VERSION);
+use vars qw($VERSION);
 use Carp;
 use IO::File;
-$VERSION = '1.320';
+
+$VERSION = '1.400';
 
 ######################################################################
 #### Implementation
@@ -49,8 +50,7 @@ sub new {
 	# own class.  We'll simply make a multiple-inheritance package for them.
 	eval ("
             package ${bless_class};
-	    use vars qw (\@ISA);
-	    \@ISA = qw (${package_class} ${class});
+	    use base qw (${package_class} ${class});
 	    1;") or die;
     }
 
@@ -248,8 +248,8 @@ sub sprint_hex_value_drop0 {
 
 package SystemC::Vregs::Language::C;
 use Carp;
-use vars qw(@ISA %Keywords);
-#Made by super::New: @ISA = qw(SystemC::Vregs::Language);
+use vars qw(%Keywords);
+#Made by super::New: use base qw(SystemC::Vregs::Language);
 use strict;
 
 #Includes some stdlib functions at the end.
@@ -295,8 +295,8 @@ sub comment_post {
 
 package SystemC::Vregs::Language::CPP;
 use Carp;
-use vars qw(@ISA %Keywords);
-@ISA = qw(SystemC::Vregs::Language::C);
+use vars qw(%Keywords);
+use base qw(SystemC::Vregs::Language::C);
 use strict;
 
 sub is_keyword {
@@ -309,8 +309,7 @@ sub is_keyword {
 #### Lisp
 
 package SystemC::Vregs::Language::Lisp;
-use vars qw(@ISA);
-@ISA = qw(SystemC::Vregs::Language);
+use base qw(SystemC::Vregs::Language);
 use strict;
 
 sub is_keyword { return undef;}
@@ -332,8 +331,7 @@ sub comment {
 #### Perl
 
 package SystemC::Vregs::Language::Perl;
-use vars qw(@ISA);
-#Made by super::New: @ISA = qw(SystemC::Vregs::Language);
+#Made by super::New: use base qw(SystemC::Vregs::Language);
 use strict;
 
 sub is_keyword {
@@ -392,8 +390,7 @@ sub sprint_hex_value {
 #### Verilog
 
 package SystemC::Vregs::Language::Verilog;
-use vars qw(@ISA);
-#Made by super::New: @ISA = qw(SystemC::Vregs::Language);
+#Made by super::New: use base qw(SystemC::Vregs::Language);
 use strict;
 
 use Verilog::Language;
@@ -427,8 +424,7 @@ sub sprint_hex_value {
 #### Assembler
 
 package SystemC::Vregs::Language::Assembler;
-use vars qw(@ISA);
-#Made by super::New: @ISA = qw(SystemC::Vregs::Language);
+#Made by super::New: use base qw(SystemC::Vregs::Language);
 use strict;
 
 sub is_keyword {
@@ -456,8 +452,7 @@ sub comment {
 #### Gas Assembler
 
 package SystemC::Vregs::Language::Gas;
-use vars qw(@ISA);
-@ISA = qw(SystemC::Vregs::Language);
+use base qw(SystemC::Vregs::Language);
 use strict;
 
 sub is_keyword {
@@ -477,8 +472,7 @@ sub sprint_hex_value {
 #### Tcl
 
 package SystemC::Vregs::Language::Tcl;
-use vars qw(@ISA);
-@ISA = qw(SystemC::Vregs::Language);
+use base qw(SystemC::Vregs::Language);
 use strict;
 
 sub is_keyword {
@@ -506,8 +500,7 @@ sub comment {
 #### XML
 
 package SystemC::Vregs::Language::XML;
-use vars qw(@ISA);
-@ISA = qw(SystemC::Vregs::Language);
+use base qw(SystemC::Vregs::Language);
 use strict;
 
 sub is_keyword { return undef;}

@@ -1,4 +1,4 @@
-# $Id: Number.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: Number.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,12 +16,10 @@
 package SystemC::Vregs::Number;
 use strict;
 use Carp;
-use vars qw($VERSION @ISA);
+use vars qw($VERSION);
+use base qw(Bit::Vector);	# For now, let Bit::Vector do all the work
 
-use Bit::Vector;
-
-@ISA = qw (Bit::Vector);	# For now, let Bit::Vector do all the work
-$VERSION = '1.320';
+$VERSION = '1.400';
 
 ######################################################################
 ######################################################################

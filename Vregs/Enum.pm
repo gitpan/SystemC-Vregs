@@ -1,4 +1,4 @@
-# $Id: Enum.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: Enum.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -19,9 +19,10 @@ use SystemC::Vregs::Subclass;
 use Verilog::Language;	# For value parsing
 
 use strict;
-use vars qw (@ISA $VERSION);
-@ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.320';
+use vars qw ($VERSION);
+use base qw (SystemC::Vregs::Subclass);
+
+$VERSION = '1.400';
 
 ######################################################################
 ######################################################################
@@ -124,8 +125,7 @@ sub dump {
 
 package SystemC::Vregs::Enum::Value;
 use strict;
-use vars qw (@ISA);
-@ISA = qw (SystemC::Vregs::Subclass);
+use base qw (SystemC::Vregs::Subclass);
 
 # Fields: 	name, at, class
 sub name { return $_[0]->{name}; }
@@ -136,6 +136,13 @@ sub new {
     $self->{class} or die;  # Should have been passed as parameter
     $self->{class}{fields}{$self->{name}} = $self;
     return $self;
+}
+
+sub attribute_value {
+    my $self = shift;
+    my $attr = shift;
+    return $self->{attributes}{$attr} if defined $self->{attributes}{$attr};
+    return $self->{class}->attribute_value($attr);
 }
 
 sub clean_desc {

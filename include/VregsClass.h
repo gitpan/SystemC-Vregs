@@ -1,4 +1,4 @@
-// $Id: VregsClass.h 12022 2006-01-16 21:55:21Z wsnyder $ -*- C++ -*-
+// $Id: VregsClass.h 12136 2006-01-18 14:22:38Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2006 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -74,7 +74,7 @@ typedef address_t size64_t; ///< Size of register in bytes
 #endif
 
 #ifndef VREGS_STRUCT_DEF_CTOR
-/// Initalize a structure member
+/// Initialize a structure member
 # define VREGS_STRUCT_DEF_CTOR(TypeName, numWords)
 //	TypeName () { for (int i=0; i<numWords; i++) w(i, 0xdeadbeef); }
 #endif

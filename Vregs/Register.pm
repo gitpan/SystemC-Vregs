@@ -1,4 +1,4 @@
-# $Id: Register.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: Register.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -19,9 +19,9 @@ use SystemC::Vregs::Type;
 use Bit::Vector::Overload;
 
 use strict;
-use vars qw (@ISA $VERSION);
-@ISA = qw (SystemC::Vregs::Subclass);
-$VERSION = '1.320';
+use vars qw ($VERSION);
+use base qw (SystemC::Vregs::Subclass);
+$VERSION = '1.400';
 
 # Fields:
 #	{name}			Field name (Subclass)

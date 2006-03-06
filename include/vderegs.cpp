@@ -1,4 +1,4 @@
-// $Id: vderegs.cpp 12022 2006-01-16 21:55:21Z wsnyder $  -*- C++ -*-
+// $Id: vderegs.cpp 13502 2006-02-07 18:28:18Z wsnyder $  -*- C++ -*-
 //====================================================================
 //
 // Copyright 2002-2006 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -146,8 +146,14 @@ struct VDeregs {
 string VDeregs::getLine(const char *prompt) {
     string edited;
 
-    const char *in = readline(prompt);
-    if (in == NULL || gotExit(string(in))) {COUT<<endl; exit(0);}
+    const char *in;
+    while (1) {
+	in = readline(prompt);
+	if (in == NULL || gotExit(string(in))) {COUT<<endl; exit(0);}
+	if (string(in)=="netorder") { m_attrNetOrder = true; }
+	else if (string(in)=="hostorder") { m_attrNetOrder = false; }
+	else break;
+    }
     
     // Strip [anything_like_a_timestamp]
     const char *cp=in;
@@ -184,7 +190,7 @@ bool VDeregs::chooseStruct() {
 	    m_structName = in;
 	    m_structWords = MAX_WORDS;
 	    m_words = 0;
-	    m_attrNetOrder = true;
+	    m_attrNetOrder = false;  // Should read it from class name
 	    break;
 	} else {
 	    COUT<<"  What's \""<<in<<"\"?"<<endl;
@@ -232,7 +238,8 @@ bool VDeregs::chooseWords() {
 void VDeregs::dumpStruct() {
     if (! m_opt_multiMode) {
 	COUT <<"------------------\n";
-	COUT <<"  " <<m_structName <<" in HEX:\n";
+	COUT <<"  " <<m_structName <<" in HEX: ";
+	COUT <<(m_attrNetOrder?"(Network order)\n":"(Host order)\n");
 	for (unsigned w=0; w<m_words; w++) {
 	    COUT<<"\tw"<<dec<<setw(2)<<setfill('0')<<w
 		<<": 0x"<<hex<<setw(2)<<setfill('0')<<word(w)
@@ -270,13 +277,18 @@ static struct option long_options[] = {
 };
 
 static void usage() {
-    COUT <<"vderegs: #$Id: vderegs.cpp 12022 2006-01-16 21:55:21Z wsnyder $\n" <<endl;
+    COUT <<"vderegs: #$Id: vderegs.cpp 13502 2006-02-07 18:28:18Z wsnyder $\n" <<endl;
     COUT <<"vderegs is part of SystemC::Vregs, available from http://www.veripool.com/\n" <<endl;
     COUT << "Usage: dedfa [OPTION]...\n"
 	 << "--multi     \tPrint \"EOM\\n\" to frame each response (for piped I/O)\n"
 	 << "--pretty    \tJust print the message's ostream operator\n"
 	 << "--version   \tDisplay program version\n"
 	 << "-h|--help   \tDisplay this usage summary\n"
+	 << endl;
+    COUT << "Vregs command line options\n"
+	 << "  q        \tQuit\n"
+	 << "  netorder \tChange to network order for hex entry\n"
+	 << "  hostorder \tChange to host order for hex entry\n"
 	 << endl;
     exit(1);
 }

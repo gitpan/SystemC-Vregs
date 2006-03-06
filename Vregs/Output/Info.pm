@@ -1,4 +1,4 @@
-# $Id: OutputInfo.pm 12022 2006-01-16 21:55:21Z wsnyder $
+# $Id: Info.pm 15061 2006-03-01 19:51:13Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -13,37 +13,46 @@
 # 
 ######################################################################
 
-package SystemC::Vregs::OutputInfo;
-use File::Basename;
-use Carp;
-use vars qw($VERSION);
-$VERSION = '1.320';
-
-use SystemC::Vregs::Outputs;
+package SystemC::Vregs::Output::Info;
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Language;
+use Carp;
 use strict;
+use vars qw($VERSION);
 
-# We simply add to the existing package...
-package SystemC::Vregs;
+$VERSION = '1.400';
 
 ######################################################################
+# CONSTRUCTOR
 
-sub info_h_write {
+sub new {
+    my $class = shift;
+    my $self = {@_};
+    bless $self, $class;
+    return $self;
+}
+
+######################################################################
+# METHODS
+
+sub write_h {
     my $self = shift;
+    my %params = (pack => $self->{pack},
+		  @_);
+    my $pack = $params{pack} or croak "%Error: No pack=> parameter passed,";
     # Dump headers for class name based accessors
 
     my $fl = SystemC::Vregs::File->open(language=>'CPP',
-					rules => $self->{rules},
+					rules => $pack->{rules},
 					@_);
     $fl->include_guard();
 
-    $self->{rules}->execute_rule ('info_cpp_file_before', 'file_body', $self);
+    $pack->{rules}->execute_rule ('info_cpp_file_before', 'file_body', $pack);
 
     $fl->print ("\n");
     $fl->print ("#include \"VregsRegInfo.h\"\n");
 
-    my $name = $self->{name};
+    my $name = $pack->{name};
     my $nameInfo = $name."_info";
     my $nameClass = $nameInfo."_class";
     $fl->print ("/// Information on this specification. See VregsSpecInfo for documentation.\n",
@@ -67,20 +76,23 @@ sub info_h_write {
     $fl->close();
 }
 
-sub info_cpp_write {
+sub write_cpp {
     my $self = shift;
+    my %params = (pack => $self->{pack},
+		  @_);
+    my $pack = $params{pack} or croak "%Error: No pack=> parameter passed,";
     # Dump headers for class name based accessors
 
-    my $fl = SystemC::Vregs::File->open(rules => $self->{rules},
+    my $fl = SystemC::Vregs::File->open(rules => $pack->{rules},
 					language=>'CPP', @_);
 
-    my $name = $self->{name};
+    my $name = $pack->{name};
     my $nameInfo = $name."_info";
     my $nameClass = $nameInfo."_class";
 
     $fl->print ("#include \"${nameInfo}.h\"\n"
 	        ."\n");
-    $fl->print ("#include \"$self->{name}_class.h\"\n");
+    $fl->print ("#include \"$pack->{name}_class.h\"\n");
 		
     $fl->print ("//".('='x68)."\n");
     $fl->print ("// STATICS\n");
@@ -97,17 +109,17 @@ sub info_cpp_write {
 
     $fl->print ("const char* ${nameClass}::name() { return \"${name}\"; }\n\n");
 
-    $fl->print ("static const char* $self->{name}_named_classNames[] = {\n");
+    $fl->print ("static const char* $pack->{name}_named_classNames[] = {\n");
     my $nclasses=0;
     foreach my $typeref (sort { $a->{name} cmp $b->{name}}  # Else sorted by need of base classes
-			 $self->types_sorted) {
+			 $pack->types_sorted) {
 	$fl->print ("\t\"$typeref->{name}\",\n");
 	$nclasses++;
     }
     $fl->print ("};\n\n");
 
     $fl->print ("const char** ${nameClass}::classNames() {\n");
-    $fl->print ("    return $self->{name}_named_classNames;\n\n");
+    $fl->print ("    return $pack->{name}_named_classNames;\n\n");
     $fl->print ("}\n\n");
 
     $fl->print ("int ${nameClass}::numClassNames() {\n"
@@ -116,7 +128,7 @@ sub info_cpp_write {
 
     $fl->print ("bool ${nameClass}::isClassName(const char* className) {\n");
     $fl->print ("    for (int i=0; i<numClassNames(); i++) {\n"
-		,"\tif (0==strcmp(className, $self->{name}_named_classNames[i])) return true;\n"
+		,"\tif (0==strcmp(className, $pack->{name}_named_classNames[i])) return true;\n"
 		,"    }\n");
     $fl->print ("    return false;\n");
     $fl->print ("}\n\n");
@@ -124,7 +136,7 @@ sub info_cpp_write {
     $fl->print ("void ${nameClass}::dumpClass(const char* className, void* datap, OStream& ost, const char* pf) {\n");
     #$fl->print ("    // Must call .w() functions on each, as each class may have differing endianness\n");
     my $else = "";
-    foreach my $typeref ($self->types_sorted) {
+    foreach my $typeref ($pack->types_sorted) {
 	$fl->print ("    ${else}if (0==strcmp(className,\"$typeref->{name}\")) {\n"
 		    ,"\t$typeref->{name}* p = ($typeref->{name}*)datap; \n"
 		    ,"\tost<<p->dump(pf);\n"
@@ -146,8 +158,8 @@ sub info_cpp_write {
     $fl->printf ("    //rip->add_register( address,       size,   name,     spacing, rangeLow, rangeHi,\n");
     $fl->printf ("    //  rdMask,     wrMask,     rstVal,     rstMask,    flags);\n");
 
-    foreach my $regref ($self->regs_sorted()) {
-	my $size = $self->addr_const_vec($regref->{typeref}{words}*4);
+    foreach my $regref ($pack->regs_sorted()) {
+	my $size = $pack->addr_const_vec($regref->{typeref}{words}*4);
 	my $noarray =  $regref->attribute_value('noarray');
 	my $noregtest = $regref->attribute_value('noregtest');
 	my $noregdump = $regref->attribute_value('noregdump');
@@ -157,14 +169,14 @@ sub info_cpp_write {
 	    $size->subtract ($regref->{addr_end}, $regref->{addr}, 0);
 	}
 	$fl->printf ("    rip->add_register (%s, %s, \"%s\"",
-		     $fl->sprint_hex_value_add0 ($regref->{addr}, $self->{address_bits}),
-		     $fl->sprint_hex_value_drop0 ($size, $self->{address_bits}),
+		     $fl->sprint_hex_value_add0 ($regref->{addr}, $pack->{address_bits}),
+		     $fl->sprint_hex_value_drop0 ($size, $pack->{address_bits}),
 		     $regref->{name});
 	if ($regref->{range} && ! $noarray) {
 	    $fl->printf (", %s, %s, %s,\n",
-			 $fl->sprint_hex_value_drop0 ($regref->{spacing}, $self->{address_bits}),
-			 $fl->sprint_hex_value_drop0 ($regref->{range_low}, $self->{address_bits}),
-			 $fl->sprint_hex_value_drop0 ($regref->{range_high_p1}, $self->{address_bits}));
+			 $fl->sprint_hex_value_drop0 ($regref->{spacing}, $pack->{address_bits}),
+			 $fl->sprint_hex_value_drop0 ($regref->{range_low}, $pack->{address_bits}),
+			 $fl->sprint_hex_value_drop0 ($regref->{range_high_p1}, $pack->{address_bits}));
 	} else {
 	    $fl->print (",\n");
 	}
@@ -176,7 +188,7 @@ sub info_cpp_write {
 	my $rst_val = 0;
 	my $rst_mask = 0;
 	my $typeref = $regref->{typeref};
-	for (my $bit=0; $bit<$self->{data_bits}; $bit++) {
+	for (my $bit=0; $bit<$pack->{data_bits}; $bit++) {
 	    my $bitent = $typeref->{bitarray}[$bit];
 	    next if !$bitent;
 	    $rd_mask  |= (1<<$bit) if ($bitent->{read});
@@ -203,7 +215,7 @@ sub info_cpp_write {
     $fl->printf ("#   undef RFNORDUMP\n");
     $fl->print ("};\n\n");
 
-    $self->{rules}->execute_rule ('info_cpp_file_after', 'file_body', $self);
+    $pack->{rules}->execute_rule ('info_cpp_file_after', 'file_body', $pack);
 
     $fl->close();
 }
@@ -217,29 +229,35 @@ __END__
 
 =head1 NAME
 
-SystemC::Vregs::OutputInfo - Outputting Vregs _dump Code
+SystemC::Vregs::Output::Info - Outputting Vregs _dump Code
 
 =head1 SYNOPSIS
 
-    use SystemC::Vregs::OutputInfo;
+SystemC::Vregs::Output::Info->new->write_h(pack=>$VregsPackageObject, filename=>$fn);
+SystemC::Vregs::Output::Info->new->write_cpp(pack=>$VregsPackageObject, filename=>$fn);
 
 =head1 DESCRIPTION
 
-This package contains additional SystemC::Vregs methods.  These methods
-are used to output various types of files.
+This package dumps vregs format into a file.  It is called by the Vregs
+package.
 
 =head1 METHODS
 
 =over 4
 
-=item info_h_write
+=item new()
 
-Creates a header file for use with info_cpp_write
+Create and return a new output class.
 
-=item info_cpp_write
+=item write_h
 
-Creates a C++ file which allows textual class names to be mapped
-to appropriate pointer types for dumping to a stream.
+Creates a header file for use with write_cpp.
+
+=item write_cpp
+
+Creates a C++ file with information on each register.  The information is
+then added to a map which may be used during runtime to decode register
+addresses into names.
 
 =back
 
@@ -257,6 +275,7 @@ Wilson Snyder <wsnyder@wsnyder.org>
 
 =head1 SEE ALSO
 
-L<SystemC::Vregs::Output>
+L<vreg>,
+L<SystemC::Vregs>
 
 =cut

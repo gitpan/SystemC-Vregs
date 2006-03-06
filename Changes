@@ -2,6 +2,16 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.400 3/6/2006
+
+**	The package SystemC::Vregs::Outputs has been removed, and split
+	into independent package for each output file type.  This makes it
+	easier make new output formats by coping an existing Output/*.pm
+	module.
+
+***	Vderegs now uses host byte order by default.
+	Use "netorder" and "hostorder" commands to flip this mode.
+
 * Vregs 1.320 1/16/2006
 
 **	Lowercase first letter of _struct.h accessor functions.
@@ -199,7 +209,7 @@ The contributors that suggested a given feature are shown in [].
 	after_enum_cpp, before_class_cpp, after_class_cpp.
 
 ***	Made RBASEA_ and RBASEAE_ defines from common prefix
-	exising across multiple registers.  RBASEAM_ is a power-of-two
+	existing across multiple registers.  RBASEAM_ is a power-of-two
 	mask for extracting that range.
 
 ***	Classes which have a smaller base class now have the
@@ -229,7 +239,7 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 12022 2006-01-16 21:55:21Z wsnyder $
+$Id: Changes 15289 2006-03-06 15:45:36Z wsnyder $
 ----------------------------------------------------------------------
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
