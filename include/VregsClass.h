@@ -1,4 +1,4 @@
-// $Id: VregsClass.h 12136 2006-01-18 14:22:38Z wsnyder $ -*- C++ -*-
+// $Id: VregsClass.h 18050 2006-04-14 17:33:30Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2006 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -22,6 +22,8 @@
 
 #ifndef _VREGSCLASS_H_
 #define _VREGSCLASS_H_
+
+#include "VregsDefs.h"
 
 #ifdef __cplusplus
 #include <iostream>

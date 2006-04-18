@@ -1,4 +1,4 @@
-# $Id: Defines.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# $Id: Defines.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,14 +22,15 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 ######################################################################
 # CONSTRUCTOR
 
 sub new {
     my $class = shift;
-    my $self = {@_};
+    my $self = {define_prefix => '',
+		@_};
     bless $self, $class;
     return $self;
 }
@@ -46,13 +47,39 @@ sub write {
     $pack->create_defines(1);
     my $fl = SystemC::Vregs::File->open(rules => $pack->{rules},
 					@_);
+
     $fl->comment_pre("\n");
     $fl->comment_pre("package $pack->{name}\n");
     $fl->comment_pre("\n");
+    $fl->comment_pre(("*"x70)."\n");
 
+    $self->_print_header($pack, $fl);
+
+    $fl->include_guard();
+    $fl->print("\n");
+
+    $fl->print ("//Verilint  34 off //WARNING: Unused macro\n") if $fl->{Verilog};
+    $fl->print("\n");
+
+    $pack->{rules}->execute_rule ('defines_file_before', $fl->{filename}, $pack);
+    $fl->print("\n");
+
+    $self->_body($pack, $fl);
+
+    $pack->{rules}->execute_rule ('defines_file_after', $fl->{filename}, $pack);
+
+    $fl->close();
+}
+
+######################################################################
+
+sub _print_header {
+    my $self = shift;
+    my $pack = shift;
+    my $fl = shift;
+    
     $fl->comment_pre
-	(("*"x70)."\n"
-	 ."   General convention:\n"
+	("  General convention:\n"
 	 ."     RA_{regname}     Register beginning address\n"
 	 ."     RAE_{regname}    Register ending address + 1\n"
 	 ."     RAC_{regname}    Number of entries in register\n"
@@ -73,15 +100,13 @@ sub write {
 	 ."          {w}=32=bit word number,  {f}=field number if discontinuous\n"
 	 );
     $fl->print("\n");
+}
 
-    $fl->include_guard();
-    $fl->print("\n");
-
-    $fl->print ("//Verilint  34 off //WARNING: Unused macro\n") if $fl->{Verilog};
-    $fl->print("\n");
-
-    $pack->{rules}->execute_rule ('defines_file_before', $fl->{filename}, $pack);
-
+sub _body {
+    my $self = shift;
+    my $pack = shift;
+    my $fl = shift;
+    
     my $firstauto = 1;
     foreach my $defref ($pack->defines_sorted) {
 	if ($firstauto && !$defref->{is_manual}) {
@@ -104,13 +129,10 @@ sub write {
 	if (($defref->{is_verilog} && $fl->{Verilog})
 	    || ($defref->{is_perl} && $fl->{Perl})
 	    || (!$defref->{is_verilog} && !$defref->{is_perl})) {
-	    $fl->define ($define, $value, ($pack->{comments}?$comment:""));
+	    $fl->define ($self->{define_prefix}.$define, $value,
+			 ($pack->{comments}?$comment:""));
 	}
     }
-
-    $pack->{rules}->execute_rule ('defines_file_after', $fl->{filename}, $pack);
-
-    $fl->close();
 }
 
 ######################################################################

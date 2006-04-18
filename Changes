@@ -2,6 +2,18 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.410 4/18/2006
+
+**	Change all VregsRegInfo classes to support 64 bit registers.
+
+**	Always include RAE_, RAC_ and RRP_ for non-arrays.  [Larry Stewart]
+
+**	Wrap 64-bit ULL numbers to appease Microsoft Visual C.  [Aaron Brooks]
+
+***	Allow bus subscripts in attributes.  [Matt Reilly]
+
+****	Tabify all output files.
+
 * Vregs 1.400 3/6/2006
 
 **	The package SystemC::Vregs::Outputs has been removed, and split
@@ -239,7 +251,8 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 15289 2006-03-06 15:45:36Z wsnyder $
+$Id: Changes 18144 2006-04-18 13:58:23Z wsnyder $
+DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].

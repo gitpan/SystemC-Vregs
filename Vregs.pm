@@ -1,4 +1,4 @@
-# $Id: Vregs.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# $Id: Vregs.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -28,7 +28,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 ######################################################################
 #### Constants
@@ -367,7 +367,7 @@ sub new_enum {
 		my $var = $1;
 		my $val = $row->[$colnum]||"";
 		$val =~ s/\s*\([^\)]*\)//g;
-		$valref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._0-9]+)$/;
+		$valref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._:0-9]+)$/;
 	    }
 	}
     }
@@ -541,7 +541,7 @@ sub new_register {
 		    my $var = $1;
 		    my $val = $row->[$colnum]||"";
 		    $val =~ s/\s*\([^\)]*\)//g;
-		    $bitref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._0-9]+)$/;
+		    $bitref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._:0-9]+)$/;
 		}
 	    }
 	}
@@ -735,8 +735,9 @@ sub _regs_read_attributes {
     my $obj = shift;
     my $flags = shift;
 
-    $obj->{attributes}{$1} = $2 while ($flags =~ s/-([a-zA-Z][a-zA-Z0-9_]*)=(\S*)\b//);
-    $obj->{attributes}{$1} = 1  while ($flags =~ s/-([a-zA-Z][a-zA-Z0-9_]*)\b//);
+    $flags = " $flags ";
+    $obj->{attributes}{$1} = $2 while ($flags =~ s/\s-([a-zA-Z][a-zA-Z0-9_]*)=([^ \t]*)\s/ /);
+    $obj->{attributes}{$1} = 1  while ($flags =~ s/\s-([a-zA-Z][a-zA-Z0-9_]*)\s/ /);
     ($flags =~ /^\s*$/) or $obj->warn ("Unparsable attributes setting: '$flags'");
 }
 
@@ -1011,7 +1012,7 @@ sub create_defines {
 	     rst_val => $addr->to_Hex, bits => $pack->{address_bits},
 	     desc => "Address of $classname", );
 
-	if ($range ne "") {
+	if ($range ne "" || 1) {
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $pack,
 		 name => "RAE_".$nor_mnem,
@@ -1045,7 +1046,7 @@ sub create_defines {
 		    (pack => $pack,
 		     name => "RRS_".$nor_mnem,
 		     rst_val => $val->to_Hex,
-		     bits => (($val > 0) ? $pack->{address_bits} : 32),
+		     bits => (($val != 0) ? $pack->{address_bits} : 32),
 		     desc => "Range byte size", );
 	    } else {
 		new_push SystemC::Vregs::Define::Value
@@ -1385,6 +1386,10 @@ Reads the specified .vregs filename, and creates internal objects.
 Calls the normal sequence of commands to read a known-good vregs file;
 regs_read, check, and exit_if_error.
 
+=item regs_sorted
+
+Returns list of SystemC::Vregs::Register objects.
+
 =item regs_write
 
 Creates the specified .vregs filename.
@@ -1392,7 +1397,6 @@ Creates the specified .vregs filename.
 =item types_sorted
 
 Returns list of SystemC::Vregs::Type objects.
-
 
 =back
 

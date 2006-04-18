@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.cpp 12022 2006-01-16 21:55:21Z wsnyder $ -*- C++ -*-
+// $Id: VregsRegInfo.cpp 18050 2006-04-14 17:33:30Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2006 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -47,8 +47,8 @@ void VregsRegInfo::add_register (VregsRegEntry* regentp) {
 void VregsRegInfo::add_register (
     address_t addr, size64_t size, const char* name,
     uint64_t spacing, uint64_t rangeLow, uint64_t rangeHigh,
-    uint32_t rdMask, uint32_t wrMask,
-    uint32_t rstVal, uint32_t rstMask, uint32_t flags)
+    uint64_t rdMask, uint64_t wrMask,
+    uint64_t rstVal, uint64_t rstMask, uint32_t flags)
 {
     if (spacing == 0) {
 	// Single register
@@ -67,7 +67,7 @@ void VregsRegInfo::add_register (
 	    // or it's the first, last, or a power-of-two register
 	    bool test = (ent==0 || ent==(rangeHigh-rangeLow-1)
 			 || ((rangeHigh-rangeLow)<=16));
-	    for (int bit=0; bit<64; bit++) { if (ent==(1ULL<<bit)) test=true; }
+	    for (int bit=0; bit<64; bit++) { if (ent==(VREGS_ULL(1)<<bit)) test=true; }
 	    add_register (new VregsRegEntry (addr + ent*spacing, size,
 					     name, size, ent+rangeLow,
 					     rdMask,wrMask,rstVal,rstMask,

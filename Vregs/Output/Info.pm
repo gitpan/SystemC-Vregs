@@ -1,4 +1,4 @@
-# $Id: Info.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# $Id: Info.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 ######################################################################
 # CONSTRUCTOR
@@ -156,7 +156,8 @@ sub write_cpp {
     $fl->printf ("#   define RFNORTEST VregsRegEntry::REGFL_NOREGTEST\n");
     $fl->printf ("#   define RFNORDUMP VregsRegEntry::REGFL_NOREGDUMP\n");
     $fl->printf ("    //rip->add_register( address,       size,   name,     spacing, rangeLow, rangeHi,\n");
-    $fl->printf ("    //  rdMask,     wrMask,     rstVal,     rstMask,    flags);\n");
+    $fl->printf ("    //  rdMask,     wrMask,     rstVal,     rstMask,\n");
+    $fl->printf ("    //  flags);\n");
 
     foreach my $regref ($pack->regs_sorted()) {
 	my $size = $pack->addr_const_vec($regref->{typeref}{words}*4);
@@ -181,27 +182,35 @@ sub write_cpp {
 	    $fl->print (",\n");
 	}
 
-	my $rd_mask = 0;
-	my $wr_mask = 0;
+	my $nbits = $pack->{data_bits};
+	$nbits = $size->to_Dec*8 if $size->to_Dec*8 > $nbits;
+
 	my $rd_side = 0;
 	my $wr_side = 0;
-	my $rst_val = 0;
-	my $rst_mask = 0;
+	my $rd_mask = Bit::Vector->new($nbits);
+	my $wr_mask = Bit::Vector->new($nbits);
+	my $rst_val = Bit::Vector->new($nbits);
+	my $rst_mask = Bit::Vector->new($nbits);
 	my $typeref = $regref->{typeref};
-	for (my $bit=0; $bit<$pack->{data_bits}; $bit++) {
+
+	for (my $bit=0; $bit<$nbits; $bit++) {
 	    my $bitent = $typeref->{bitarray}[$bit];
 	    next if !$bitent;
-	    $rd_mask  |= (1<<$bit) if ($bitent->{read});
-	    $wr_mask  |= (1<<$bit) if ($bitent->{write});
+	    $rd_mask->Bit_On($bit) if ($bitent->{read});
+	    $wr_mask->Bit_On($bit) if ($bitent->{write});
 	    $rd_side   =  1 if ($bitent->{read_side});
 	    $wr_side   =  1 if ($bitent->{write_side});
 	    if (defined $bitent->{rstvec}) {
-		$rst_mask |= (1<<$bit);
-		$rst_val  |= (1<<$bit) if ($bitent->{rstvec});
+		$rst_mask->Bit_On($bit);
+		$rst_val ->Bit_On($bit) if ($bitent->{rstvec});
 	    }
 	}
-	$fl->printf ("\t0x%08lx, 0x%08lx, 0x%08lx, 0x%08lx, 0",
-		     $rd_mask, $wr_mask, $rst_val, $rst_mask);
+	$fl->printf (( ($nbits > 32)
+		       ? "\tVREGS_ULL(0x%s), VREGS_ULL(0x%s), VREGS_ULL(0x%s), VREGS_ULL(0x%s),\n"
+		       : "\t0x%s, 0x%s, 0x%s, 0x%s,\n"),
+		     lc($rd_mask->to_Hex), lc($wr_mask->to_Hex),
+		     lc($rst_val->to_Hex), lc($rst_mask->to_Hex));
+	$fl->printf ("\t0");
 	$fl->printf ("|RFRDSIDE") if $rd_side;
 	$fl->printf ("|RFWRSIDE") if $wr_side;
 	$fl->printf ("|RFNORTEST") if $noregtest;

@@ -1,4 +1,4 @@
-# $Id: Rules.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# $Id: Rules.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 ######################################################################
 # Default rules
@@ -30,8 +30,14 @@ sub _default_rules {
 	    fprint ("#include <iostream>\n") if fhandle()->{CPP};
 	    fprint ("#include <netinet/in.h>  /*ntoh*/\n"
 		    ."#include <stdint.h>      /*uint32_t*/\n"
+		    ."#include <VregsDefs.h>\n"
 		    ."#include <VregsClass.h>\n"
 		    );
+	});
+    before_defines_file
+	(prog=> sub {
+	    my ($self,$name) = @_;
+	    fprint ("#include <VregsDefs.h>\n") if (fhandle()->{CPP} || fhandle()->{C} || fhandle()->{Gas});
 	});
     before_enum_end
 	(prog=> sub {
@@ -284,6 +290,14 @@ Specifies a rule to be invoked right before the '}' ending a class declaration.
 =item after_class_end
 
 Specifies a rule to be invoked right after the '}' ending a class declaration.
+
+=item after_defines_body
+
+Specifies a rule to be invoked at the bottom of the defs.h file.
+
+=item before_defines_body
+
+Specifies a rule to be invoked at the top of the defs.h file.
 
 =item after_enum_begin
 

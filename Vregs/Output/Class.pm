@@ -1,4 +1,4 @@
-# $Id: Class.pm 15117 2006-03-02 14:31:01Z wsnyder $
+# $Id: Class.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 ######################################################################
 # CONSTRUCTOR

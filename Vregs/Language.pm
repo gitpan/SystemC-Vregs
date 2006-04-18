@@ -1,4 +1,4 @@
-# $Id: Language.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# $Id: Language.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use Carp;
 use IO::File;
 
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 ######################################################################
 #### Implementation
@@ -131,9 +131,14 @@ sub is_keyword {
 ######################################################################
 #### Printing
 
-sub print {
+sub push_text {
     my $self = shift;
     push @{$self->{text}}, @_;
+}
+
+sub print {
+    my $self = shift;
+    $self->push_text(@_);
 }
 
 sub printf {
@@ -144,9 +149,14 @@ sub printf {
     $self->print($text);
 }
 
-sub print_at_close {
+sub push_close_text {
     my $self = shift;
     push @{$self->{close_text}}, @_;
+}
+
+sub print_at_close {
+    my $self = shift;
+    $self->push_close_text(@_);
 }
 
 sub printf_at_close {
@@ -183,11 +193,12 @@ sub define {
     my $val = shift;
     my $cmt = shift;
     # Assume C++ define
+    my $len = ((length($val)> 16) ? 29 : 16);
     if ($cmt) {
-	$self->printf ("#define\t%-26s %16s\t", $def, $val);
+	$self->printf ("#define\t%-26s\t%${len}s\t", $def, $val);
 	$self->comment_post ($cmt,"\n");
     } else {
-	$self->printf ("#define\t%-26s %16s\n", $def, $val);
+	$self->printf ("#define\t%-26s\t%${len}s\n", $def, $val);
     }
 }
 
@@ -215,9 +226,13 @@ sub include_guard {
 }
 
 sub sprint_hex_value {
-    my ($self,$value,$bits) = @_;
+    my ($self,$value,$bits,$force_ull) = @_;
     if ($bits>32) {
-	return "0x".$value . "ULL";
+	if ($force_ull) {
+	    return "0x".$value . "ULL";
+	} else {
+	    return "VREGS_ULL(0x".$value . ")";
+	}
     } else {
 	return "0x".$value;
     }
@@ -310,6 +325,7 @@ sub is_keyword {
 
 package SystemC::Vregs::Language::Lisp;
 use base qw(SystemC::Vregs::Language);
+use Carp;
 use strict;
 
 sub is_keyword { return undef;}
@@ -323,6 +339,23 @@ sub comment {
     $strg =~ s!\n(.)!\n;;$1!g;
     $strg =~ s!\n\n!\n;;\n!og;
     $self->print(";;".$strg);
+}
+
+sub define {
+    my $self = shift; ($self && ref($self)) or croak 'Not a hash reference';
+    my $def = shift;
+    my $val = shift;
+    my $cmt = shift;
+    if ($cmt) {
+	$self->printf ("(defconstant %-26s\t%16s) ;; %s\n", $def, $val, $cmt);
+    } else {
+	$self->printf ("(defconstant %-26s\t%16s)\n", $def, $val);
+    }
+}
+
+sub sprint_hex_value {
+    my ($self,$value,$bits) = @_;
+    return "#x".$value;
 }
 
 ######################################################################
@@ -368,9 +401,9 @@ sub preproc {
 sub define {
     my $self = shift;
     if ($_[2]) {
-	$self->printf ("use constant %-26s => %16s;\t# %s\n", @_);
+	$self->printf ("use constant %-26s\t=> %16s;\t# %s\n", @_);
     } else {
-	$self->printf ("use constant %-26s => %16s;\n", @_);
+	$self->printf ("use constant %-26s\t=> %16s;\n", @_);
     }
 }    
 
@@ -407,9 +440,9 @@ sub preproc_char {
 sub define {
     my $self = shift;
     if ($_[2]) {
-	$self->printf ("`define\t%-26s %16s\t// %s\n", @_);
+	$self->printf ("`define\t%-26s\t%16s\t// %s\n", @_);
     } else {
-	$self->printf ("`define\t%-26s %16s\n", @_);
+	$self->printf ("`define\t%-26s\t%16s\n", @_);
     }
 }
 

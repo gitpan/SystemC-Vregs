@@ -1,4 +1,4 @@
-# $Id: Bit.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# $Id: Bit.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION %Keywords);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))

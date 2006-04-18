@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.h 12022 2006-01-16 21:55:21Z wsnyder $ -*- C++ -*-
+// $Id: VregsRegInfo.h 18050 2006-04-14 17:33:30Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2006 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <string>
 
+#include "VregsDefs.h"
 #include "VregsClass.h"
 
 class VregsRegInfo;
@@ -47,10 +48,10 @@ private:
     uint64_t		m_lowEntNum;	///< Low entry number (for RAMs)
     void*		m_userinfo;	///< Reserved for users (not used here)
 
-    uint32_t		m_rdMask;	///< Readable mask (1 in bit indicates is readable)
-    uint32_t		m_wrMask;	///< Writeable mask (1 in bit indicates is writable)
-    uint32_t		m_rstVal;	///< Reset value (for 32 bit reg tests)
-    uint32_t		m_rstMask;	///< Reset mask (1 in bit indicates is reset)
+    uint64_t		m_rdMask;	///< Readable mask (1 in bit indicates is readable)
+    uint64_t		m_wrMask;	///< Writeable mask (1 in bit indicates is writable)
+    uint64_t		m_rstVal;	///< Reset value (for 32 bit reg tests)
+    uint64_t		m_rstMask;	///< Reset mask (1 in bit indicates is reset)
     uint32_t		m_flags;	///< Flags (side effects, testing)
 
 public:
@@ -60,8 +61,8 @@ public:
     // Create new register, called by vregs generated headers
     VregsRegEntry(address_t addr, size64_t size,
 		  const char* name, size64_t entSize, uint64_t lowEntNum,
-		  uint32_t rdMask, uint32_t wrMask,
-		  uint32_t rstVal, uint32_t rstMask, uint32_t flags)
+		  uint64_t rdMask, uint64_t wrMask,
+		  uint64_t rstVal, uint64_t rstMask, uint32_t flags)
 	: m_address(addr), m_size(size), m_name(name)
 	, m_entSize(entSize), m_lowEntNum(lowEntNum)
 	, m_userinfo(NULL), m_rdMask(rdMask), m_wrMask(wrMask)
@@ -85,19 +86,20 @@ public:
     const char* 	name () const { return m_name; }	///< Register name
     size64_t	 	size () const { return m_size; }	///< Total size in bytes
     size64_t	 	entSize () const { return m_entSize; }	///< One array entry in bytes
+    size64_t		accessSize() const { return isRanged() ? entSize() : size(); }
     uint64_t 		lowEntNum () const { return m_lowEntNum; }	///< Low bound of array
     void* 		userinfo () const { return m_userinfo; }	///< Userdata
 
     // We don't allow visibility to the uint that gives the value of these fields
     // This allows us to have other then 32 bit registers in the future
-    bool		rdMask(int bit) const { return ((m_rdMask & (1UL<<(bit)))!=0); } ///< Is this bit readable
-    bool		wrMask(int bit) const { return ((m_wrMask & (1UL<<(bit)))!=0); } ///< Is this bit writable
-    bool		rstMask(int bit) const { return ((m_rstMask & (1UL<<(bit)))!=0); } ///< Is this bit reset
-    bool		rstVal(int bit) const { return ((m_rstVal & (1UL<<(bit)))!=0); } ///< Reset value of this bit
-    uint32_t		rdMask() const { return (m_rdMask); }	///< Bits that are readable
-    uint32_t		wrMask() const { return (m_wrMask); }	///< Bits that are writable
-    uint32_t		rstMask() const { return (m_rstMask); }	///< Bits that are reset
-    uint32_t		rstVal() const { return (m_rstVal); }	///< Reset value
+    bool		rdMask(int bit) const { return ((m_rdMask & (VREGS_ULL(1)<<(bit)))!=0); } ///< Is this bit readable
+    bool		wrMask(int bit) const { return ((m_wrMask & (VREGS_ULL(1)<<(bit)))!=0); } ///< Is this bit writable
+    bool		rstMask(int bit) const { return ((m_rstMask & (VREGS_ULL(1)<<(bit)))!=0); } ///< Is this bit reset
+    bool		rstVal(int bit) const { return ((m_rstVal & (VREGS_ULL(1)<<(bit)))!=0); } ///< Reset value of this bit
+    uint64_t		rdMask() const { return (m_rdMask); }	///< Bits that are readable
+    uint64_t		wrMask() const { return (m_wrMask); }	///< Bits that are writable
+    uint64_t		rstMask() const { return (m_rstMask); }	///< Bits that are reset
+    uint64_t		rstVal() const { return (m_rstVal); }	///< Reset value
     bool		isRdMask() const { return (m_rdMask!=0); }	///< Readable
     bool		isWrMask() const { return (m_wrMask!=0); }	///< Writable
     bool		isRstMask() const { return (m_rstMask!=0); }	///< Reset non zero
@@ -138,11 +140,11 @@ public:
     void	add_register (VregsRegEntry* regentp);
     void	add_register (address_t addr, size64_t size, const char* name,
 			      uint64_t spacing, uint64_t rangelow, uint64_t rangehigh,
-			      uint32_t rdMask, uint32_t wrMask,
-			      uint32_t rstVal, uint32_t rstMask, uint32_t flags);
+			      uint64_t rdMask, uint64_t wrMask,
+			      uint64_t rstVal, uint64_t rstMask, uint32_t flags);
     void	add_register (address_t addr, size64_t size, const char* name,
-			      uint32_t rdMask, uint32_t wrMask,
-			      uint32_t rstVal, uint32_t rstMask, uint32_t flags) {
+			      uint64_t rdMask, uint64_t wrMask,
+			      uint64_t rstVal, uint64_t rstMask, uint32_t flags) {
 	add_register (addr, size, name, 0, 0, 0,
 		      rdMask,wrMask,rstVal,rstMask,flags); }
     void	add_register (address_t addr, size64_t size, const char* name) {
@@ -155,6 +157,8 @@ public:
 		      ~0,~0,0,0,0); }
     void	lookup();
     void	dump();
+
+    uint64_t    size() { return m_byAddr.size(); }
 
     // MANIPULATORS - Lookups
     VregsRegEntry* find_by_addr (address_t addr);	///< Return register given address

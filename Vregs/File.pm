@@ -1,4 +1,4 @@
-# $Id: File.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# $Id: File.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -23,7 +23,7 @@ use SystemC::Vregs::Language;
 use strict;
 use Carp;
 
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 ######################################################################
 ######################################################################
@@ -164,6 +164,21 @@ sub call_str {
     }
 }
 
+######################################################################
+# Tabify all output
+
+sub print {
+    my $self = shift;
+    # Override default SystemC::Vregs::Language::print to tabify all output
+    $self->push_text($self->tabify(@_));
+}
+
+sub print_at_close {
+    my $self = shift;
+    # Override default SystemC::Vregs::Language::print to tabify all output
+    $self->push_close_text($self->tabify(@_));
+}
+
 sub printf_tabify {
     my $self = shift;
     my $line = sprintf(shift,@_);
@@ -177,6 +192,7 @@ sub tabify {
     my $out='';
     my $col=0;
     my $spaces=0;
+    $line =~ s/\t        /\t\t/g;
     for (my $i=0; $i<length($line); $i++) {
 	my $c = substr($line,$i,1);
 	if ($c eq "\n") {

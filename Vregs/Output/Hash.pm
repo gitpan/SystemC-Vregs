@@ -1,4 +1,4 @@
-# $Id: Hash.pm 15061 2006-03-01 19:51:13Z wsnyder $
+# $Id: Hash.pm 18144 2006-04-18 13:58:23Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '1.400';
+$VERSION = '1.410';
 
 ######################################################################
 # CONSTRUCTOR
