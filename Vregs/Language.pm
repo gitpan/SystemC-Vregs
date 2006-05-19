@@ -1,4 +1,4 @@
-# $Id: Language.pm 18144 2006-04-18 13:58:23Z wsnyder $
+# $Id: Language.pm 20440 2006-05-19 13:46:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use Carp;
 use IO::File;
 
-$VERSION = '1.410';
+$VERSION = '1.420';
 
 ######################################################################
 #### Implementation
@@ -32,6 +32,10 @@ sub new {
     my $class = shift;
     my $self = {text=>[],
 		close_text=>[],
+		#keep_timestamp=>undef,
+		#dry_run=>undef,	# Don't do it, just see if would do it
+		#change_error=>{},
+		#changes=>undef,	# For dry_run, any changes found?
 		@_};
     
     $self->{filename} or croak "%Error: ->new() requires filename=> argument, stopped";
@@ -97,10 +101,19 @@ sub close {
     
     if (!$keepstamp
 	|| (join ('',@oldtext) ne join ('',@{$self->{text}}))) {
-	printf "Writing $self->{filename}\n" if ($self->{verbose});
-	my $fh = IO::File->new (">$self->{filename}") or die "%Error: $! $self->{filename}\n";
-	print $fh @{$self->{text}};
-	$fh->close();
+	$self->{changes} = 1;
+	if ($self->{change_error}{ $self->language }
+	    || $self->{change_error}{ALL}) {
+	    die "%Error: Changes needed to $self->{filename}, but not allowed to change ".$self->language." files\n";
+	}
+	if ($self->{dry_run}) {
+	    printf "Would write $self->{filename} (--dry-run)\n" if ($self->{verbose});
+	} else {
+	    printf "Writing $self->{filename}\n" if ($self->{verbose});
+	    my $fh = IO::File->new ($self->{filename},"w") or die "%Error: $! $self->{filename}\n";
+	    print $fh @{$self->{text}};
+	    $fh->close();
+	}
     } else {
 	printf "Same $self->{filename}\n" if ($self->{verbose});
     }
@@ -245,7 +258,7 @@ sub sprint_hex_value_add0 {
     $valuestr=~ s/^0+([0-9a-f])/$1/i;
     my $add = int(($bits+3)/4) - length($valuestr);
     $valuestr = "0"x$add . $valuestr if $add>=1;
-    print "ADD $valuestr $add  ".("0"x$add)."\n" if $SystemC::Vregs::Debug;
+    #print "ADD $valuestr $add  ".("0"x$add)."\n" if $SystemC::Vregs::Debug;
     return $self->sprint_hex_value ($valuestr, $bits);
 }
 

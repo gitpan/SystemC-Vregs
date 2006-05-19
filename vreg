@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Id: vreg 15061 2006-03-01 19:51:13Z wsnyder $
+#$Id: vreg 19435 2006-05-04 15:59:29Z wsnyder $
 ######################################################################
 #
 # Copyright 2001-2006 by Wilson Snyder.  This program is free software;
@@ -43,8 +43,11 @@ autoflush STDOUT 1;
 autoflush STDERR 1;
 
 $Debug = 0;
+our $Dry_Temp_File;
 my @orig_argv = @ARGV;
 @Opt_Html_Files = ();
+my $opt_dry_run;
+my %opt_change_error;
 my $opt_output = "";
 my $opt_rm;
 my $opt_package;
@@ -71,6 +74,8 @@ if (! GetOptions (
 		  "debug"	=> \&debug,
 		  "<>"		=> \&parameter,
 		  "address_bits=i" => \$opt_address_bits,
+		  "change-error=s" => sub { shift; my $f=shift; $opt_change_error{$f}=1;},
+		  "dry-run!"	=> \$opt_dry_run,
 		  "headers!"	=> \$opt_headers,
 		  "html=s"	=> sub { shift; push @Opt_Html_Files, shift; },
 		  "library=s"	=> sub { shift; push @opt_library_vregs, shift; },
@@ -153,21 +158,44 @@ if ($#Opt_Html_Files >= 0) {
     $vr->exit_if_error();
     $vr->check();
     $vr->exit_if_error();
-    $vr->regs_write ($opt_vregs);
+
+    my %p = (pack=>$vr,
+	     keep_timestamp => 1,	# Don't write if the same
+	     dry_run=>$opt_dry_run,
+	     change_error=>\%opt_change_error,
+	     );
+    SystemC::Vregs::Output::Layout->new->write
+	(%p, filename=>$opt_vregs);
+
+    if ($opt_dry_run) {  # Need to write for below step to read
+	$Dry_Temp_File = ($ENV{TEMP}||$ENV{TMP}||"/tmp")."/.vreg_$$.vregs";
+	SystemC::Vregs::Output::Layout->new->write
+	    (%p, 
+	     dry_run=>0,
+	     filename=>$Dry_Temp_File);
+    }
 }
 	      
 if ($opt_headers) {
     my $v2 = new SystemC::Vregs (@vr_params);
-    $v2->regs_read ($opt_vregs);
+    if ($Dry_Temp_File) {
+	# We didn't write out the vregs file, so we can't read it.  Just grab the data directly.
+	$v2->regs_read ($Dry_Temp_File);
+    } else {
+	$v2->regs_read ($opt_vregs);
+    }
     $v2->exit_if_error();
     $v2->check();
     $v2->exit_if_error();
     (!$opt_rules || -r $opt_rules) or die "%Error: Can't find rules file $opt_rules\n";
     $v2->rules_read ($opt_rules||"${opt_output}${opt_package}__rules.pl");
 
-    #$v2->regs_write ("${opt_output}${opt_package}.2.vregs");
     my %p = (pack=>$v2,
-	     keep_timestamp => 1,);	# Don't write if the same
+	     keep_timestamp => 1,	# Don't write if the same
+	     dry_run=>$opt_dry_run,
+	     change_error=>\%opt_change_error,
+	     );
+    #SystemC::Vregs::Output::Layout->new->write (%p, filename=>"${opt_output}${opt_package}.2.vregs");
     if ($opt_defs_v) {
 	SystemC::Vregs::Output::Defines->new->write
 	    (%p, filename=>"${opt_output}${opt_package}_defs.v", language=>'Verilog',);
@@ -214,8 +242,13 @@ if ($opt_headers) {
 
 #----------------------------------------------------------------------
 
+END {
+    unlink $Dry_Temp_File if $Dry_Temp_File;
+    $Dry_Temp_File = undef;
+}
+
 sub usage {
-    print '$Id: vreg 15061 2006-03-01 19:51:13Z wsnyder $ ', "\n";
+    print '$Id: vreg 19435 2006-05-04 15:59:29Z wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);
@@ -269,6 +302,16 @@ definition and class headers in the --output directory.
 =head1 ARGUMENTS
 
 =over 4
+
+=item --change-error I<language>
+
+Report error if file of the given language would change.  Use ALL for all
+languages.  This option may be given multiple times to specify multiple
+languages.
+
+=item --dry-run
+
+Don't write any output files, mearly report which files would change.
 
 =item --help
 

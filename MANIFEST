@@ -2,6 +2,7 @@ Changes
 COPYING
 include/vderegs.cpp
 include/VregsClass.h
+include/VregsDefs.h
 include/VregsRegInfo.cpp
 include/VregsRegInfo.h
 Makefile.PL
@@ -39,6 +40,7 @@ Vregs/Output/Class.pm
 Vregs/Output/Defines.pm
 Vregs/Output/Hash.pm
 Vregs/Output/Info.pm
+Vregs/Output/Layout.pm
 Vregs/Output/Param.pm
 Vregs/Register.pm
 Vregs/Rules.pm

@@ -1,4 +1,4 @@
-# $Id: TableExtract.pm 18144 2006-04-18 13:58:23Z wsnyder $
+# $Id: TableExtract.pm 20440 2006-05-19 13:46:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 use base qw(HTML::TableExtract);
-$VERSION = '1.410';
+$VERSION = '1.420';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -242,7 +242,7 @@ sub clean_html_file {
     # Microsoft Word changebars
     $wholefile =~ s%<a href=\"#author\d+">\[Author\s+\S+:\s+at\s+\S+\s+\S+\s+\d+\s+\S+\s+\d+\s*\]\s*</a>%%smg;
 
-    my $fh = IO::File->new(">$filename") or die "%Error: $! writing $filename\n";
+    my $fh = IO::File->new($filename,"w") or die "%Error: $! writing $filename\n";
     print $fh $wholefile;
     $fh->close;
 }

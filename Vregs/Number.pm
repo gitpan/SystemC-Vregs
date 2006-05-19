@@ -1,4 +1,4 @@
-# $Id: Number.pm 18144 2006-04-18 13:58:23Z wsnyder $
+# $Id: Number.pm 20440 2006-05-19 13:46:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -19,7 +19,7 @@ use Carp;
 use vars qw($VERSION);
 use base qw(Bit::Vector);	# For now, let Bit::Vector do all the work
 
-$VERSION = '1.410';
+$VERSION = '1.420';
 
 ######################################################################
 ######################################################################

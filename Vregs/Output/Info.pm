@@ -1,4 +1,4 @@
-# $Id: Info.pm 18144 2006-04-18 13:58:23Z wsnyder $
+# $Id: Info.pm 20440 2006-05-19 13:46:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.410';
+$VERSION = '1.420';
 
 ######################################################################
 # CONSTRUCTOR

@@ -1,4 +1,4 @@
-# $Id: Register.pm 18144 2006-04-18 13:58:23Z wsnyder $
+# $Id: Register.pm 20440 2006-05-19 13:46:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.410';
+$VERSION = '1.420';
 
 # Fields:
 #	{name}			Field name (Subclass)

@@ -1,4 +1,4 @@
-# $Id: Vregs.pm 18144 2006-04-18 13:58:23Z wsnyder $
+# $Id: Vregs.pm 20440 2006-05-19 13:46:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,13 +22,14 @@ use SystemC::Vregs::Define;
 use SystemC::Vregs::Register;
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Rules;
+use SystemC::Vregs::Output::Layout;
 use strict;
 use Carp;
 use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.410';
+$VERSION = '1.420';
 
 ######################################################################
 #### Constants
@@ -223,13 +224,13 @@ sub new_package {
     # Create a new package
 
     ($flagref->{Package}) or die;
-    (!$self->{_got_package_decl}) or return $self->warn($flagref, "Multiple Package attribute sections.\n");
-    $self->{_got_package_decl} = 1;
+    (!$self->{_got_package_decl}) or return $self->warn($flagref, "Multiple Package attribute sections, previous at $self->{_got_package_decl}.\n");
 
     my $attr = $flagref->{Attributes}||"";
     while ($attr =~ s/-(\w+)//) {
 	$self->{attributes}{$1} = 1;
 	print "PACK ATTR -$1\n" if $Debug;
+	$self->{_got_package_decl} = $flagref->{at};
     }
     ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
 }
@@ -1176,130 +1177,15 @@ sub dump {
 ######################################################################
 #### Saving
 
-sub SystemC::Vregs::Subclass::_vregs_write_attributes {
-    my $self = shift;
-    my $fh = shift;
-    foreach my $var (keys %{$self->{attributes}}) {
-	my $val = $self->{attributes}{$var};
-	if ($val eq '1') {
-	    $fh->print("\t-$var");
-	} else {
-	    $fh->print("\t-$var=$val");
-	}
-    }
-}
-
-sub SystemC::Vregs::Bit::_vregs_write_type {
-    my $self = shift;
-    my $fh = shift;
-    my $descflags = "";
-    $descflags = ".  Overlaps $self->{overlaps}." if $self->{overlaps};
-
-    $fh->printf_tabify("\tbit\t%-15s\t%-7s\t%-3s %-11s\t%-7s\t"
-		       ,$self->{name},$self->{bits},$self->{access}
-		       ,$self->{type},$self->{rst});
-    $self->_vregs_write_attributes($fh);
-    $fh->printf(" \"%s%s\"\n", $self->{desc},$descflags);
-}
-
-sub SystemC::Vregs::Type::_vregs_write_type {
-    my $self = shift;
-    my $fh = shift;
-    $fh->print("   type\t$self->{name}");
-    if ($self->{inherits}) {
-	$fh->print("\t:$self->{inherits}");
-    }
-    $self->_vregs_write_attributes($fh);
-    $fh->print("\n");
-    foreach my $fieldref ($self->fields_sorted()) {
-	$fieldref->_vregs_write_type($fh);
-    }
-}
-
 sub regs_write {
     # Dump register definitions
     my $self = shift;
     my $filename = shift;
-
-    my $fh = SystemC::Vregs::File->open(language=>'Verilog',
-					filename=>$filename,
-					noheader=>1);
-
-    $fh->print("// DESCR"."IPTION: Register Layout: Generated AUTOMATICALLY by vregs\n");
-    $fh->print("//\n");
-    $fh->print("// Format:\n");
-    $fh->print("//\tpackage {name}\n");
-    $fh->print("//\treg   {name} {type}[vec] 0x{address} {spacing}\n");
-    $fh->print("//\ttype  {name}\n");
-    $fh->print("//\tbit   {name} {bits} {access} {type} {reset} {description}\n");
-    $fh->print("//\tenum  {name}\n");
-    $fh->print("//\tconst {name} {value} {description}\n");
-    $fh->print("\n");
-
-    $fh->print("package $self->{name}");
-    $self->_vregs_write_attributes($fh);
-    $fh->print("\n");
-
-    $fh->print("//Rebuild with: $self->{rebuild_comment}\n") if $self->{rebuild_comment};
-    $fh->print("\n");
-
-    $fh->print("//",'*'x70,"\n// Registers\n");
-    my %printed;
-    foreach my $regref ($self->regs_sorted) {
-	my $classname = $regref->{name} || "x";
-	my $addr = $regref->{addr};
-	my $range = $regref->{range} || "";
-	if (!defined $addr) {
-	    print "%Error: No address defined: ${classname}\n";
-	} else {
-	    (my $nor = $classname) =~ s/^R_//;
-	    my $type = "Vregs${nor}";
-	    $fh->printf("  reg\t$classname\t$type$range\t0x%s\t0x%s\t"
-			, $addr->to_Hex, $regref->{spacing}->to_Hex);
-	    $fh->print("\n");
-
-	    my $typeref = $regref->{typeref};
-	    if (!$printed{$typeref}) {
-		$printed{$typeref} = 1;
-		$typeref->_vregs_write_type ($fh);
-	    }
-	}
-    }
-
-    $fh->print("//",'*'x70,"\n// Classes\n");
-    foreach my $typeref ($self->types_sorted) {
-	if (!$printed{$typeref}) {
-	    $printed{$typeref} = 1;
-	    $typeref->_vregs_write_type ($fh);
-	}
-    }
-
-    $fh->print("//",'*'x70,"\n// Enumerations\n");
-    foreach my $classref ($self->enums_sorted) {
-	my $classname = $classref->{name} || "x";
-	$fh->printf("   enum\t$classname");
-	$classref->_vregs_write_attributes($fh);
-	$fh->print("\n");
-	    
-	foreach my $fieldref ($classref->fields_sorted()) {
-	    next if $fieldref->{omit_from_vregs_file};
-	    $fh->printf("\tconst\t%-13s\t%s"
-			,$fieldref->{name},$fieldref->{rst});
-	    $fieldref->_vregs_write_attributes($fh);
-	    $fh->printf("\t\"%s\"\n",$fieldref->{desc});
-	}
-    }
-
-    $fh->print("//",'*'x70,"\n// Defines\n");
-    foreach my $fieldref ($self->defines_sorted) {
-	next if !$fieldref->{is_manual};
-	$fh->printf("\tdefine\t%-13s\t%s\t\"%s\"\n"
-		    ,$fieldref->{name},$fieldref->{rst},$fieldref->{desc});
-    }
-
-    $fh->close();
-
-    print "Wrote $filename\n";
+    return SystemC::Vregs::Output::Layout->new->write
+	(filename => $filename,
+	 keep_timestamp => 1,
+	 pack => $self,
+	 );
 }
 
 ######################################################################

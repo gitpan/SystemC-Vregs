@@ -2,6 +2,15 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.420 5/19/2006
+
+***	Add vreg -dry-run option.
+
+***	The vreg_write fuction is now replaced with the
+	SystemC::Vregs::Output::Layout->new->write function to match the
+	outhr outputters.  For backward compatibility, the regs_write
+	function still works.
+
 * Vregs 1.410 4/18/2006
 
 **	Change all VregsRegInfo classes to support 64 bit registers.
@@ -251,7 +260,7 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 18144 2006-04-18 13:58:23Z wsnyder $
+$Id: Changes 20440 2006-05-19 13:46:40Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 	
