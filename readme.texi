@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: readme.texi 12022 2006-01-16 21:55:21Z wsnyder $
+@c $Id: readme.texi 21533 2006-06-08 14:57:34Z wsnyder $
 @c %**start of header
 @setfilename readme.info
 @settitle Perl SystemC::Vregs Installation
@@ -78,8 +78,10 @@ see 'man vreg' for details.
 @node Obtaining Distribution, Supported Systems, SystemPerl Example, Top
 @section Obtaining Distribution
 
-The latest version is available at 
-@uref{http://www.perl.org/CPAN/}
+Vregs is part of the L<http://www.veripool.com/> free Verilog software
+tool suite.  The latest version is available from
+@uref{http://www.perl.org/CPAN/}, and from
+@uref{http://www.veripool.com/vregs.html}.
 
 Download the latest package from that site, and decompress.
 @samp{gunzip SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar}

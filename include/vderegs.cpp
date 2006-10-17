@@ -1,4 +1,4 @@
-// $Id: vderegs.cpp 13502 2006-02-07 18:28:18Z wsnyder $  -*- C++ -*-
+// $Id: vderegs.cpp 26343 2006-10-12 21:03:49Z wsnyder $  -*- C++ -*-
 //====================================================================
 //
 // Copyright 2002-2006 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -73,7 +73,7 @@ public:
 	return NULL;
     }
 
-    static bool VregsAllSpecInfo::isClassName(const char* className) {
+    static bool isClassName(const char* className) {
 	return getSpecName(className)!=NULL;
     }
 
@@ -277,7 +277,7 @@ static struct option long_options[] = {
 };
 
 static void usage() {
-    COUT <<"vderegs: #$Id: vderegs.cpp 13502 2006-02-07 18:28:18Z wsnyder $\n" <<endl;
+    COUT <<"vderegs: #$Id: vderegs.cpp 26343 2006-10-12 21:03:49Z wsnyder $\n" <<endl;
     COUT <<"vderegs is part of SystemC::Vregs, available from http://www.veripool.com/\n" <<endl;
     COUT << "Usage: dedfa [OPTION]...\n"
 	 << "--multi     \tPrint \"EOM\\n\" to frame each response (for piped I/O)\n"

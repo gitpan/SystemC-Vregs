@@ -58,7 +58,10 @@ templates; see 'man vreg' for details.
 1.4 Obtaining Distribution
 ==========================
 
-The latest version is available at `http://www.perl.org/CPAN/'
+Vregs is part of the L<http://www.veripool.com/> free Verilog software
+tool suite.  The latest version is available from
+`http://www.perl.org/CPAN/', and from
+`http://www.veripool.com/vregs.html'.
 
    Download the latest package from that site, and decompress.  `gunzip
 SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar'

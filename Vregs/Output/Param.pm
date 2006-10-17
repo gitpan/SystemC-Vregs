@@ -1,4 +1,4 @@
-# $Id: Param.pm 20440 2006-05-19 13:46:40Z wsnyder $
+# $Id: Param.pm 26604 2006-10-17 20:52:48Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '1.420';
+$VERSION = '1.421';
 
 ######################################################################
 # CONSTRUCTOR
@@ -177,6 +177,10 @@ Creates the output file.
 =back
 
 =head1 DISTRIBUTION
+
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
 Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

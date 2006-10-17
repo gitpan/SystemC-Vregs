@@ -1,4 +1,4 @@
-# $Id: Vregs.pm 20440 2006-05-19 13:46:40Z wsnyder $
+# $Id: Vregs.pm 26604 2006-10-17 20:52:48Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -29,7 +29,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.420';
+$VERSION = '1.421';
 
 ######################################################################
 #### Constants
@@ -298,6 +298,7 @@ sub new_define {
 	      name => $defname . $val_mnem,
 	      rst  => $row->[$const_col],
 	      desc => $desc,
+	      at   => $flagref->{at},
 	      is_manual => 1,
 	      );
     }
@@ -357,6 +358,7 @@ sub new_enum {
 	     class => $classref,
 	     rst  => $row->[$const_col],
 	     desc => $desc,
+	     at => $flagref->{at},
 	     );
 
 
@@ -368,7 +370,7 @@ sub new_enum {
 		my $var = $1;
 		my $val = $row->[$colnum]||"";
 		$val =~ s/\s*\([^\)]*\)//g;
-		$valref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._:0-9]+)$/;
+		$valref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9]+)$/;
 	    }
 	}
     }
@@ -532,6 +534,7 @@ sub new_register {
 		 desc => $row->[$def_col],
 		 type => $type,
 		 expand => ($type && $desc =~ /expand class/i)?1:undef,
+		 at => $flagref->{at},
 		 );
 
 	    # Take special user defined fields and add to table
@@ -542,7 +545,7 @@ sub new_register {
 		    my $var = $1;
 		    my $val = $row->[$colnum]||"";
 		    $val =~ s/\s*\([^\)]*\)//g;
-		    $bitref->{attributes}{$var} = $val if $val =~ /^([a-zA-Z._:0-9]+)$/;
+		    $bitref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9]+)$/;
 		}
 	    }
 	}
@@ -681,6 +684,7 @@ sub regs_read {
 		 rst  => $rst,
 		 desc => $desc,
 		 type => $type,
+		 at => "${filename}:$.",
 	     );
 	    _regs_read_attributes($bitref, $flags);
 	}
@@ -1288,7 +1292,9 @@ Returns list of SystemC::Vregs::Type objects.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
 Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

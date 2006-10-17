@@ -2,6 +2,14 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.421 10/17/2006
+
+***	Warn if specified ending addresses are incorrect.  [Peter Holmes]
+
+***	Create 64-bit perl constants wrapped in 'no warnings'. [Bryce Denney]
+
+***	Add CBitFields example outputter.  [Igor]
+
 * Vregs 1.420 5/19/2006
 
 ***	Add vreg -dry-run option.
@@ -260,7 +268,7 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 20440 2006-05-19 13:46:40Z wsnyder $
+$Id: Changes 26604 2006-10-17 20:52:48Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 	

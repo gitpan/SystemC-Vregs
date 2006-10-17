@@ -1,4 +1,4 @@
-# $Id: Bit.pm 20440 2006-05-19 13:46:40Z wsnyder $
+# $Id: Bit.pm 26604 2006-10-17 20:52:48Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION %Keywords);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.420';
+$VERSION = '1.421';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))
@@ -67,6 +67,13 @@ sub delete { $_[0]->DESTROY(); }
 sub ignore {
     my $self = shift;
     return $self->{attributes}{Deleted};
+}
+
+sub attribute_value {
+    my $self = shift;
+    my $attr = shift;
+    return $self->{attributes}{$attr} if defined $self->{attributes}{$attr};
+    return $self->{typeref}->attribute_value($attr);
 }
 
 sub is_overlap_ok {
@@ -515,7 +522,9 @@ Checks the object for errors, and parses to create derived Fields.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
 Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

@@ -1,4 +1,4 @@
-# $Id: Register.pm 20440 2006-05-19 13:46:40Z wsnyder $
+# $Id: Register.pm 26604 2006-10-17 20:52:48Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.420';
+$VERSION = '1.421';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -31,7 +31,7 @@ $VERSION = '1.420';
 #	{typeref}		Owning SystemC::Vregs::Type ref
 #	{addrtext}	
 #	{addr}			Beginning SystemC::Vregs::Addr
-#	{addr_end}		Ending SystemC::Vregs::Addr
+#	{addr_end}		Ending SystemC::Vregs::Addr (exclusive < end).
 #	{spacingtext}	
 #	{range}			Range text
 #	{range_high}		SystemC::Vregs::Addr
@@ -140,7 +140,7 @@ sub check_addrtext {
     my $endtext = "";
     if ($addrtext =~ s/^(0x[0-9a-f_]+)\s*-\s*(0x[0-9a-f_]+)$/$1/i) {
 	$endtext = $2;
-	$regref->{addr_end} = $regref->{pack}->addr_text_to_vec($endtext);
+	$regref->{addr_end_user} = $regref->{pack}->addr_text_to_vec($endtext);
     }
 
     ($addrtext =~ /^0x[0-9a-f_]+$/i)
@@ -149,7 +149,7 @@ sub check_addrtext {
     $regref->{addr} = $regref->{pack}->addr_text_to_vec($addrtext);
     if ($inher_min) {
 	$regref->{addr}->add(      $regref->{addr},  $inher_min, 0);
-	$regref->{addr_end}->add(  $regref->{addr_end},  $inher_min, 0) if $regref->{addr_end};
+	$regref->{addr_end_user}->add(  $regref->{addr_end_user},  $inher_min, 0) if $regref->{addr_end_user};
     }
 }
 
@@ -203,24 +203,47 @@ sub check {
 sub computes {
     my $regref = shift;
     # Computes rely on check() being correct
-    if (!defined $regref->{addr_end}) {
+    {
 	# addr_end = addr + 4 + ((spacing * (ents - 1)))
 	my $inc = $regref->{pack}->addr_const_vec(1);
-        $inc->subtract($regref->{range_ents}, $inc, 0);
+	$inc->subtract($regref->{range_ents}, $inc, 0);
 	$inc->Multiply($regref->{spacing}, $inc);
-	$regref->{ent_size} = $regref->{pack}->addr_const_vec($regref->{typeref}{words}*4);
+	$regref->{ent_size} = $regref->{pack}->addr_const_vec($regref->{typeref}{words}*4)->Clone();
 	$inc->add($inc, $regref->{ent_size}, 0);
 	$inc->add($regref->{addr}, $inc, 0);
-	$regref->{addr_end} = $inc;
+	$regref->{addr_end} = $inc->Clone();
     }
+    {
+	# addr_end_inclusive = addr + ((spacing * (ents - 1)))
+	my $inc = $regref->{pack}->addr_const_vec(1);
+	$inc->subtract($regref->{range_ents}, $inc, 0);
+	$inc->Multiply($regref->{spacing}, $inc);
+	$inc->add($regref->{addr}, $inc, 0);
+	$regref->{addr_end_inclusive} = $inc->Clone();
+	# If register is of size 4 spacing 8, allow either XXXX_XXX0 or XXXX_XXX3.
+	$inc->add($regref->{addr_end_inclusive}, $regref->{ent_size}, 0);
+	$inc->subtract($inc, $regref->{pack}->addr_const_vec(1), 0);
+	$regref->{addr_end_inclusive_alt} = $inc->Clone();
+	# Or XXXX_XXXF
+	$inc->add($regref->{addr_end_inclusive}, $regref->{spacing}, 0);
+	$inc->subtract($inc, $regref->{pack}->addr_const_vec(1), 0);
+	$regref->{addr_end_inclusive_alt2} = $inc->Clone();
+    }
+    #print "-A $regref->{addr} AE $regref->{addr_end}  SP $regref->{spacing}  EC $regref->{addr_end_inclusive}\n";
 }
 
 sub check_end {
     my $regref = shift;
     if ($regref->{addr_end_wildcard}) {
 	($regref->{addr_end}->Lexicompare($regref->{addr_end_wildcard}) < 0)
-	    or $regref->warn ("Register exceeds upper boundary in wildcarded declaration: ",
+	    or $regref->warn ("Register exceeds upper boundary in declaration: ",
 			      $regref->{addr},"-",$regref->{addr_end}," > ", $regref->{addr_end_wildcard}, "\n");
+    } else {
+	(!$regref->{addr_end_user}
+	 || $regref->{addr_end_user}->equal($regref->{addr_end_inclusive})
+	 || $regref->{addr_end_user}->equal($regref->{addr_end_inclusive_alt})
+	 || $regref->{addr_end_user}->equal($regref->{addr_end_inclusive_alt2}))
+	    or $regref->warn ("Ending address specified as '$regref->{addrtext}' does not match calculated end $regref->{addr_end_inclusive} or $regref->{addr_end_inclusive_alt}.\n");
     }
 }
 
@@ -313,7 +336,9 @@ Checks the object for errors, and parses to create derived fields.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
 Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

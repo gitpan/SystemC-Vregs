@@ -1,4 +1,4 @@
-# $Id: Type.pm 20440 2006-05-19 13:46:40Z wsnyder $
+# $Id: Type.pm 26604 2006-10-17 20:52:48Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.420';
+$VERSION = '1.421';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -362,7 +362,9 @@ Checks the object for errors, and parses to create derived fields.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
 Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

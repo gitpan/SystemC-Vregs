@@ -1,4 +1,4 @@
-# $Id: Language.pm 20440 2006-05-19 13:46:40Z wsnyder $
+# $Id: Language.pm 26604 2006-10-17 20:52:48Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use Carp;
 use IO::File;
 
-$VERSION = '1.420';
+$VERSION = '1.421';
 
 ######################################################################
 #### Implementation
@@ -671,7 +671,9 @@ Output printf text.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
 Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

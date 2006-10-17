@@ -1,4 +1,4 @@
-# $Id: Class.pm 20440 2006-05-19 13:46:40Z wsnyder $
+# $Id: Class.pm 26604 2006-10-17 20:52:48Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.420';
+$VERSION = '1.421';
 
 ######################################################################
 # CONSTRUCTOR
@@ -96,8 +96,21 @@ sub _enum_write_center {
     }
     # Perhaps this should just be added to the data structures?
     # note no comma to make C happy
-    $fl->printf("\t${cClname}%-${width}s = 0x%x\t","MAX", (1<<$typeref->{bits}));
-    $fl->comment_post ("MAXIMUM+1");
+    if ($typeref->{bits}==32) {
+	# Can't put out 1_0000_0000 or C won't fit it into a enum
+	# We'll be weedy and subtract one.  We'll check no value of the users would collide
+	# with our little lie.
+	$fl->printf("\t${cClname}%-${width}s = 0x%x\t","MAX", ((1<<$typeref->{bits})-1));
+	$fl->comment_post ("MAXIMUM (-1 adjusted so will fit in 32-bits)");
+	foreach my $fieldref ($typeref->fields_sorted()) {
+	    if ($fieldref->{rst_val} >= ((1<<$typeref->{bits})-1)) {
+		$fieldref->warn ("0xffffffff isn't representable in 32-bit enum, as MAX won't fit.\n");
+	    }
+	}
+    } else {
+	$fl->printf("\t${cClname}%-${width}s = 0x%x\t","MAX", (1<<$typeref->{bits}));
+	$fl->comment_post ("MAXIMUM+1");
+    }
     $fl->print ("\n");
 }
 
@@ -713,7 +726,9 @@ Creates a C header file with structs for class definitions.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
 Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

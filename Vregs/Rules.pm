@@ -1,4 +1,4 @@
-# $Id: Rules.pm 20440 2006-05-19 13:46:40Z wsnyder $
+# $Id: Rules.pm 26604 2006-10-17 20:52:48Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.420';
+$VERSION = '1.421';
 
 ######################################################################
 # Default rules
@@ -365,7 +365,9 @@ Formatted print to the file.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
 Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
