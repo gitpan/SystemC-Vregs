@@ -1,8 +1,8 @@
-# $Id: Register.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Register.pm 29378 2007-01-02 15:01:29Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -58,6 +58,7 @@ sub delete {
 sub attribute_value {
     my $self = shift;
     my $attr = shift;
+    return $self->{attributes}{$attr} if defined $self->{attributes}{$attr};
     return $self->{typeref}->attribute_value($attr);
 }
 
@@ -200,6 +201,13 @@ sub check {
     $regref->check_end();
 }
 
+sub remove_if_mismatch {
+    my $self = shift;
+    if ($self->{pack}->is_mismatch($self)) {
+	$self->delete;
+    }
+}
+
 sub computes {
     my $regref = shift;
     # Computes rely on check() being correct
@@ -340,7 +348,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

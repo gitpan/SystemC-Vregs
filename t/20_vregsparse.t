@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Id: 20_vregsparse.t 15289 2006-03-06 15:45:36Z wsnyder $
+# $Id: 20_vregsparse.t 29376 2007-01-02 14:50:38Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 

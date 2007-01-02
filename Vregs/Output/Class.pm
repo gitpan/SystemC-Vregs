@@ -1,8 +1,8 @@
-# $Id: Class.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Class.pm 29378 2007-01-02 15:01:29Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -21,7 +21,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 ######################################################################
 # CONSTRUCTOR
@@ -422,7 +422,7 @@ sub _class_h_write {
 	}
 
 	# Mask after shifting on reads, so the mask is a smaller constant.
-	$fl->private_not_public ($bitref->{access} !~ /R/, $pack);
+	$fl->private_not_public (!$bitref->{access_read}, $pack);
 	my $typEnd = 11 + length $bitref->{type};
 	$fl->fn($clname,"",sprintf("inline %s%s%-13s () const",
 				   $bitref->{type}, ($typEnd < 16 ? "\t\t" : $typEnd < 24 ? "\t" : " "),
@@ -436,7 +436,7 @@ sub _class_h_write {
 		    ,"{ return $lc_mnem(); }\n");
 	}
 
-	$fl->private_not_public ($bitref->{access} !~ /W/, $pack);
+	$fl->private_not_public (!$bitref->{access_write}, $pack);
 	$fl->fn($clname,"set",sprintf("inline void\t\t%-13s (%s b)", $lc_mnem, $bitref->{type})
 		,"{${deposit} }\n");
 	if ($typeref->attribute_value('public_rdwr_accessors') && $fl->{private} && $fl->{CPP}) {
@@ -730,7 +730,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-#$Id: vreg 21533 2006-06-08 14:57:34Z wsnyder $
+#$Id: vreg 29376 2007-01-02 14:50:38Z wsnyder $
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -46,38 +46,45 @@ $Debug = 0;
 our $Dry_Temp_File;
 my @orig_argv = @ARGV;
 @Opt_Html_Files = ();
-my $opt_dry_run;
-my %opt_change_error;
-my $opt_output = "";
-my $opt_rm;
-my $opt_package;
-my $opt_headers;
-my $opt_asm_h = 1;
-my $opt_class_h = 1;
-my $opt_class_cpp = 1;
-my $opt_defs_h = 1;
-my $opt_defs_pm = 1;
-my $opt_defs_v = 1;
-my $opt_info_cpp = 1;
-my $opt_param_v = 1;
-my $opt_struct_h = 1;
-my $opt_hash_pm = 1;
-my $opt_comments = 1;
-my $opt_rules;
-my $opt_rebuild_comment = "$0 @orig_argv";
-my $opt_vregs;
+
 my $opt_address_bits = 40;
-our @opt_library_vregs = ();
 my %opt_attributes;
+my $opt_change_diff;
+my $opt_comments = 1;
+my $opt_dry_run;
+my $opt_headers;
+my $opt_if_product;
+my $opt_output = "";
+my $opt_package;
+my $opt_rebuild_comment = "$0 @orig_argv";
+my $opt_rm;
+my $opt_rules;
+my $opt_vregs;
+my %opt_change_error;
+our @opt_library_vregs = ();
+
+my $opten_asm_h = 1;
+my $opten_class_h = 1;
+my $opten_class_cpp = 1;
+my $opten_defs_h = 1;
+my $opten_defs_pm = 1;
+my $opten_defs_v = 1;
+my $opten_info_cpp = 1;
+my $opten_param_v = 1;
+my $opten_struct_h = 1;
+my $opten_hash_pm = 1;
+
 if (! GetOptions (
 		  "help"	=> \&usage,
 		  "debug"	=> \&debug,
 		  "<>"		=> \&parameter,
 		  "address_bits=i" => \$opt_address_bits,
+		  "change-diff=s" => \$opt_change_diff,
 		  "change-error=s" => sub { shift; my $f=shift; $opt_change_error{$f}=1;},
 		  "dry-run!"	=> \$opt_dry_run,
 		  "headers!"	=> \$opt_headers,
 		  "html=s"	=> sub { shift; push @Opt_Html_Files, shift; },
+		  "if-product=s" => \$opt_if_product,
 		  "library=s"	=> sub { shift; push @opt_library_vregs, shift; },
 		  "output=s"	=> \$opt_output,
 		  "package=s"	=> \$opt_package,
@@ -88,27 +95,37 @@ if (! GetOptions (
 		  "v2k!"	=> sub { shift; $opt_attributes{v2k} = shift; },
 		  "vregs=s"	=> \$opt_vregs,
 		  # File Enables (if adding one, add to files! also)
-		  "asm_h!"	=> \$opt_asm_h,
-		  "class_cpp!"	=> \$opt_class_cpp,
-		  "class_h!"	=> \$opt_class_h,
-		  "defs_h!"	=> \$opt_defs_h,
-		  "defs_pm!"	=> \$opt_defs_pm,
-		  "defs_v!"	=> \$opt_defs_v,
-		  "hash_pm!"	=> \$opt_hash_pm,
-		  "info_cpp!"	=> \$opt_info_cpp,
-		  "param_v!"	=> \$opt_param_v,
-		  "struct_h!"	=> \$opt_struct_h,
-		  "files!"	=> sub { shift; my $ena = shift;
-					 $opt_asm_h = $ena;
-					 $opt_class_cpp = $ena;
-					 $opt_class_h = $ena;
-					 $opt_defs_h = $ena;
-					 $opt_defs_pm = $ena;
-					 $opt_defs_v = $ena;
-					 $opt_hash_pm = $ena;
-					 $opt_info_cpp = $ena;
-					 $opt_param_v = $ena;
-					 $opt_struct_h = $ena;
+		  "asm_h!"	=> sub { $opten_asm_h		=$_[1]?1:0; },
+		  "class_cpp!"	=> sub { $opten_class_cpp	=$_[1]?1:0; },
+		  "class_h!"	=> sub { $opten_class_h	=$_[1]?1:0; },
+		  "defs_h!"	=> sub { $opten_defs_h	=$_[1]?1:0; },
+		  "defs_pm!"	=> sub { $opten_defs_pm	=$_[1]?1:0; },
+		  "defs_v!"	=> sub { $opten_defs_v	=$_[1]?1:0; },
+		  "hash_pm!"	=> sub { $opten_hash_pm	=$_[1]?1:0; },
+		  "info_cpp!"	=> sub { $opten_info_cpp	=$_[1]?1:0; },
+		  "param_v!"	=> sub { $opten_param_v	=$_[1]?1:0; },
+		  "struct_h!"	=> sub { $opten_struct_h	=$_[1]?1:0; },
+		  "filename-asm-h=s"	=> \$opten_asm_h,
+		  "filename-class-cpp=s"=> \$opten_class_cpp,
+		  "filename-class-h=s"	=> \$opten_class_h,
+		  "filename-defs-h=s"	=> \$opten_defs_h,
+		  "filename-defs-pm=s"	=> \$opten_defs_pm,
+		  "filename-defs-v=s"	=> \$opten_defs_v,
+		  "filename-hash-pm=s"	=> \$opten_hash_pm,
+		  "filename-info-cpp=s"	=> \$opten_info_cpp,
+		  "filename-param-v=s"	=> \$opten_param_v,
+		  "filename-struct-h=s"	=> \$opten_struct_h,
+		  "files!"	=> sub { my $ena = $_[1] ? 1:0;
+					 $opten_asm_h = $ena;
+					 $opten_class_cpp = $ena;
+					 $opten_class_h = $ena;
+					 $opten_defs_h = $ena;
+					 $opten_defs_pm = $ena;
+					 $opten_defs_v = $ena;
+					 $opten_hash_pm = $ena;
+					 $opten_info_cpp = $ena;
+					 $opten_param_v = $ena;
+					 $opten_struct_h = $ena;
 				     },
 		  )) {
     usage();
@@ -123,6 +140,7 @@ my @vr_params = (address_bits=>$opt_address_bits,
 		 comments=>$opt_comments,
  		 rebuild_comment=>$opt_rebuild_comment,
 		 attributes=>\%opt_attributes,
+		 if_product=>$opt_if_product,
 		 );
 
 my @opt_library_vr;
@@ -162,6 +180,7 @@ if ($#Opt_Html_Files >= 0) {
     my %p = (pack=>$vr,
 	     keep_timestamp => 1,	# Don't write if the same
 	     dry_run=>$opt_dry_run,
+	     change_diff=>$opt_change_diff,
 	     change_error=>\%opt_change_error,
 	     );
     SystemC::Vregs::Output::Layout->new->write
@@ -185,6 +204,7 @@ if ($opt_headers) {
 	$v2->regs_read ($opt_vregs);
     }
     $v2->exit_if_error();
+    $v2->remove_if_mismatch();
     $v2->check();
     $v2->exit_if_error();
     (!$opt_rules || -r $opt_rules) or die "%Error: Can't find rules file $opt_rules\n";
@@ -193,50 +213,57 @@ if ($opt_headers) {
     my %p = (pack=>$v2,
 	     keep_timestamp => 1,	# Don't write if the same
 	     dry_run=>$opt_dry_run,
+	     change_diff=>$opt_change_diff,
 	     change_error=>\%opt_change_error,
 	     );
     #SystemC::Vregs::Output::Layout->new->write (%p, filename=>"${opt_output}${opt_package}.2.vregs");
-    if ($opt_defs_v) {
+    if ($opten_defs_v) {
 	SystemC::Vregs::Output::Defines->new->write
-	    (%p, filename=>"${opt_output}${opt_package}_defs.v", language=>'Verilog',);
+	    (%p, filename=>_def_fn($opten_defs_v, "${opt_output}${opt_package}_defs.v"),
+	     language=>'Verilog',);
     }
-    if ($opt_defs_h) {
+    if ($opten_defs_h) {
 	SystemC::Vregs::Output::Defines->new->write
-	    (%p, filename=>"${opt_output}${opt_package}_defs.h", language=>'C',);
+	    (%p, filename=>_def_fn($opten_defs_h, "${opt_output}${opt_package}_defs.h"),
+	     language=>'C',);
     }
-    if ($opt_defs_pm) {
+    if ($opten_defs_pm) {
 	SystemC::Vregs::Output::Defines->new->write
-	    (%p, filename=>"${opt_output}${opt_package}_defs.pm", language=>'Perl',);
+	    (%p, filename=>_def_fn($opten_defs_pm, "${opt_output}${opt_package}_defs.pm"),
+	     language=>'Perl',);
     }
-    if ($opt_asm_h) {
+    if ($opten_asm_h) {
 	SystemC::Vregs::Output::Defines->new->write
-	    (%p, filename=>"${opt_output}${opt_package}_asm.h", language=>'Gas',);
+	    (%p, filename=>_def_fn($opten_asm_h, "${opt_output}${opt_package}_asm.h"),
+	     language=>'Gas',);
     }
-    if ($opt_hash_pm) {
+    if ($opten_hash_pm) {
 	SystemC::Vregs::Output::Hash->new->write
-	    (%p, filename=>"${opt_output}${opt_package}_hash.pm",);
+	    (%p, filename=>_def_fn($opten_hash_pm, "${opt_output}${opt_package}_hash.pm",));
     }
-    if ($opt_param_v) {
+    if ($opten_param_v) {
 	SystemC::Vregs::Output::Param->new->write
-	    (%p, filename=>"${opt_output}${opt_package}_param.v",);
+	    (%p, filename=>_def_fn($opten_param_v, "${opt_output}${opt_package}_param.v",));
     }
-    if ($opt_info_cpp) {
-	SystemC::Vregs::Output::Info->new->write_h
-	    (%p, filename=>"${opt_output}${opt_package}_info.h");
+    if ($opten_info_cpp) {
+	my $fn = _def_fn($opten_info_cpp, "${opt_output}${opt_package}_info.cpp");
 	SystemC::Vregs::Output::Info->new->write_cpp
-	    (%p, filename=>"${opt_output}${opt_package}_info.cpp");
+	    (%p, filename=>$fn);
+	(my $fn2 = $fn) =~ s/\.cpp$/\.h/;
+	SystemC::Vregs::Output::Info->new->write_h
+	    (%p, filename=>$fn2);
     }
-    if ($opt_class_h) {
+    if ($opten_class_h) {
 	SystemC::Vregs::Output::Class->new->write_class_h
-	    (%p, filename=>"${opt_output}${opt_package}_class.h");
+	    (%p, filename=>_def_fn($opten_class_h, "${opt_output}${opt_package}_class.h"));
     }
-    if ($opt_class_cpp) {
+    if ($opten_class_cpp) {
 	SystemC::Vregs::Output::Class->new->write_class_cpp
-	    (%p, filename=>"${opt_output}${opt_package}_class.cpp");
+	    (%p, filename=>_def_fn($opten_class_cpp, "${opt_output}${opt_package}_class.cpp"));
     }
-    if ($opt_struct_h) {
+    if ($opten_struct_h) {
 	SystemC::Vregs::Output::Class->new->write_struct_h
-	    (%p, filename=>"${opt_output}${opt_package}_struct.h");
+	    (%p, filename=>_def_fn($opten_struct_h, "${opt_output}${opt_package}_struct.h"));
     }
 }
 
@@ -248,7 +275,7 @@ END {
 }
 
 sub usage {
-    print '$Id: vreg 21533 2006-06-08 14:57:34Z wsnyder $ ', "\n";
+    print '$Id: vreg 29376 2007-01-02 14:50:38Z wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit (1);
@@ -265,6 +292,14 @@ sub parameter {
     die "%Error: Unknown parameter: $param\n";
 }
  
+#######################################################################
+
+sub _def_fn {
+    my $switch = shift;
+    my $default = shift;
+    # Calculate default or passed in filename
+    return (($switch eq "1") ? $default : $switch);
+}
 
 #######################################################################
 __END__
@@ -303,6 +338,12 @@ definition and class headers in the --output directory.
 
 =over 4
 
+=item --change-diff I<program>
+
+With --change-error, use this program to determine if the error should be
+reported or not.  The program should exit with non-zero status to raise an
+error.
+
 =item --change-error I<language>
 
 Report error if file of the given language would change.  Use ALL for all
@@ -325,6 +366,18 @@ file has changed.
 =item --html I<html_filename>
 
 Reads the specified filename and creates a .vregs file from the html.
+
+=item --if-product I<product>
+
+Only include registers in output with a Product column matching that
+specified.  See the vregs_spec document for more information.
+
+=item --filename-asm-h I<filename>
+
+Specify the output filename for the asm_h file.
+By default this is {--output}{package_name}_asm.h.
+
+Similar options exist for all of the other output files.
 
 =item --library I<package>
 
@@ -429,7 +482,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

@@ -1,8 +1,8 @@
-# $Id: Enum.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Enum.pm 29376 2007-01-02 14:50:38Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -22,7 +22,7 @@ use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
 
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 ######################################################################
 ######################################################################
@@ -42,6 +42,13 @@ sub new {
     $self->{pack} or die;  # Should have been passed as parameter
     $self->{pack}{enums}{$self->{name}} = $self;
     return $self;
+}
+
+sub delete {
+    my $self = shift;
+    if ($self->{pack}) {
+	delete $self->{pack}{enums}{$self->{name}};
+    }
 }
 
 sub find_value {
@@ -86,6 +93,18 @@ sub check {
     $self->check_name();
     foreach my $fieldref (values %{$self->{fields}}) {
 	$fieldref->check();
+    }
+}
+
+sub remove_if_mismatch {
+    my $self = shift;
+    my $rm=0;  my $cnt=0;
+    foreach my $fieldref (values %{$self->{fields}}) {
+	$rm++ if $fieldref->remove_if_mismatch();
+	$cnt++;
+    }
+    if ($self->{pack}->is_mismatch($self) || ($rm && $rm == $cnt)) {
+	$self->delete;
     }
 }
 
@@ -136,6 +155,13 @@ sub new {
     $self->{class} or die;  # Should have been passed as parameter
     $self->{class}{fields}{$self->{name}} = $self;
     return $self;
+}
+
+sub delete {
+    my $self = shift;
+    if ($self->{class}) {
+	delete $self->{class}{fields}{$self->{name}};
+    }
 }
 
 sub attribute_value {
@@ -227,6 +253,15 @@ sub check {
     ($self->{desc}) or $self->warn("Empty description, please document it.\n");
 }
 
+sub remove_if_mismatch {
+    my $self = shift;
+    if ($self->{pack}->is_mismatch($self)) {
+	$self->delete;
+	return 1;
+    }
+    return undef;
+}
+
 sub dump {
     my $self = shift;
     my $fh = shift || \*STDOUT;
@@ -304,7 +339,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

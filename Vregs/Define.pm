@@ -1,8 +1,8 @@
-# $Id: Define.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Define.pm 29376 2007-01-02 14:50:38Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -21,7 +21,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -52,6 +52,21 @@ sub new {
     $self->{pack}{defines}{$self->{name}} = $self;
     $self->{sort_key} ||= '000000_' . $self->{name};
     return $self;
+}
+
+sub delete {
+    my $self = shift;
+    print "DEST $self->{name}\n";
+    if ($self->{pack}) {
+	delete $self->{pack}{defines}{$self->{name}};
+    }
+}
+
+sub attribute_value {
+    my $self = shift;
+    my $attr = shift;
+    return $self->{attributes}{$attr} if defined $self->{attributes}{$attr};
+    return undef;
 }
 
 use vars qw($_Defines_New_Push_Val);
@@ -117,6 +132,15 @@ sub check {
     $self->clean_desc();
     $self->clean_rst();
     $self->check_name();
+}
+
+sub remove_if_mismatch {
+    my $self = shift;
+    if ($self->{pack}->is_mismatch($self)) {
+	$self->delete;
+	return 1;
+    }
+    return undef;
 }
 
 sub dump {
@@ -214,7 +238,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

@@ -155,8 +155,13 @@ The Mnemonic must be all upper case.</p>
 
 <p class=RegDescBody>The definition column is a comment on what
 the define is used for.  The first
-sentence is added as a comment to the output files.  Italizing this first sentence is useful in highlight ing this
-extraction. </p>
+sentence is added as a comment to the output files.  Italizing this first sentence is useful in highlighting this extraction.
+</p>
+
+<p class=RegDescBody>Any additional columns must have header titles
+in parenthesis.  If data in that column contains
+alphanumeric data, the data will be added as an attribute to the define.  This is not used by vregs itself, but is useful
+for locally written extentions.</p>
 
 <p class=RegDescBody>If constants are being defined for a
 series of values, a enumeration is probably a better way to do it.  </p>
@@ -303,6 +308,11 @@ acceptable, but discouraged.</p>
 the enumeration value is used for.  The
 first sentence is added as a comment to the output files.  Italizing this first sentence is useful in
 highlight ing this extraction. </p>
+
+<p class=RegDescBody>Any additional columns must have header titles
+in parenthesis.  If data in that column contains
+alphanumeric data, the data will be added as an attribute to the define.  This is not used by vregs itself, but is useful
+for locally written extentions.</p>
 
 <p class=RegDescBody>A table row may have a empty mnemonic
 column if the definition contains the text “reserved”.  </p>
@@ -623,17 +633,16 @@ header specifies special actions for the class.<br>
 
 <p class=RegDescBody></p>
 
-<p class=RegDescBody>There are five columns for each bitfield
-in the class.  Columns can be in any
-order.</p>
+<p class=RegDescBody>There are six columns for each bitfield in
+the class.  Columns can be in any order.</p>
 
 <p class=RegDescBody>The bit column defines which bits the
 field occupies.  Bit numbers are then
 expressed in MSB:LSB order.  Bits can be
-of any width; there is no restriction of their being less then 32.  For readability w#[] indicates the bits in
-the brackets are in a given 32-bit word, 32 times the # will be added to the
-bit numbers in the brackets.  Likewise
-b# for 8-bit bytes, h# for 16-bit halfwords, and d# for 64-bit doublewords. For
+of any width; there is no restriction of their being less then 32.  For readability w#[] indicates the bits in the
+brackets are in a given 32-bit word, 32 times the # will be added to the bit
+numbers in the brackets.  Likewise b#
+for 8-bit bytes, h# for 16-bit halfwords, and d# for 64-bit doublewords. For
 example w3[10] is bit 10 in longword 3, equivelent to writing [106]  (3*32+10 = 106). Fields may consist of
 multiple disjoint segments, separated by commas.  (w0[15:13] or w0[15,14,13] or w0[15],w0[14],w0[13] are all
 equivelent.)</p>
@@ -653,10 +662,26 @@ deleted if the default is acceptable for all of the fields.</p>
 given bit range always contains a certain value.  Often it will be expressed as a enumeration, such as when
 specifing a command number field inside the layout of one specific command.</p>
 
+<p class=RegDescBody>The optional product column is used to
+select which product the definition applies to.  Entries in this column will add the “-Product={x}” attribute to
+the bit entries.  When vregs is run with
+the –if-product option, this setting if specified must match the if-product
+setting.  For example a bitfield with
+Product=Chipb+ will only be included in the output files when there is no
+–if-product, when –if-product=Chipb, or when –if-product is anything lexically
+greater than “Chipb” (because of the + appended to Chipb.)</p>
+
 <p class=RegDescBody>The definition column is a comment on what
 the field is used for.  The first
 sentence is added as a comment to the output files.  Italizing this first sentence is useful in highlight ing this
 extraction.</p>
+
+<p class=RegDescBody>Any additional columns must have header titles
+in parenthesis.  If data in that column contains
+alphanumeric data, the data will be added as an attribute to the define.  This is not used by vregs itself, but is useful
+for locally written extentions.</p>
+
+<p class=RegDescBody></p>
 
 <h2><![if !supportLists]>5.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Example
 Base Class </h2>
@@ -678,7 +703,7 @@ specific messages.</p>
 
 <p class=MsoNormal></p>
 
-<table border=1 cellspacing=0 cellpadding=0 width=577>
+<table border=1 cellspacing=0 cellpadding=0 width=579>
  <tr>
   <td valign=top>
   <p class=TableHeading>Bit</p>
@@ -686,6 +711,10 @@ specific messages.</p>
   
   <td valign=top>
   <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Product</p>
   </td>
   
   <td valign=top>
@@ -711,6 +740,10 @@ specific messages.</p>
   </td>
   
   <td valign=top>
+  <p class=TableBody></p>
+  </td>
+  
+  <td valign=top>
   <p class=TableBody>ExEnum</p>
   </td>
   
@@ -731,6 +764,10 @@ specific messages.</p>
   
   <td valign=top>
   <p class=TableBody>CmdAck</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody></p>
   </td>
   
   <td valign=top>
@@ -761,6 +798,10 @@ specific messages.</p>
   </td>
   
   <td valign=top>
+  <p class=TableBody>Chipb+</p>
+  </td>
+  
+  <td valign=top>
   <p class=TableBody>&nbsp;</p>
   </td>
   
@@ -782,6 +823,10 @@ specific messages.</p>
   
   <td valign=top>
   <p class=TableBody>Address</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody></p>
   </td>
   
   <td valign=top>
@@ -1084,7 +1129,7 @@ shows an example class which expands its subclasses.</p>
   </td>
   
   <td valign=top>
-  <p class=TableBody><i>Base 2.</i>  Expand Class.</p>
+  <p class=TableBody><i>Base 2.</i>  Expand Class.</p>
   </td>
   
  </tr>
@@ -1115,14 +1160,14 @@ identical registers.  If all the fields
 are identical to the base register, the derrived register can completely
 elimintate it’s field table.  As a
 extension of this, you can specify a wildcard “Derrived* : Base*”; which will
-pull all Base registers into the Derrived section; when this is done, the address
-specified is added to the address specified in the Base’s declaration, and the
-end address is checked against the Base’s ending address.</p>
+pull all Base registers into the Derrived section; when this is done, the
+address specified is added to the address specified in the Base’s declaration,
+and the end address is checked against the Base’s ending address.</p>
 
 <p class=RegDescBody>The address is specified in hex, with a
 leading 0x.  The maximum width of the
-address is coded into the vregs program; it defaults to 40 bits, which is sufficient
-for most projects.</p>
+address is coded into the vregs program; it defaults to 40 bits, which is
+sufficient for most projects.</p>
 
 <p class=RegDescBody>A attribute of –noimplementation specifies
 the register has not been implemented, and should be ignored by Vregs.  A attribute of –noregtest specifies testing

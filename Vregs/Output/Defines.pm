@@ -1,8 +1,8 @@
-# $Id: Defines.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Defines.pm 29376 2007-01-02 14:50:38Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -22,7 +22,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 ######################################################################
 # CONSTRUCTOR
@@ -185,7 +185,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

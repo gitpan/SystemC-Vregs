@@ -1,8 +1,8 @@
-# $Id: Bit.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Bit.pm 29376 2007-01-02 14:50:38Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION %Keywords);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))
@@ -159,7 +159,7 @@ sub check_access {
     $field = $field . $l;
 
     if ($field !~ /$SystemC::Vregs::Bit_Access_Regexp/o) {
-        $bitref->warn ("Bit access must match $SystemC::Vregs::Bit_Access_Regexp\n");
+        $bitref->warn ("Bit access must match ${SystemC::Vregs::Bit_Access_Regexp}: '$field'\n");
 	$field = 'RW';
     }
 
@@ -332,6 +332,14 @@ sub dewildcard {
 
 sub computes {
     my $bitref = shift;
+    {
+	my $access = $bitref->{access};
+	$bitref->{access_last} = 	 (($access =~ /L/) ? 1:0);
+	$bitref->{access_read} =     	 (($access =~ /R/) ? 1:0);
+	$bitref->{access_read_side} = 	 (($access =~ /R[^W]*S/) ? 1:0);
+	$bitref->{access_write} = 	 (($access =~ /W/) ? 1:0);
+	$bitref->{access_write_side} =	 (($access =~ /(W[^R]*S|W1C)/) ? 1:0);
+    }
 
     $bitref->{fw_reset} = 1 if ($bitref->{rst} =~ /^FW/ && $bitref->{access} =~ /W/);
     $bitref->{comment} = sprintf ("%5s %4s %3s: %s",
@@ -343,14 +351,12 @@ sub computes_type {
     # These need to be done on any inherited types also
     my $bitref = shift;
     my $typeref = shift or die;
-    my $access = $bitref->{access};
 
     # Access fields that affect the register itself
-    $typeref->{lastflg} = 1 if ($access =~ /L/);
-    $typeref->{rd} = 1     if ($access =~ /R/);
-    $typeref->{rdside} = 1 if ($access =~ /R[^W]*S/);
-    $typeref->{wrside} = 1 if ($access =~ /W[^R]*S/);
-    $typeref->{wrside} = 1 if ($access =~ /W1C/);
+    $typeref->{access_last} = 1 if $bitref->{access_last};
+    $typeref->{access_read} = 1      if $bitref->{access_read};
+    $typeref->{access_read_side} = 1  if $bitref->{access_read_side};
+    $typeref->{access_write_side} = 1  if $bitref->{access_write_side};
 
     my $bitsleft = $bitref->{numbits}-1;
     foreach my $bit (@{$bitref->{bitlist}}) {
@@ -397,12 +403,12 @@ sub computes_type {
 	}
 
 	# Save info for every bit in the register
-	$typeref->{bitarray}[$bit]
+	$bitref->{bitarray}[$bit] = $typeref->{bitarray}[$bit]
 	    = { bitref=>$bitref,
-		write => (($access =~ /W/)?1:0),
-		read  => (($access =~ /R/)?1:0),
-		write_side => (($access =~ /(W[^R]*S|W1C)/)?1:0),
-		read_side  => (($access =~ /R[^W]*S/)?1:0),
+		write => $bitref->{access_write},
+		read  => $bitref->{access_read},
+		write_side => $bitref->{access_write_side},
+		read_side  => $bitref->{access_read_side},
 		rstvec => $rstvec,
 	    };
 	$bitsleft--;
@@ -417,19 +423,23 @@ sub check {
     $self->check_rst();
     $self->check_bits();
     # Computes rely on check() being correct
-    $self->compute_type();
     $self->computes();
+    $self->compute_type();
+}
+
+sub remove_if_mismatch {
+    my $self = shift;
+    if ($self->{pack}->is_mismatch($self)) {
+	$self->delete;
+	return 1;
+    }
+    return undef;
 }
 
 sub dump {
     my $self = shift;
     my $fh = shift || \*STDOUT;
     my $indent = shift||"  ";
-    print $fh +($indent,"Bit: ",$self->{name},
-		"  bits:",$self->{bits}||'',
-		"  rst:",$self->{rst}||'', 
-		"  rst_val:",$self->{rst_val}||'',
-		"\n");
 }
 
 ######################################################################
@@ -526,7 +536,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

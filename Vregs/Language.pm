@@ -1,8 +1,8 @@
-# $Id: Language.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Language.pm 29378 2007-01-02 15:01:29Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use Carp;
 use IO::File;
 
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 ######################################################################
 #### Implementation
@@ -34,6 +34,7 @@ sub new {
 		close_text=>[],
 		#keep_timestamp=>undef,
 		#dry_run=>undef,	# Don't do it, just see if would do it
+		#change_diff=>"",
 		#change_error=>{},
 		#changes=>undef,	# For dry_run, any changes found?
 		@_};
@@ -85,6 +86,9 @@ sub text_to_output {
 
 sub close {
     my $self = shift;
+    return if $self->{_closing};  # Don't recurse in close if we die() here.
+    $self->{_closing} = 1;
+    
     $self->close_prep();
 
     my @oldtext;	# Old file contents
@@ -104,7 +108,10 @@ sub close {
 	$self->{changes} = 1;
 	if ($self->{change_error}{ $self->language }
 	    || $self->{change_error}{ALL}) {
-	    die "%Error: Changes needed to $self->{filename}, but not allowed to change ".$self->language." files\n";
+	    if ($self->_close_change_diff()) {
+		die "%Error: Changes needed to $self->{filename}, but not allowed to change ".$self->language." files\n";
+	    }
+
 	}
 	if ($self->{dry_run}) {
 	    printf "Would write $self->{filename} (--dry-run)\n" if ($self->{verbose});
@@ -119,6 +126,27 @@ sub close {
     }
 
     $self->{text} = [];
+    delete $self->{_closing};
+}
+
+our $_CloseUnlink;  END { unlink($_CloseUnlink) if $_CloseUnlink; }
+sub _close_change_diff {
+    my $self = shift;
+    # Are there differences the user cared about?
+    return 1 if (!$self->{change_diff});
+    # Write to temp file
+    my $tempname = (($ENV{TEMP}||$ENV{TMP}||"/tmp")."/.vreg_".$$);
+    $_CloseUnlink = $tempname;
+    my $fh = IO::File->new(">$tempname") or die "%Error: $! $tempname,";
+    $fh or die "%Error: $! $tempname\n";
+    print $fh @{$self->{text}};
+    $fh->close();
+    # Diff it
+    system ($self->{change_diff}, $self->{filename}, $tempname);
+    my $status = $?;
+    # Cleanup
+    unlink ($tempname); $_CloseUnlink=undef;
+    return ($status != 0);
 }
 
 ######################################################################
@@ -675,7 +703,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

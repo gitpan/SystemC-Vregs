@@ -1,8 +1,8 @@
-# $Id: Rules.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Rules.pm 29378 2007-01-02 15:01:29Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -18,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 ######################################################################
 # Default rules
@@ -42,28 +42,30 @@ sub _default_rules {
     before_enum_end
 	(prog=> sub {
 	    my ($self,$name) = @_;
-	    fprint ("    enum en m_e;\n"
-		    ."    inline ${name} () VREGS_ENUM_DEF_INITTER(MAX) {}\n"
-		    ."    inline ${name} (en _e) : m_e(_e) {}\n"
-		    ."    explicit inline ${name} (int _e) : m_e(static_cast<en>(_e)) {}\n"
-		    ."    operator const char* () const { return ascii(); }\n"
-		    ."    operator en () const { return m_e; }\n"
-		    ."    const char* ascii() const;\n"
-		    ."    inline bool valid() const { return *ascii()!='?'; };\n"
-		    );
-	    if ($self->attribute_value('descfunc')) {
-		fprint ("    const char* description() const;\n");
+	    if (fhandle()->{CPP}) {
+		fprint ("    enum en m_e;\n"
+			."    inline ${name} () VREGS_ENUM_DEF_INITTER(MAX) {}\n"
+			."    inline ${name} (en _e) : m_e(_e) {}\n"
+			."    explicit inline ${name} (int _e) : m_e(static_cast<en>(_e)) {}\n"
+			."    operator const char* () const { return ascii(); }\n"
+			."    operator en () const { return m_e; }\n"
+			."    const char* ascii() const;\n"
+			."    inline bool valid() const { return *ascii()!='?'; };\n"
+			);
+		if ($self->attribute_value('descfunc')) {
+		    fprint ("    const char* description() const;\n");
+		}
+		fprint ("    class iterator {\n"
+			."	en m_e; public:\n"
+			."	inline iterator(en item) : m_e(item) {};\n"
+			."	iterator operator++();\n"
+			."	inline operator ${name} () const { return ${name}(m_e); }\n"
+			."	inline ${name} operator*() const { return ${name}(m_e); }\n"
+			."    };\n"
+			."    static iterator begin() { return iterator(".($self->fields_first_name||"MAX")."); }\n"
+			."    static iterator end()   { return iterator(MAX); }\n"
+			);
 	    }
-	    fprint ("    class iterator {\n"
-		    ."	en m_e; public:\n"
-		    ."	inline iterator(en item) : m_e(item) {};\n"
-		    ."	iterator operator++();\n"
-		    ."	inline operator ${name} () const { return ${name}(m_e); }\n"
-		    ."	inline ${name} operator*() const { return ${name}(m_e); }\n"
-		    ."    };\n"
-		    ."    static iterator begin() { return iterator(".($self->fields_first_name||"MAX")."); }\n"
-		    ."    static iterator end()   { return iterator(MAX); }\n"
-		    );
 	});
     before_class_dump
 	(prog => sub {
@@ -80,15 +82,18 @@ sub _default_rules {
     after_enum_end
 	(prog=> sub {
 	    my ($self,$name) = @_;
-	    fprint("  inline bool operator== (${name} lhs, ${name} rhs) { return (lhs.m_e == rhs.m_e); }\n",
-		   "  inline bool operator== (${name} lhs, ${name}::en rhs) { return (lhs.m_e == rhs); }\n",
-		   "  inline bool operator== (${name}::en lhs, ${name} rhs) { return (lhs == rhs.m_e); }\n",
-		   "  inline bool operator!= (${name} lhs, ${name} rhs) { return (lhs.m_e != rhs.m_e); }\n",
-		   "  inline bool operator!= (${name} lhs, ${name}::en rhs) { return (lhs.m_e != rhs); }\n",
-		   "  inline bool operator!= (${name}::en lhs, ${name} rhs) { return (lhs != rhs.m_e); }\n",
-		   "  inline bool operator< (${name} lhs, ${name} rhs) { return lhs.m_e < rhs.m_e; }\n",
-		   "  inline OStream& operator<< (OStream& lhs, const ${name}& rhs) { return lhs << rhs.ascii(); }\n"
-		   );});
+	    if (fhandle()->{CPP}) {
+		fprint("  inline bool operator== (${name} lhs, ${name} rhs) { return (lhs.m_e == rhs.m_e); }\n",
+		       "  inline bool operator== (${name} lhs, ${name}::en rhs) { return (lhs.m_e == rhs); }\n",
+		       "  inline bool operator== (${name}::en lhs, ${name} rhs) { return (lhs == rhs.m_e); }\n",
+		       "  inline bool operator!= (${name} lhs, ${name} rhs) { return (lhs.m_e != rhs.m_e); }\n",
+		       "  inline bool operator!= (${name} lhs, ${name}::en rhs) { return (lhs.m_e != rhs); }\n",
+		       "  inline bool operator!= (${name}::en lhs, ${name} rhs) { return (lhs != rhs.m_e); }\n",
+		       "  inline bool operator< (${name} lhs, ${name} rhs) { return lhs.m_e < rhs.m_e; }\n",
+		       "  inline OStream& operator<< (OStream& lhs, const ${name}& rhs) { return lhs << rhs.ascii(); }\n"
+		       );
+	    }
+	});
 }
 
 ######################################################################
@@ -369,7 +374,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

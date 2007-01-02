@@ -1,7 +1,7 @@
-// $Id: vderegs.cpp 26343 2006-10-12 21:03:49Z wsnyder $  -*- C++ -*-
+// $Id: vderegs.cpp 29378 2007-01-02 15:01:29Z wsnyder $  -*- C++ -*-
 //====================================================================
 //
-// Copyright 2002-2006 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// Copyright 2002-2007 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
 // the terms of either the GNU Lesser General Public License or the Perl
 // Artistic License.
@@ -26,7 +26,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <netinet/in.h>  /*ntoh*/
+#include <netinet/in.h>  //ntoh
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -125,7 +125,7 @@ struct VDeregs {
 	return (m_attrNetOrder ? ntohl(m_w[w]) : m_w[w]);
     }
     // PARSING
-    string getLine(const char *);
+    string getLine(const char*);
     bool gotExit(string in) {
 	return (in=="q" || in=="x" || in=="quit" || in=="exit");
     }
@@ -143,10 +143,10 @@ struct VDeregs {
     }
 };
 
-string VDeregs::getLine(const char *prompt) {
+string VDeregs::getLine(const char* prompt) {
     string edited;
 
-    const char *in;
+    const char* in;
     while (1) {
 	in = readline(prompt);
 	if (in == NULL || gotExit(string(in))) {COUT<<endl; exit(0);}
@@ -156,7 +156,7 @@ string VDeregs::getLine(const char *prompt) {
     }
     
     // Strip [anything_like_a_timestamp]
-    const char *cp=in;
+    const char* cp=in;
     while (isspace(*cp)) cp++;
     for (; *cp; cp++) {
 	if (*cp == '[') {
@@ -277,7 +277,7 @@ static struct option long_options[] = {
 };
 
 static void usage() {
-    COUT <<"vderegs: #$Id: vderegs.cpp 26343 2006-10-12 21:03:49Z wsnyder $\n" <<endl;
+    COUT <<"vderegs: #$Id: vderegs.cpp 29378 2007-01-02 15:01:29Z wsnyder $\n" <<endl;
     COUT <<"vderegs is part of SystemC::Vregs, available from http://www.veripool.com/\n" <<endl;
     COUT << "Usage: dedfa [OPTION]...\n"
 	 << "--multi     \tPrint \"EOM\\n\" to frame each response (for piped I/O)\n"
@@ -295,7 +295,7 @@ static void usage() {
 
 void VDeregs::getOptions(int argc, char* argv[]) {
     int c = 0;
-    while (( c = getopt_long(argc, argv, "h", long_options, (int *)0) )
+    while (( c = getopt_long(argc, argv, "h", long_options, (int*)0) )
 	   != EOF) {
 	switch (c) {
 	case 'M'|0x80:	m_opt_multiMode = true;

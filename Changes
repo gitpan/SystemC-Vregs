@@ -2,6 +2,16 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.430 1/2/2007
+
+***	Add vreg --if-product option and Product column.
+	This allows the same specification to be used for multiple revisions
+	of registers, with output selectable at vregs run time.
+
+***	Add vreg --change-diff option for preventing changes.
+
+***	Add vreg --filename-* options for changing output filenames.
+
 * Vregs 1.421 10/17/2006
 
 ***	Warn if specified ending addresses are incorrect.  [Peter Holmes]
@@ -268,13 +278,13 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 26604 2006-10-17 20:52:48Z wsnyder $
+$Id: Changes 29376 2007-01-02 14:50:38Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 you can redistribute it and/or modify it under the terms of either the GNU
 General Public License or the Perl Artistic License.
 

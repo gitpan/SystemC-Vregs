@@ -1,8 +1,8 @@
-# $Id: Vregs.pm 26604 2006-10-17 20:52:48Z wsnyder $
+# $Id: Vregs.pm 29378 2007-01-02 15:01:29Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -29,7 +29,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.421';
+$VERSION = '1.430';
 
 ######################################################################
 #### Constants
@@ -271,6 +271,7 @@ sub new_define {
     my ($const_col, $mnem_col, $def_col)
 	 = _choose_columns ($flagref,
 			    [qw(Constant Mnemonic Definition)],
+			    [qw(Product)],
 			    $bittable[0]);
     defined $const_col or return $self->warn ($flagref, "Define table is missing column headed 'Constant'\n");
     defined $mnem_col  or return $self->warn ($flagref, "Define table is missing column headed 'Mnemonic'\n");
@@ -316,6 +317,7 @@ sub new_enum {
     my ($const_col, $mnem_col, $def_col)
 	= _choose_columns ($flagref,
 			   [qw(Constant Mnemonic Definition)],
+			   [qw(Product)],
 			   $bittable[0]);
     defined $const_col or return $self->warn ($flagref, "Enum table is missing column headed 'Constant'\n");
     defined $mnem_col  or return $self->warn ($flagref, "Enum table is missing column headed 'Mnemonic'\n");
@@ -370,7 +372,7 @@ sub new_enum {
 		my $var = $1;
 		my $val = $row->[$colnum]||"";
 		$val =~ s/\s*\([^\)]*\)//g;
-		$valref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9]+)$/;
+		$valref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9+]+)$/;
 	    }
 	}
     }
@@ -410,7 +412,7 @@ sub new_register {
     $typeref->inherits($inherits);
 
     # See also $typeref->{attributes}{lcfirst}, below.
-    while ($attr =~ s/-([a-zA-Z_0-9]+)\s*=?\s*([a-zA-Z._0-9]+)?//) {
+    while ($attr =~ s/-([a-zA-Z_0-9]+)\s*=?\s*([a-zA-Z._0-9+]+)?//) {
 	$typeref->{attributes}{$1} = (defined $2 ? $2 : 1);
     }
     ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
@@ -453,8 +455,9 @@ sub new_register {
 			       [qw(Bit Mnemonic Type Definition),
 				qw(Access Reset),	# Register decls
 				qw(Constant),	# Class declarations
-				qw(Size),		# Ignored Optionals
+				qw(Size),	# Ignored Optionals
 				],
+			       [qw(Product)],
 			       $bittable[0]);
 	$rst_col ||= $const_col;
 	defined $bit_col or  return $self->warn ($flagref, "Table is missing column headed 'Bit'\n");
@@ -518,8 +521,13 @@ sub new_register {
 
 	    my $rst = defined $rst_col ? $row->[$rst_col] : "";
 	    $rst = 'X' if ($rst eq "" && !$is_register);
+	    $rst =~ s/\(.*?\)// if $rst;
 
 	    my $type = defined $type_col && $row->[$type_col];
+	    $type =~ s/\(.*?\)// if $type;
+
+	    my $acc = (defined $acc_col ? $row->[$acc_col] : 'RW');
+	    $acc =~ s/\(.*?\)// if $acc;
 
 	    (!$typeref->{fields}{$bit_mnem}) or
 		$self->warn ($typeref->{fields}{$bit_mnem}, "Field defined twice in spec\n");
@@ -528,7 +536,7 @@ sub new_register {
 		 name => $bit_mnem,
 		 typeref => $typeref,
 		 bits => $row->[$bit_col],
-		 access => (defined $acc_col ? $row->[$acc_col] : 'RW'),
+		 access => $acc,
 		 overlaps => $overlaps,
 		 rst  => $rst,
 		 desc => $row->[$def_col],
@@ -545,7 +553,7 @@ sub new_register {
 		    my $var = $1;
 		    my $val = $row->[$colnum]||"";
 		    $val =~ s/\s*\([^\)]*\)//g;
-		    $bitref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9]+)$/;
+		    $bitref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9+]+)$/;
 		}
 	    }
 	}
@@ -558,6 +566,7 @@ sub new_register {
 sub _choose_columns {
     my $flagref = shift;
     my $fieldref = shift;
+    my $attrfieldref = shift;
     my $headref = shift;
     # Look for the columns with the given headings.  Require them to exist.
 
@@ -568,11 +577,7 @@ sub _choose_columns {
     # If things get wide, this may change
     for (my $h=0; $h<=$#{$headref}; $h++) {
 	$colheads[$h] = $headref->[$h];
-	if ($colheads[$h] =~ s/\s*\(.*\)\s*//) {
-	    # Strip comments in the header
-	    # Allow ignoring these columns entirely
-	    #print "HR $h '$headref->[$h]'  '$colheads[$h]'\n";
-	}
+	$colheads[$h] =~ s/\s*\(.*\)\s*//;  # Ignore comments in the header
 	$colused[$h] = 1 if $colheads[$h] eq "";
     }
   headchk:
@@ -585,6 +590,15 @@ sub _choose_columns {
 	    }
 	}
 	push @collist, undef;
+    }
+    foreach my $fld (@{$attrfieldref}) {
+	for (my $h=0; $h<=$#{$headref}; $h++) {
+	    if ($fld eq $colheads[$h]) {
+		# Convert to a attribute
+		$headref->[$h] = "(".$headref->[$h].")";
+		$colused[$h] = 1;
+	    }
+	}
     }
 
     my $ncol = 0;
@@ -652,6 +666,7 @@ sub regs_read {
 		 spacingtext => $spacingtext,
 		 range => $range,
 		 );
+	    _regs_read_attributes($regref, $flags);
 	}
 	elsif ($line =~ /^type\s+(\S+)\s*(.*)$/ ) {
 	    my $typemnem = $1; my $flags = $2;
@@ -709,9 +724,9 @@ sub regs_read {
 		 );
 	    _regs_read_attributes($bitref, $flags);
 	}
-	elsif ($line =~ /^define\s+(\S+)\s+(\S+)\s+"(.*)"$/ ) {
-	    my $name = $1;  my $rst=$2;  my $desc=$3;
-	    new SystemC::Vregs::Define::Value
+	elsif ($line =~ /^define\s+(\S+)\s+(\S+)\s+([^\"]*)"(.*)"$/ ) {
+	    my $name = $1;  my $rst=$2;  my $flags=$3; my $desc=$4;
+	    my $ref = new SystemC::Vregs::Define::Value
 		(pack => $self,
 		 name => $name,
 		 rst  => $rst,
@@ -719,6 +734,7 @@ sub regs_read {
 		 is_manual => 1,
 		 at => "${filename}:$.",
 		 );
+	    _regs_read_attributes($ref, $flags);
 	}
 	elsif ($line =~ /^package\s+(\S+)\s*(.*)$/ ) {
 	    my $flags = $2;
@@ -788,6 +804,46 @@ sub check {
 	$regref->check();
     }
     #use Data::Dumper; print Dumper($self);
+}
+
+######################################################################
+#### Masking
+
+sub remove_if_mismatch {
+    my $self = shift;
+    foreach my $typeref ($self->types_sorted) {
+	$typeref->remove_if_mismatch();
+    }
+    foreach my $regref ($self->regs_sorted) {  # Must do types before regs
+	$regref->remove_if_mismatch();
+    }
+    foreach my $enumref ($self->enums_sorted) {
+	$enumref->remove_if_mismatch();
+    }
+    foreach my $defref ($self->defines_sorted) {
+	$defref->remove_if_mismatch();
+    }
+}
+
+sub is_mismatch {
+    my $self = shift;
+    my $itemref = shift;
+    # Called by each object, return true if there's a mismatch
+    my $mismatch;
+    if (my $prod = $self->{if_product}) {
+	if (my $itemprod = $itemref->attribute_value("Product")) {
+	    $prod = lc $prod;
+	    $itemprod = lc $itemprod;
+	    #print "Prod check $prod =? $itemprod\n";
+	    if ($itemprod =~ /(.*)\+$/) {
+		$mismatch = $prod lt $1;
+	    } else {
+		$mismatch = $prod ne $itemprod;
+	    }
+	    print "    ProductMismatch: deleting $itemref->{name}\n" if $mismatch && $Debug;
+	}
+    }
+    return $mismatch;
 }
 
 ######################################################################
@@ -1296,7 +1352,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
