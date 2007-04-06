@@ -1,4 +1,4 @@
-# $Id: Rules.pm 29378 2007-01-02 15:01:29Z wsnyder $
+# $Id: Rules.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -18,7 +18,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 ######################################################################
 # Default rules

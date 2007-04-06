@@ -1,4 +1,4 @@
-# $Id: Defines.pm 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: Defines.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 ######################################################################
 # CONSTRUCTOR
@@ -118,12 +118,17 @@ sub _body {
 	}
 
 	my $define  = $defref->{name};
-	my $value   = $defref->{rst_val};
 	my $comment = $defref->{desc};
 	if (($fl->{C} || $fl->{CPP}) && $define =~ /^C[BER][0-9]/) {
 	    next;  # Skip for Perl/C++, not much point as we have structs
 	}
-	$value = $fl->sprint_hex_value_add0 ($value,$defref->{bits}) if (defined $defref->{bits});
+
+	my $value   = $defref->{rst_val};
+	if ($defref->attribute_value('freeform')) {
+	    $value = $defref->{rst};
+	} else {
+	    $value = $fl->sprint_hex_value_add0 ($value,$defref->{bits}) if (defined $defref->{bits});
+	}
 	if ($fl->{Perl}) {
 	    if (($defref->{bits}||0) > 64) {
 		$fl->print ("#");

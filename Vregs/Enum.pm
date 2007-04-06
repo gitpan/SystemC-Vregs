@@ -1,4 +1,4 @@
-# $Id: Enum.pm 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: Enum.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
 
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 ######################################################################
 ######################################################################
@@ -164,6 +164,14 @@ sub delete {
     }
 }
 
+sub attributes {
+    my $self = shift;
+    my $attr = shift;
+    my $value = shift;
+    $self->{attributes}{$attr} = $value if $value;
+    return $self->{attributes}{$attr};
+}
+
 sub attribute_value {
     my $self = shift;
     my $attr = shift;
@@ -232,12 +240,19 @@ sub expand_subenums {
 		my $rst = $self->{bits}."'d".($self->{rst_val} + $subfieldref->{rst_val});
 		my $valref = new SystemC::Vregs::Enum::Value
 		    (pack => $self->{pack},
-		     name => $self->{name}."__".$subfieldref->{name},
+		     name => $self->{name}."_".$subfieldref->{name},
 		     class => $self->{class},
 		     rst  => $rst,
 		     desc => $prefix . $subfieldref->{desc} . $postfix,
 		     omit_from_vregs_file => 1,   # Else we'll add it every time we rebuild
 		     );
+		# Clone attributes too; higher ones first, so lower ones can override
+		foreach my $attr (keys %{$self->{attributes}}) {
+		    $valref->{attributes}{$attr} = $self->{attributes}{$attr};
+		}
+		foreach my $attr (keys %{$subfieldref->{attributes}}) {
+		    $valref->{attributes}{$attr} = $subfieldref->{attributes}{$attr};
+		}
 		$valref->check;
 	    }
 	}

@@ -1,5 +1,5 @@
 // -*- C++ -*-
-// $Id: 50_gcc_hdr.cpp 29376 2007-01-02 14:50:38Z wsnyder $
+// $Id: 50_gcc_hdr.cpp 30873 2007-01-25 21:48:16Z wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 //
 // Copyright 2001-2007 by Wilson Snyder.  This program is free software;
@@ -8,6 +8,7 @@
 
 #include "gcc_common.h"
 
+#include "vregs_spec_defs.h"
 #include "vregs_spec_class.h"
 // Check include guard works
 #include "vregs_spec_class.h"
@@ -109,6 +110,12 @@ int main() {
 	exit(10);
     }
 
+    // Define check
+    if (FREE_DOUBLE != -1.2345) {
+	COUT << "%Error: FREE_DOUBLE Has Wrong Value\n";
+	exit(10);
+    }
+
     // Dumping a enum
     COUT << "Cmd = "<<clOne.cmd()<< " Desc="<<clOne.cmd().description()<<endl;
 
@@ -116,7 +123,7 @@ int main() {
     COUT << "ClassOne =\t" <<hex << clOne.dump() << endl;
 
     // Check subclassing worked
-    ExSuperEnum sen (ExSuperEnum::A__FIVE);
+    ExSuperEnum sen (ExSuperEnum::A_FIVE);
     COUT << "SuperEnum Desciption = "<<sen.description()<<endl;
 
     return (0);

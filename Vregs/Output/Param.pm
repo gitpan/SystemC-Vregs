@@ -1,4 +1,4 @@
-# $Id: Param.pm 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: Param.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 ######################################################################
 # CONSTRUCTOR
@@ -78,7 +78,8 @@ sub write {
 
 	if (($define =~ s/^(RA|RAM|CM|RBASEA)_/${1}P_/
 	    || ($defref->{is_manual} && $define =~ s/^(.*)$/P_$1/))
-	    && ($defref->{rst_val}||'') !~ /Not_Aligned/i) {
+	    && ($defref->{rst_val}||'') !~ /Not_Aligned/i
+	    && !$defref->attribute_value('freeform')) {
 	    my $prt_val = _param_write_value($self, $defref, $fl);
 	    $fl->printf ("   %s %-26s %13s%s\n",
 			 ($pack->attribute_value('v2k') ? 'localparam':'parameter'),

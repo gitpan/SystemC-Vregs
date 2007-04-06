@@ -1,4 +1,4 @@
-# $Id: Define.pm 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: Define.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -89,22 +89,28 @@ sub clean_rst {
     my $self = shift;
     my $field = $self->{rst};
 
-    my $bits = Verilog::Language::number_bits ($field);
-    if (!$bits) { return $self->warn ("Number of bits in constant not specified: $field\n"); }
-    $self->{bits} = $bits;
-    if ($field =~ /\'s?h([0-9a-f_]+)$/i) {
-	# Prevent overflowing 32 bits by keeping the number in hex form
-	my $valhex = lc $1;
-	$valhex =~ s/_//g;
-	$self->{rst_val} = $valhex;
+    if ($self->attribute_value('freeform')) {
+	# Floating point number, etc, keep free-form
+	$self->{bits} = -1;
     } else {
-	my $val = Verilog::Language::number_value ($field);
-	if (!defined $val) { return $self->warn ("Value of constant unparsable: $field\n"); }
-	$self->{rst_val} = sprintf("%x",$val);
+	my $bits = Verilog::Language::number_bits ($field);
+	if (!$bits) { return $self->warn ("Number of bits in constant not specified: $field\n"); }
+	$self->{bits} = $bits;
+	if ($field =~ /\'s?h([0-9a-f_]+)$/i) {
+	    # Prevent overflowing 32 bits by keeping the number in hex form
+	    my $valhex = lc $1;
+	    $valhex =~ s/_//g;
+	    $self->{rst_val} = $valhex;
+	} else {
+	    my $val = Verilog::Language::number_value ($field);
+	    if (!defined $val) { return $self->warn ("Value of constant unparsable: $field\n"); }
+	    $self->{rst_val} = sprintf("%x",$val);
+	}
     }
 
     # Note Enum and Bit rst_vals are decimal, Define rst_vals are hex.  Yuk.
 
+    my $bits = $self->{bits};
     if (defined $self->{class}{bits}
 	&& ($self->{class}{bits} != $bits)) {
 	return $self->warn ("Define value doesn't match register width: $field != "
@@ -121,9 +127,16 @@ sub clean_rst {
 sub check_name {
     my $self = shift;
     my $field = $self->{name};
-    if ($self->{is_manual}
-	&& $field !~ /^[A-Z][A-Z0-9_]*$/) {
-	return $self->warn ("Define field names must match [capital][capitalnumerics_]: $field\n");
+    if ($self->{is_manual}) {
+	if ($self->attribute_value('allowlc')) {
+	    if ($field !~ /^[a-zA-Z][a-zA-Z0-9_]*$/) {
+		return $self->warn ("Define field names must match [alpha][alphanumerics_]: $field\n");
+	    }
+	} else {
+	    if ($field !~ /^[A-Z][A-Z0-9_]*$/) {
+		return $self->warn ("Define field names must match [capital][capitalnumerics_]: $field\n");
+	    }
+	}
     }
 }
 
@@ -207,6 +220,10 @@ Reset value for the object.
 These fields are valid only after check() is called.
 
 =over 4
+
+=item rst
+
+The reset value, expressed as a text string.
 
 =item rst_val
 

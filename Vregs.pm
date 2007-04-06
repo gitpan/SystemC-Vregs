@@ -1,4 +1,4 @@
-# $Id: Vregs.pm 29378 2007-01-02 15:01:29Z wsnyder $
+# $Id: Vregs.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -29,7 +29,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 ######################################################################
 #### Constants
@@ -268,6 +268,8 @@ sub new_define {
     $defname .= "_" if $defname ne "" && $defname !~ /_$/;
     $defname = "" if $defname eq "_";
 
+    my $whole_table_attr = $flagref->{Attributes}||"";
+
     my ($const_col, $mnem_col, $def_col)
 	 = _choose_columns ($flagref,
 			    [qw(Constant Mnemonic Definition)],
@@ -302,6 +304,7 @@ sub new_define {
 	      at   => $flagref->{at},
 	      is_manual => 1,
 	      );
+	 _regs_read_attributes($defref, $whole_table_attr);
     }
 }
 
@@ -345,10 +348,8 @@ sub new_enum {
 	}
 	next if $row eq $bittable[0];	# Ignore header
 
-	my $val_mnem = $row->[$mnem_col];
-	my $desc     = $row->[$def_col];
-	$val_mnem =~ s/\([^\)]*\)\s*//;	# Strip (comment)
-	$desc =~ s/\([^\)]*\)\s*//;	# Strip (comment)
+	my $val_mnem = _cleanup_column($row->[$mnem_col]);
+	my $desc     = _cleanup_column($row->[$def_col]);
 
 	# Skip blank/reserved values
 	next if ($val_mnem eq "" && ($desc eq "" || $desc =~ /^reserved/i));
@@ -358,7 +359,7 @@ sub new_enum {
 	    (pack => $self,
 	     name => $val_mnem,
 	     class => $classref,
-	     rst  => $row->[$const_col],
+	     rst  => _cleanup_column($row->[$const_col]),
 	     desc => $desc,
 	     at => $flagref->{at},
 	     );
@@ -370,8 +371,7 @@ sub new_enum {
 	    $col =~ s/\s+//;
 	    if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
 		my $var = $1;
-		my $val = $row->[$colnum]||"";
-		$val =~ s/\s*\([^\)]*\)//g;
+		my $val = _cleanup_column($row->[$colnum]||"");
 		$valref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9+]+)$/;
 	    }
 	}
@@ -519,15 +519,12 @@ sub new_register {
 		next;	# All blank lines (excl comment) are fine.
 	    }
 
-	    my $rst = defined $rst_col ? $row->[$rst_col] : "";
+	    my $rst = _cleanup_column(defined $rst_col ? $row->[$rst_col] : "");
 	    $rst = 'X' if ($rst eq "" && !$is_register);
-	    $rst =~ s/\(.*?\)// if $rst;
 
-	    my $type = defined $type_col && $row->[$type_col];
-	    $type =~ s/\(.*?\)// if $type;
+	    my $type = _cleanup_column(defined $type_col && $row->[$type_col]);
 
-	    my $acc = (defined $acc_col ? $row->[$acc_col] : 'RW');
-	    $acc =~ s/\(.*?\)// if $acc;
+	    my $acc = _cleanup_column(defined $acc_col ? $row->[$acc_col] : 'RW');
 
 	    (!$typeref->{fields}{$bit_mnem}) or
 		$self->warn ($typeref->{fields}{$bit_mnem}, "Field defined twice in spec\n");
@@ -551,8 +548,7 @@ sub new_register {
 		$col =~ s/\s+//;
 		if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
 		    my $var = $1;
-		    my $val = $row->[$colnum]||"";
-		    $val =~ s/\s*\([^\)]*\)//g;
+		    my $val = _cleanup_column($row->[$colnum]||"");
 		    $bitref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9+]+)$/;
 		}
 	    }
@@ -617,6 +613,15 @@ sub _choose_columns {
     }
 
     return (@collist);
+}
+
+sub _cleanup_column {
+    my $text = shift;
+    return undef if !defined $text;
+    $text =~ s/\s*\([^\)]*\)//;	# Strip (comment)  Leave trailing space "foo (bar) x" becomes "foo x"
+    $text =~ s/\s+$//;
+    $text =~ s/^\s+//;
+    return $text;
 }
 
 ######################################################################
@@ -726,6 +731,7 @@ sub regs_read {
 	}
 	elsif ($line =~ /^define\s+(\S+)\s+(\S+)\s+([^\"]*)"(.*)"$/ ) {
 	    my $name = $1;  my $rst=$2;  my $flags=$3; my $desc=$4;
+	    $rst = $1 if $rst =~ m/^"(.*)"$/;
 	    my $ref = new SystemC::Vregs::Define::Value
 		(pack => $self,
 		 name => $name,
@@ -924,7 +930,7 @@ sub SystemC::Vregs::Type::_create_defines {
     }
 
     # Make bit alias
-    foreach my $bitref (values %{$typeref->{fields}}) {
+    foreach my $bitref ($typeref->fields_sorted) {
 	next if $bitref->ignore;
 	{   # Wide-word defines
 	    my $rnum = 0;  $rnum = 1 if $#{$bitref->{bitlist_range}};

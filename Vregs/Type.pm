@@ -1,4 +1,4 @@
-# $Id: Type.pm 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: Type.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -84,6 +84,11 @@ sub attribute_value {
 	    && defined $typeref->{inherits_typeref}{attributes}{$attr});
     return $typeref->{pack}{attributes}{$attr} if defined $typeref->{pack}{attributes}{$attr};
     return undef;
+}
+
+sub numbytes {
+    my $self = shift;
+    return int(($self->{numbits}+7)/8);
 }
 
 ######################################################################
@@ -236,7 +241,14 @@ sub _computes_words {
 	    $words = int($bit / 32)+1 if $words < int($bit / 32)+1;
 	}
     }
-    $self->{words} = $words;
+    if (my $numbits = $self->attribute_value('numbits')) {
+	$self->{words}   = int(($numbits+31)/32);
+	$self->{words}   = 1 if $self->{words}<1;
+	$self->{numbits} = $numbits;
+    } else {  # Make a guess based on the fields used.
+	$self->{words} = $words;
+	$self->{numbits} = $words*32;
+    }
 }
 
 sub _computes_inh_level_recurse {

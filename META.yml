@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         SystemC-Vregs
-version:      1.430
+version:      1.440
 version_from: Vregs.pm
 license:      perl
 installdirs:  site
@@ -9,6 +9,7 @@ requires:
     Bit::Vector:                   0
     HTML::Parser:                  0
     HTML::TableExtract:            0
+    Pod::Usage:                    0
     Verilog::Language:             2.1
 
 distribution_type: module

@@ -1,4 +1,4 @@
-# $Id: CBitFields.pm 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: CBitFields.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use strict;
 use vars qw($VERSION);
 use base qw(SystemC::Vregs::Output::Class);   # So we get enum_struct_write
 
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 ######################################################################
 # CONSTRUCTOR

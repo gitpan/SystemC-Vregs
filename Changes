@@ -2,6 +2,14 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.440 4/6/2007
+
+***	Allow free-form define values such as doubles.  [Larry Stewart]
+
+***	Use single underscore instead of __ to separate sub-ENUM expansions.
+
+****	Fix --help to use Pod::Usage instead of depreciated pod2text.
+
 * Vregs 1.430 1/2/2007
 
 ***	Add vreg --if-product option and Product column.
@@ -26,7 +34,7 @@ The contributors that suggested a given feature are shown in [].
 
 ***	The vreg_write fuction is now replaced with the
 	SystemC::Vregs::Output::Layout->new->write function to match the
-	outhr outputters.  For backward compatibility, the regs_write
+	other outputters.  For backward compatibility, the regs_write
 	function still works.
 
 * Vregs 1.410 4/18/2006
@@ -278,7 +286,7 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 29376 2007-01-02 14:50:38Z wsnyder $
+$Id: Changes 35449 2007-04-06 13:21:40Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 	

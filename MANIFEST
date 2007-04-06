@@ -12,6 +12,7 @@ README
 readme.texi
 t/00_cleanhtml.t
 t/00_pod.t
+t/01_manifest.t
 t/05_number.t
 t/10_language.t
 t/20_vregsparse.t

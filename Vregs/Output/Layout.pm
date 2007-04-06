@@ -1,4 +1,4 @@
-# $Id: Layout.pm 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: Layout.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 ######################################################################
 # CONSTRUCTOR
@@ -162,8 +162,15 @@ sub write {
     $fl->print("//",'*'x70,"\n// Defines\n");
     foreach my $fieldref ($pack->defines_sorted) {
 	next if !$fieldref->{is_manual};
-	$fl->printf("\tdefine\t%-13s\t%s\t\"%s\"\n"
-		    ,$fieldref->{name},$fieldref->{rst},$fieldref->{desc});
+	$fl->printf("\tdefine\t%-13s", $fieldref->{name});
+	if ($fieldref->attribute_value('freeform')) {
+	    $fl->printf("\t\"%s\"", $fieldref->{rst});
+	} else {
+	    $fl->printf("\t%s", $fieldref->{rst});
+	}
+	$self->_print_attributes($fieldref, $fl);
+	$fl->printf("\t\"%s\"\n"
+		    ,$fieldref->{desc});
     }
 
     $fl->close();

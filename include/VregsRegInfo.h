@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.h 29378 2007-01-02 15:01:29Z wsnyder $ -*- C++ -*-
+// $Id: VregsRegInfo.h 35449 2007-04-06 13:21:40Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2007 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -107,7 +107,7 @@ public:
     bool		isWrSide() const { return ((m_flags & REGFL_WRSIDE)!=0); }	///< Has write side effects
     bool		isRegTest() const { return ((m_flags & REGFL_NOREGTEST)==0); }	///< Register is testable
     bool		isRegDump() const { return ((m_flags & REGFL_NOREGDUMP)==0); }	///< Register should be dumped
-    bool		isBigTest() const { return ((m_flags & REGFL_NOBIGTEST)==0); }	///< Register too big for testing
+    bool		isBigTest() const { return ((m_flags & REGFL_NOBIGTEST)!=0); }	///< Register too big for testing
 
     // ACCESSORS - Derived from above functions
     // True if this is a entry of a multiple entry structure

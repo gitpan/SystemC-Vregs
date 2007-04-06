@@ -1,4 +1,4 @@
-# $Id: Register.pm 29378 2007-01-02 15:01:29Z wsnyder $
+# $Id: Register.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -173,7 +173,7 @@ sub check_range_spacing {
 	(defined $regref->{range_high}) or $regref->warn ("Can't parse $htext in range $range\n");
 	(defined $regref->{range_low}) or $regref->warn ("Can't parse $htext in range $range\n");
 	($regref->{range_low} < $regref->{range_high}) or $regref->warn ("Register range specified in the wrong order. Use regname[high:low] instead.\n");
-	($spacing->Lexicompare($regref->{pack}->addr_const_vec(4)) >= 0)
+	($spacing->Lexicompare($regref->{pack}->addr_const_vec($regref->{typeref}->numbytes)) >= 0)
 	    or $regref->warn ("Strange address spacing $spacing\n");
     }
     else { # No range
@@ -216,7 +216,7 @@ sub computes {
 	my $inc = $regref->{pack}->addr_const_vec(1);
 	$inc->subtract($regref->{range_ents}, $inc, 0);
 	$inc->Multiply($regref->{spacing}, $inc);
-	$regref->{ent_size} = $regref->{pack}->addr_const_vec($regref->{typeref}{words}*4)->Clone();
+	$regref->{ent_size} = $regref->{pack}->addr_const_vec($regref->{typeref}->numbytes)->Clone();
 	$inc->add($inc, $regref->{ent_size}, 0);
 	$inc->add($regref->{addr}, $inc, 0);
 	$regref->{addr_end} = $inc->Clone();

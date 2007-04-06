@@ -1,4 +1,4 @@
-// $Id: vderegs.cpp 29378 2007-01-02 15:01:29Z wsnyder $  -*- C++ -*-
+// $Id: vderegs.cpp 31337 2007-02-02 18:21:34Z wsnyder $  -*- C++ -*-
 //====================================================================
 //
 // Copyright 2002-2007 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -270,14 +270,20 @@ int main (int argc, char* argv[]) {
 }
 
 static struct option long_options[] = {
+    { "help",		no_argument,	NULL, 'h' },
     { "multi",		no_argument, 	NULL, 'M'|0x80 },
     { "pretty",		no_argument, 	NULL, 'P'|0x80 },
-    { "help",		no_argument,	NULL, 'h' },
+    { "version",	no_argument,	NULL, 'v' },
     { NULL,		0,		NULL, 0 },
 };
 
+static void version() {
+    COUT <<"vderegs: #$Id: vderegs.cpp 31337 2007-02-02 18:21:34Z wsnyder $" <<endl;
+}
+
 static void usage() {
-    COUT <<"vderegs: #$Id: vderegs.cpp 29378 2007-01-02 15:01:29Z wsnyder $\n" <<endl;
+    version();
+    COUT <<endl;
     COUT <<"vderegs is part of SystemC::Vregs, available from http://www.veripool.com/\n" <<endl;
     COUT << "Usage: dedfa [OPTION]...\n"
 	 << "--multi     \tPrint \"EOM\\n\" to frame each response (for piped I/O)\n"
@@ -302,10 +308,16 @@ void VDeregs::getOptions(int argc, char* argv[]) {
 	    break;
 	case 'P'|0x80:	m_opt_prettyForm = true;
 	    break;
+	case 'v':
+	    version();
+	    exit(1);
+	    break;
 	case 'h':
 	case '?':
 	default:
 	    usage();
+	    exit(1);
+	    break;
 	}
     }
 }

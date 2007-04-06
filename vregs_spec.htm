@@ -138,9 +138,37 @@ prepended to all defines, thus in the example below CMP_ will be
 prepended.  If this is not desired, use
 a single _ instead of the “CMP” below.</p>
 
-<p class=RegDescBody>There are three columns for each value in
-the enumeration.  Columns can be in any
-order.</p>
+<p class=RegDescBody>A header called “Attributes” before the
+header specifies special actions for the enum.<br>
+<![if !supportLineBreakNewLine]><br>
+<![endif]></p>
+
+<table border=1 cellspacing=0 cellpadding=0 width=459>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody><b>Attribute</b></p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody><b>Description</b></p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=RegDescBody>-freeform</p>
+  </td>
+  
+  <td valign=top>
+  <p class=RegDescBody>Allow free-form text in the constant section.
+   Without this attribute, vregs will assume
+  all constants are Verilog-format numbers.</p>
+  </td>
+  
+ </tr>
+</table>
+
+<p class=RegDescBody>There are three columns for each define.  Columns can be in any order.</p>
 
 <p class=RegDescBody>The constant column is the value for the
 define.  Numeric values are in Verilog
@@ -158,13 +186,16 @@ the define is used for.  The first
 sentence is added as a comment to the output files.  Italizing this first sentence is useful in highlighting this extraction.
 </p>
 
-<p class=RegDescBody>Any additional columns must have header titles
-in parenthesis.  If data in that column contains
-alphanumeric data, the data will be added as an attribute to the define.  This is not used by vregs itself, but is useful
-for locally written extentions.</p>
+<p class=RegDescBody>Any additional columns must have header
+titles in parenthesis.  If data in that
+column contains alphanumeric data, the data will be added as an attribute to
+the define.  This is not used by vregs
+itself, but is useful for locally written extentions.</p>
 
 <p class=RegDescBody>If constants are being defined for a
 series of values, a enumeration is probably a better way to do it.  </p>
+
+<p class=RegDescBody></p>
 
 <h2><![if !supportLists]>3.2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>Example
 Definitions </h2>
@@ -174,7 +205,7 @@ Definitions </h2>
 <p class=RegDescBody>This table shows an example definition
 table.   The information in the header
 below is prepended with a underscore to all mnemonics, to prevent the global
-name space of defines from causing trouble </p>
+name space of defines from causing trouble.</p>
 
 <p class=RegDescHead><b>Defines</b></p>
 
@@ -245,6 +276,73 @@ name space of defines from causing trouble </p>
  </tr>
 </table>
 
+<h2><![if !supportLists]>3.3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <![endif]>More
+Definitions </h2>
+
+<p class=RegDescHead><b>Description</b></p>
+
+<p class=RegDescBody>This table shows an example freeform definition
+table. </p>
+
+<p class=RegDescHead><b>Defines</b></p>
+
+<p class=RegDescBody>FREE</p>
+
+<p class=RegDescHead><b>Attributes</b></p>
+
+<p class=RegDescBody>-allowlc -freeform</p>
+
+<p class=MsoNormal></p>
+
+<table border=1 cellspacing=0 cellpadding=0>
+ <tr>
+  <td valign=top>
+  <p class=TableHeading>Constant<br>
+  <![if !supportLineBreakNewLine]><br>
+  <![endif]></p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Mnemonic</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableHeading>Definition<br>
+  (header comments in parenthesis)</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>-1.2345</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>DOUBLE</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Definition</i>.  Text up to the first period will be
+  annotated into the output files.</p>
+  </td>
+  
+ </tr>
+ <tr>
+  <td valign=top>
+  <p class=TableBody>Foobar</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody>Stringdef</p>
+  </td>
+  
+  <td valign=top>
+  <p class=TableBody><i>Definition.</i></p>
+  </td>
+  
+ </tr>
+</table>
+
 <div>
 
 <h1><![if !supportLists]>4&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -290,8 +388,8 @@ header specifies special actions for the enum.<br>
 
 <p class=RegDescBody></p>
 
-<p class=RegDescBody>There are three columns for each value in
-the enumeration.  Columns can be in any
+<p class=RegDescBody>There are three columns for each value in the
+enumeration.  Columns can be in any
 order.</p>
 
 <p class=RegDescBody>The constant column is the value for the
@@ -309,10 +407,11 @@ the enumeration value is used for.  The
 first sentence is added as a comment to the output files.  Italizing this first sentence is useful in
 highlight ing this extraction. </p>
 
-<p class=RegDescBody>Any additional columns must have header titles
-in parenthesis.  If data in that column contains
-alphanumeric data, the data will be added as an attribute to the define.  This is not used by vregs itself, but is useful
-for locally written extentions.</p>
+<p class=RegDescBody>Any additional columns must have header
+titles in parenthesis.  If data in that
+column contains alphanumeric data, the data will be added as an attribute to
+the define.  This is not used by vregs
+itself, but is useful for locally written extentions.</p>
 
 <p class=RegDescBody>A table row may have a empty mnemonic
 column if the definition contains the text “reserved”.  </p>
@@ -376,8 +475,8 @@ table.  </p>
   </td>
   
   <td valign=top>
-  <p class=TableBody><i>Command One</i>.  Text up to the first period will be annotated
-  into the output files.</p>
+  <p class=TableBody><i>Command One</i>.  Text up to the first period will be
+  annotated into the output files.</p>
   </td>
   
  </tr>
@@ -639,10 +738,10 @@ the class.  Columns can be in any order.</p>
 <p class=RegDescBody>The bit column defines which bits the
 field occupies.  Bit numbers are then
 expressed in MSB:LSB order.  Bits can be
-of any width; there is no restriction of their being less then 32.  For readability w#[] indicates the bits in the
-brackets are in a given 32-bit word, 32 times the # will be added to the bit
-numbers in the brackets.  Likewise b#
-for 8-bit bytes, h# for 16-bit halfwords, and d# for 64-bit doublewords. For
+of any width; there is no restriction of their being less then 32.  For readability w#[] indicates the bits in
+the brackets are in a given 32-bit word, 32 times the # will be added to the
+bit numbers in the brackets.  Likewise
+b# for 8-bit bytes, h# for 16-bit halfwords, and d# for 64-bit doublewords. For
 example w3[10] is bit 10 in longword 3, equivelent to writing [106]  (3*32+10 = 106). Fields may consist of
 multiple disjoint segments, separated by commas.  (w0[15:13] or w0[15,14,13] or w0[15],w0[14],w0[13] are all
 equivelent.)</p>
@@ -655,8 +754,8 @@ Underscores are not acceptable, use mixed case instead.</p>
 <p class=RegDescBody>The type is the C++ type of the
 field.  If left blank, single bit fields
 will be assumed to be “bool” and multiple bit fields will be unsigned
-integers.  The entire column may be
-deleted if the default is acceptable for all of the fields.</p>
+integers.  The entire column may be deleted
+if the default is acceptable for all of the fields.</p>
 
 <p class=RegDescBody>The constant column is used to specify the
 given bit range always contains a certain value.  Often it will be expressed as a enumeration, such as when
@@ -676,10 +775,11 @@ the field is used for.  The first
 sentence is added as a comment to the output files.  Italizing this first sentence is useful in highlight ing this
 extraction.</p>
 
-<p class=RegDescBody>Any additional columns must have header titles
-in parenthesis.  If data in that column contains
-alphanumeric data, the data will be added as an attribute to the define.  This is not used by vregs itself, but is useful
-for locally written extentions.</p>
+<p class=RegDescBody>Any additional columns must have header
+titles in parenthesis.  If data in that
+column contains alphanumeric data, the data will be added as an attribute to
+the define.  This is not used by vregs
+itself, but is useful for locally written extentions.</p>
 
 <p class=RegDescBody></p>
 
@@ -1129,7 +1229,7 @@ shows an example class which expands its subclasses.</p>
   </td>
   
   <td valign=top>
-  <p class=TableBody><i>Base 2.</i>  Expand Class.</p>
+  <p class=TableBody><i>Base 2.</i>  Expand Class.</p>
   </td>
   
  </tr>

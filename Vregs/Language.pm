@@ -1,4 +1,4 @@
-# $Id: Language.pm 29378 2007-01-02 15:01:29Z wsnyder $
+# $Id: Language.pm 35449 2007-04-06 13:21:40Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use Carp;
 use IO::File;
 
-$VERSION = '1.430';
+$VERSION = '1.440';
 
 ######################################################################
 #### Implementation
