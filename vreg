@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Id: vreg 35192 2007-04-03 14:51:19Z wsnyder $
+#$Id: vreg 45091 2007-09-27 13:50:15Z wsnyder $
 ######################################################################
 #
 # Copyright 2001-2007 by Wilson Snyder.  This program is free software;
@@ -28,6 +28,7 @@ use SystemC::Vregs::Output::Class;
 use SystemC::Vregs::Output::Defines;
 use SystemC::Vregs::Output::Hash;
 use SystemC::Vregs::Output::Info;
+use SystemC::Vregs::Output::Latex;
 use SystemC::Vregs::Output::Param;
 use SystemC::Vregs::TableExtract;
 
@@ -73,6 +74,7 @@ my $opten_info_cpp = 1;
 my $opten_param_v = 1;
 my $opten_struct_h = 1;
 my $opten_hash_pm = 1;
+my $opten_latex = 0;
 
 if (! GetOptions (
 		  "help"	=> \&usage,
@@ -97,13 +99,14 @@ if (! GetOptions (
 		  # File Enables (if adding one, add to files! also)
 		  "asm_h!"	=> sub { $opten_asm_h		=$_[1]?1:0; },
 		  "class_cpp!"	=> sub { $opten_class_cpp	=$_[1]?1:0; },
-		  "class_h!"	=> sub { $opten_class_h	=$_[1]?1:0; },
-		  "defs_h!"	=> sub { $opten_defs_h	=$_[1]?1:0; },
-		  "defs_pm!"	=> sub { $opten_defs_pm	=$_[1]?1:0; },
-		  "defs_v!"	=> sub { $opten_defs_v	=$_[1]?1:0; },
-		  "hash_pm!"	=> sub { $opten_hash_pm	=$_[1]?1:0; },
+		  "class_h!"	=> sub { $opten_class_h		=$_[1]?1:0; },
+		  "defs_h!"	=> sub { $opten_defs_h		=$_[1]?1:0; },
+		  "defs_pm!"	=> sub { $opten_defs_pm		=$_[1]?1:0; },
+		  "defs_v!"	=> sub { $opten_defs_v		=$_[1]?1:0; },
+		  "hash_pm!"	=> sub { $opten_hash_pm		=$_[1]?1:0; },
 		  "info_cpp!"	=> sub { $opten_info_cpp	=$_[1]?1:0; },
-		  "param_v!"	=> sub { $opten_param_v	=$_[1]?1:0; },
+		  "latex!"	=> sub { $opten_latex		=$_[1]?1:0; },
+		  "param_v!"	=> sub { $opten_param_v		=$_[1]?1:0; },
 		  "struct_h!"	=> sub { $opten_struct_h	=$_[1]?1:0; },
 		  "filename-asm-h=s"	=> \$opten_asm_h,
 		  "filename-class-cpp=s"=> \$opten_class_cpp,
@@ -115,6 +118,7 @@ if (! GetOptions (
 		  "filename-info-cpp=s"	=> \$opten_info_cpp,
 		  "filename-param-v=s"	=> \$opten_param_v,
 		  "filename-struct-h=s"	=> \$opten_struct_h,
+		  "filename-latex=s"	=> \$opten_latex,
 		  "files!"	=> sub { my $ena = $_[1] ? 1:0;
 					 $opten_asm_h = $ena;
 					 $opten_class_cpp = $ena;
@@ -126,6 +130,7 @@ if (! GetOptions (
 					 $opten_info_cpp = $ena;
 					 $opten_param_v = $ena;
 					 $opten_struct_h = $ena;
+					 $opten_latex = $ena;
 				     },
 		  )) {
     die "%Error: Bad usage, try 'vreg --help'\n";
@@ -265,6 +270,10 @@ if ($opt_headers) {
 	SystemC::Vregs::Output::Class->new->write_struct_h
 	    (%p, filename=>_def_fn($opten_struct_h, "${opt_output}${opt_package}_struct.h"));
     }
+    if ($opten_latex) {
+	SystemC::Vregs::Output::Latex->new->write
+	    (%p, filename=>_def_fn($opten_latex, "${opt_output}${opt_package}_latex.tex"));
+    }
 }
 
 #----------------------------------------------------------------------
@@ -275,7 +284,7 @@ END {
 }
 
 sub usage {
-    print '$Id: vreg 35192 2007-04-03 14:51:19Z wsnyder $ ', "\n";
+    print '$Id: vreg 45091 2007-09-27 13:50:15Z wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -317,8 +326,8 @@ vreg - Register configuration utility
 =head1 DESCRIPTION
 
 Vreg has two major uses.  The first vreg converts a HTML document (saved
-via Word or Framemaker) to a vreg file.  The second generates standard
-headers from the .html or from a .vregs file.
+via Word, Framemaker, LyX, or Latex) to a vreg file.  The second generates
+standard headers from the .html or from a .vregs file.
 
 =head1 HTML CONVERSION
 
@@ -331,7 +340,8 @@ file format to HTML.  If inside Microsoft Word, exit.
 =head1 HEADER CREATION
 
 When the --header switch is used, vreg reads a .vregs file and creates
-definition and class headers in the --output directory.
+definition and class headers in the --output directory.  Vreg can also
+create LaTex tables based on the register layouts.
 
 =head1 ARGUMENTS
 
@@ -377,6 +387,11 @@ Specify the output filename for the asm_h file.
 By default this is {--output}{package_name}_asm.h.
 
 Similar options exist for all of the other output files.
+
+=item --latex
+
+Creates latex tables from the vregs definition, suitable for formatting
+into printable documentation.
 
 =item --library I<package>
 

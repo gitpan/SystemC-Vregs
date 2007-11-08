@@ -1,4 +1,4 @@
-# $Id: Type.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Type.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -53,6 +53,7 @@ sub new {
 sub delete {
     my $self = shift;
     $self->{pack} or die;
+    $self->{deleted} = 1;   # So can see in any dangling refs.
     delete $self->{pack}{types}{$self->{name}};
 }
 
@@ -116,9 +117,8 @@ sub dewildcard {
 				 name=>$newname,
 				 at => $matchref->{at},
 				 );
-	foreach my $key (keys %{$self->{attributes}}) {
-	    $newref->{attributes}{$key} = $self->{attributes}{$key};
-	}
+	$newref->copy_attributes_from($matchref);
+	$newref->copy_attributes_from($self);
 	$newref->inherits($matchref->{name});
     }
     $gotone or $self->warn ("No types matching wildcarded type: ",$self->inherits(),"\n");
@@ -135,6 +135,9 @@ sub check_name {
     ($self->{nor_name} = $field);
 }
 
+our $_Check_Inherit_Notice = ("If using Product codes with wildcarded registers,\n"
+			      ."add a specific Product=xyz attribute to the type definition\n");
+
 sub check_inherit {
     my $typeref = shift;
     my $inh = $typeref->inherits();
@@ -142,7 +145,10 @@ sub check_inherit {
     my $ityperef = $typeref->{pack}->find_type($inh);
     $typeref->{inherits_typeref} = $ityperef;
     if (!$ityperef) {
-	return $typeref->warn ("Cannot find subclass definition: $inh\n");
+	$typeref->warn ("Cannot find subclass definition: $inh\n"
+			.$_Check_Inherit_Notice);
+	$_Check_Inherit_Notice = "";
+	return;
     }
 
     #print "INH $typeref->{name} $inh;\n";
@@ -183,12 +189,13 @@ sub check {
 
 sub remove_if_mismatch {
     my $self = shift;
+    my $test_cb = shift;
     my $rm=0;  my $cnt=0;
     foreach my $fieldref (values %{$self->{fields}}) {
-	$rm++ if $fieldref->remove_if_mismatch();
+	$rm++ if $fieldref->remove_if_mismatch($test_cb);
 	$cnt++;
     }
-    if ($self->{pack}->is_mismatch($self) || ($rm && $rm == $cnt)) {
+    if ($test_cb->($self) || ($rm && $rm == $cnt)) {
 	$self->delete;
     }
 }

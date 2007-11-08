@@ -52,6 +52,10 @@ can be examined for errors, or edited standalone.  Vregs also produces
 header fields with #defines for all of the constants and magic numbers
 in the spec.
 
+   Alternatively you can write a .vregs file directly and then have this
+converted to LaTex format for printing.  If you use another text
+language, it is easy to write another output format.
+
    Vregs can be customized to change the code it creates using
 templates; see 'man vreg' for details.
 

@@ -1,4 +1,4 @@
-# $Id: Vregs.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Vregs.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -29,7 +29,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 ######################################################################
 #### Constants
@@ -159,7 +159,8 @@ sub find_reg_regexp {
 
 sub regs_sorted {
     my $pack = shift;
-    return (sort {($a->{addr} && $b->{addr} && $a->{addr}->Lexicompare($b->{addr}))
+    return (sort {(defined $a->{addr} && defined $b->{addr} && $a->{addr}->Lexicompare($b->{addr}))
+		      || ( (defined $a->{addr} && !defined $b->{addr}) ? 1:0)  # IE any# > undef
 		      || $a->{name} cmp $b->{name}}
 	    (values %{$pack->{regs}}));
 }
@@ -264,7 +265,7 @@ sub new_define {
 
     #print ::Dumper(\$flagref, $bittableref);
     ($flagref->{Defines}) or die;
-    my $defname = $flagref->{Defines};
+    my $defname = _cleanup_column($flagref->{Defines});
     $defname .= "_" if $defname ne "" && $defname !~ /_$/;
     $defname = "" if $defname eq "_";
 
@@ -304,6 +305,17 @@ sub new_define {
 	      at   => $flagref->{at},
 	      is_manual => 1,
 	      );
+
+	 # Take special user defined fields and add to table
+	 for (my $colnum=0; $colnum<=$#{$bittable[0]}; $colnum++) {
+	     my $col = $bittable[0][$colnum];
+	     $col =~ s/\s+//;
+	     if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
+		 my $var = $1;
+		 my $val = _cleanup_column($row->[$colnum]||"");
+		 $defref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9+]+)$/;
+	     }
+	 }
 	 _regs_read_attributes($defref, $whole_table_attr);
     }
 }
@@ -315,7 +327,7 @@ sub new_enum {
     # Create a new enumeration
 
     ($flagref->{Enum}) or die;
-    my $classname = $flagref->{Enum};
+    my $classname = _cleanup_column($flagref->{Enum});
 
     my ($const_col, $mnem_col, $def_col)
 	= _choose_columns ($flagref,
@@ -384,7 +396,7 @@ sub new_register {
     my $flagref = shift;	# Hash of {heading} = value_of_heading
     # Create a new register
 
-    my $classname = $flagref->{Register} || $flagref->{Class};
+    my $classname = _cleanup_column($flagref->{Register} || $flagref->{Class});
     (defined $classname) or die;
 
     #print "new_register!\n",::Dumper(\$flagref,\@bittable);
@@ -421,7 +433,7 @@ sub new_register {
 	# Declare a register
 	($classname =~ /^[R]_/) or return $self->warn($flagref, "Strange mnemonic name, doesn't begin with R_");
 
-	my $addr = $flagref->{Address};
+	my $addr = $flagref->{Address};  # Don't _cleanup_column, as we have (Add 0x) text
 	my $spacingtext = 0;
 	$spacingtext = $self->{data_bytes} if $range;
 	if (!$addr) {
@@ -817,17 +829,19 @@ sub check {
 
 sub remove_if_mismatch {
     my $self = shift;
+    my $test_cb = shift || sub { return $self->is_mismatch($_[0]); };  # Default cb
+    print "remove_if_mismatch($test_cb)\n" if $Debug;
     foreach my $typeref ($self->types_sorted) {
-	$typeref->remove_if_mismatch();
+	$typeref->remove_if_mismatch($test_cb);
     }
     foreach my $regref ($self->regs_sorted) {  # Must do types before regs
-	$regref->remove_if_mismatch();
+	$regref->remove_if_mismatch($test_cb);
     }
     foreach my $enumref ($self->enums_sorted) {
-	$enumref->remove_if_mismatch();
+	$enumref->remove_if_mismatch($test_cb);
     }
     foreach my $defref ($self->defines_sorted) {
-	$defref->remove_if_mismatch();
+	$defref->remove_if_mismatch($test_cb);
     }
 }
 
@@ -840,7 +854,7 @@ sub is_mismatch {
 	if (my $itemprod = $itemref->attribute_value("Product")) {
 	    $prod = lc $prod;
 	    $itemprod = lc $itemprod;
-	    #print "Prod check $prod =? $itemprod\n";
+	    #print "Prod check $prod =? $itemprod for $self->{name}\n";
 	    if ($itemprod =~ /(.*)\+$/) {
 		$mismatch = $prod lt $1;
 	    } else {
@@ -989,23 +1003,27 @@ sub SystemC::Vregs::Bit::_create_defines_range {
 		 name => "CR${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
 		 rst_val => $wmsb.":".$wlsb,
 		 is_verilog => 1,
-		 desc => "Field Bit Range: $comment", );
+		 desc => "Field Bit Range: $comment",
+		 desc_trivial => 1,);
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $typeref->{pack},
 		 name => "CB${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
 		 rst_val => $wlsb,
-		 desc => "Field Start Bit: $comment", );
+		 desc => "Field Start Bit: $comment",
+		 desc_trivial => 0,);
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $typeref->{pack},
 		 name => "CE${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
 		 rst_val  => $wmsb,
-		 desc => "Field End Bit:   $comment", );
+		 desc => "Field End Bit:   $comment",
+		 desc_trivial => 1,);
 	    if ($wstr eq "" && $typeref->{attributes}{macros_32_bits}) {
 		new_push SystemC::Vregs::Define::Value
 		    (pack => $typeref->{pack},
 		     name => "CBSZ${wstr}_".$nor_mnem."_".$bit_mnem.$rstr,
 		     rst_val => $wmsb - $wlsb + 1,
-		     desc => "Field Bit Size: $comment", );
+		     desc => "Field Bit Size: $comment",
+		     desc_trivial => 1,);
 	    }
 	}
     }
@@ -1019,12 +1037,14 @@ sub SystemC::Vregs::Bit::_create_defines_range {
 		 name => "CRW${bitwidth}_".$nor_mnem."_".$bit_mnem.$rstr,
 		 rst_val => $wmsb.":".$wlsb,
 		 is_verilog => 1,
-		 desc => "Field Bit Range for ${bitwidth}-bit extracts", );
+		 desc => "Field Bit Range for ${bitwidth}-bit extracts",
+		 desc_trivial => 1,);
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $typeref->{pack},
 		 name => "CAW${bitwidth}_".$nor_mnem."_".$bit_mnem.$rstr,
 		 rst_val => $bitword,
-		 desc => "Field Word Number for ${bitwidth}-bit extracts", );
+		 desc => "Field Word Number for ${bitwidth}-bit extracts",
+		 desc_trivial => 1,);
 	}
     }
     if ($bitref->{numbits}>1 && $bitref->{rst_val}) {
@@ -1034,7 +1054,8 @@ sub SystemC::Vregs::Bit::_create_defines_range {
 	     rst_val => sprintf("%x",$bitref->{rst_val}),
 	     bits => $bitref->{numbits},
 	     is_verilog => 1,
-	     desc => "Field Reset", );
+	     desc => "Field Reset",
+	     desc_trivial => 1,);
     }
 }
 
@@ -1047,7 +1068,8 @@ sub SystemC::Vregs::Enum::_create_defines {
 	     name => "E_".$self->{name}."_".$fieldref->{name},
 	     bits => $fieldref->{bits},
 	     rst_val => sprintf("%x",$fieldref->{rst_val}),
-	     desc => "Enum Value: $fieldref->{desc}", );
+	     desc => "Enum Value: $fieldref->{desc}",
+	     desc_trivial => 0,);
     }
 }
 
@@ -1077,7 +1099,8 @@ sub create_defines {
 	     name => "RA_".$nor_mnem,
 	     val => $addr,
 	     rst_val => $addr->to_Hex, bits => $pack->{address_bits},
-	     desc => "Address of $classname", );
+	     desc => "Address of $classname",
+	     desc_trivial => 1,);
 
 	if ($range ne "" || 1) {
 	    new_push SystemC::Vregs::Define::Value
@@ -1085,14 +1108,16 @@ sub create_defines {
 		 name => "RAE_".$nor_mnem,
 		 rst_val => $regref->{addr_end}->to_Hex,
 		 bits => $pack->{address_bits},
-		 desc => "Ending Address of Register + 1", );
+		 desc => "Ending Address of Register + 1",
+		 desc_trivial => 1,);
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $pack,
 		 name => "RAC_".$nor_mnem,
 		 rst_val => $regref->{range_ents},
 		 bits => (($regref->{range_ents}->Lexicompare($bit32) > 0)
 			  ? $pack->{address_bits} : 32),
-		 desc => "Number of entries", );
+		 desc => "Number of entries",
+		 desc_trivial => 1,);
 
 	    if (! $regref->{spacing}->equal($bit4)) {
 		new_push SystemC::Vregs::Define::Value
@@ -1100,7 +1125,8 @@ sub create_defines {
 		     name => "RRP_".$nor_mnem,
 		     rst_val => $regref->{spacing}->to_Hex,
 		     bits => $pack->{address_bits},
-		     desc => "Range spacing", );
+		     desc => "Range spacing",
+		     desc_trivial => 1,);
 	    }
 	}
 
@@ -1114,13 +1140,15 @@ sub create_defines {
 		     name => "RRS_".$nor_mnem,
 		     rst_val => $val->to_Hex,
 		     bits => (($val != 0) ? $pack->{address_bits} : 32),
-		     desc => "Range byte size", );
+		     desc => "Range byte size",
+		     desc_trivial => 1,);
 	    } else {
 		new_push SystemC::Vregs::Define::Value
 		    (pack => $pack,
 		     name => "RRS_".$nor_mnem,
 		     rst_val => "Non_Contiguous",
-		     desc => "Range byte size: This register region contains gaps.");
+		     desc => "Range byte size: This register region contains gaps.",
+		     desc_trivial => 0,);
 	    }
 
 	    my $delta = Bit::Vector->new($regref->{pack}{address_bits});
@@ -1131,7 +1159,8 @@ sub create_defines {
 		     name => "RAM_".$nor_mnem,
 		     rst_val => $delta->to_Hex,
 		     bits => $pack->{address_bits},
-		     desc => "Address Mask");
+		     desc => "Address Mask",
+		     desc_trivial => 1,);
 	    } else {
 		# We could just leave it out, but that leads to a lot of "bug"
 		# reports about the define being missing!
@@ -1139,7 +1168,8 @@ sub create_defines {
 		    (pack => $pack,
 		     name => "RAM_".$nor_mnem,
 		     rst_val => "Not_Aligned",
-		     desc => "Address Mask: This register is not naturally aligned, so a mask will not work.");
+		     desc => "Address Mask: This register is not naturally aligned, so a mask will not work.",
+		     desc_trivial => 0,);
 	    }
 	}
 
@@ -1156,7 +1186,8 @@ sub create_defines {
 		     val => $range_addr,
 		     rst_val => $range_addr->to_Hex,
 		     bits => $regref->{pack}{address_bits},
-		     desc => "Address of Entry ${classname}${range_val}", );
+		     desc => "Address of Entry ${classname}${range_val}",
+		     desc_trivial => 0,);
 	    }
 	}
     }
@@ -1189,13 +1220,15 @@ sub create_defines {
 	     name => "RBASEA_".$nor_mnem,
 	     val => $addr,
 	     rst_val => $addr->to_Hex, bits => $pack->{address_bits},
-	     desc => "Base address of $nor_mnem registers", );
+	     desc => "Base address of $nor_mnem registers",
+	     desc_trivial => 1,);
 	new_push SystemC::Vregs::Define::Value
 	    (pack => $pack,
 	     name => "RBASEAE_".$nor_mnem,
 	     val => $addr_end,
 	     rst_val => $addr_end->to_Hex, bits => $pack->{address_bits},
-	     desc => "Base address of $nor_mnem registers", );
+	     desc => "Ending base address of $nor_mnem registers",
+	     desc_trivial => 1,);
 	my $delta = Bit::Vector->new($pack->{address_bits});
 	$delta->subtract($modref->{addr_end},$addr,1);  #end-start-1
 	$delta = _force_mask ($pack, $delta);
@@ -1204,7 +1237,8 @@ sub create_defines {
 	     name => "RBASEAM_".$nor_mnem,
 	     rst_val => $delta->to_Hex,
 	     bits => $pack->{address_bits},
-	     desc => "Address Mask (may be forced to power-of-two)");
+	     desc => "Address Mask (may be forced to power-of-two)",
+	     desc_trivial => 1,);
     }
 
     foreach my $typeref ($pack->types_sorted) {
@@ -1386,6 +1420,7 @@ L<SystemC::Vregs::Output::Class>,
 L<SystemC::Vregs::Output::Defines>,
 L<SystemC::Vregs::Output::Hash>,
 L<SystemC::Vregs::Output::Info>,
+L<SystemC::Vregs::Output::Latex>,
 L<SystemC::Vregs::Output::Param>
 
 =cut

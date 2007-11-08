@@ -1,0 +1,123 @@
+%% $Id: vregs.sty 47202 2007-11-08 15:00:51Z wsnyder $
+%% DESCRIPTION: LaTex style file for Vregs register definitions
+%% Note you probably also want
+%%  \usepackage{underscore}
+
+%%============================================================
+%% Formatting macros used below (not for users)
+
+\newcommand{\vregsPropertyBox}[2]{
+\par\makebox[1.5in][l]{\textbf{#1}}
+#2
+\par
+}
+
+%%============================================================
+%% Package and other top level types
+
+\newcommand{\vregsPackage}[2]{
+\subsection{#2}
+\label{#1}
+\indent
+\vregsPropertyBox{Package}{#1}
+\index{#1}
+\index{#2}
+}
+
+\newcommand{\vregsDefines}[2]{
+\subsection{#2}
+\label{#1}
+\indent
+\vregsPropertyBox{Defines}{#1}
+\index{#1}
+\index{#2}
+}
+
+\newcommand{\vregsEnum}[2]{
+\subsection{#2}
+\label{#1}
+\indent
+\vregsPropertyBox{Enum}{#1}
+\index{#1}
+\index{#2}
+}
+
+\newcommand{\vregsClass}[2]{
+\subsection{#2}
+\label{#1}
+\indent
+\vregsPropertyBox{Class}{#1}
+\index{#1}
+\index{#2}
+}
+
+\newcommand{\vregsRegister}[2]{
+\subsection{#2}
+\label{#1}
+\indent
+\vregsPropertyBox{Register}{#1}
+\index{#1}
+\index{#2}
+}
+
+%%============================================================
+%% Attributes and things under packages/defines/enums/etc
+
+\newcommand{\vregsAttributes}[1]{
+\vregsPropertyBox{Attributes}{#1}
+}
+
+\newcommand{\vregsAddress}[1]{
+\vregsPropertyBox{Address}{#1}
+}
+
+%%============================================================
+%% Tables
+
+\newcommand{\vregsTable}[1]{
+\par
+\vspace{10pt}
+\begin{tabular}{#1}
+}
+
+\newcommand{\vregsTHead}[1]{
+#1 \\
+\hline
+}
+
+\newcommand{\vregsTLine}[1]{
+#1 \\
+}
+
+\newcommand{\vregsTableEnd}{
+\end{tabular}
+\par
+}
+
+%%============================================================
+%% Tables
+
+\newcommand{\vregsLongTable}[1]{
+\par
+\vspace{10pt}
+\begin{longtable}{#1}
+}
+
+\newcommand{\vregsLongTHead}[1]{
+#1 \\
+\hline \endfirsthead
+#1 \\
+\hline \endhead
+}
+
+\newcommand{\vregsLongTableEnd}{
+\end{longtable}
+\par
+}
+
+%%============================================================
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% compile-command: "make"
+%%% End: 

@@ -1,4 +1,4 @@
-# $Id: Layout.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Layout.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 ######################################################################
 # CONSTRUCTOR
@@ -97,12 +97,14 @@ sub write {
     $fl->print("// DESCR"."IPTION: Register Layout: Generated AUTOMATICALLY by vregs\n");
     $fl->print("//\n");
     $fl->print("// Format:\n");
-    $fl->print("//\tpackage {name}\n");
-    $fl->print("//\treg   {name} {type}[vec] 0x{address} {spacing}\n");
-    $fl->print("//\ttype  {name}\n");
-    $fl->print("//\tbit   {name} {bits} {access} {type} {reset} {description}\n");
-    $fl->print("//\tenum  {name}\n");
-    $fl->print("//\tconst {name} {value} {description}\n");
+    $fl->print("//\tpackage {name}         [attributes...]\n");
+    $fl->print("//\treg     {name} {type}[vec] {address} {spacing} [attributes...]\n");
+    $fl->print("//\ttype    {name} [:{inherits}] [attributes...]\n");
+    $fl->print("//\tbit     {name} {bits} {access} {type} {reset}  [attributes...] {description}\n");
+    $fl->print("//\tconst   {name} {value} [attributes...] {description}\n");
+    $fl->print("//\tdefine  {name} {value} [attributes...] {description}\n");
+    $fl->print("//\tenum    {name}         [attributes...]\n");
+    $fl->print("//  Where [attributes...] are multiple entries of '-{name}' or '-{name}={value}'\n");
     $fl->print("\n");
 
     $fl->print("package $pack->{name}");

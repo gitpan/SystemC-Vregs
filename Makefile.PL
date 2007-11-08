@@ -1,4 +1,4 @@
-# $Id: Makefile.PL 35192 2007-04-03 14:51:19Z wsnyder $
+# $Id: Makefile.PL 46826 2007-10-31 12:57:28Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
 # Copyright 2001-2007 by Wilson Snyder.  This program is free software;
@@ -29,6 +29,7 @@ clean::
 ## Maintainer use:
 preexist:
 	test ! -r \$(HOME)/src/kits/\$(DISTVNAME).tar.gz
+	test -s README
 
 tag:
 	svnorcvs tag  \$(DISTNAME)_\$(VERSION_SYM)

@@ -1,4 +1,4 @@
-# $Id: Language.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Language.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use vars qw($VERSION);
 use Carp;
 use IO::File;
 
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 ######################################################################
 #### Implementation
@@ -37,6 +37,7 @@ sub new {
 		#change_diff=>"",
 		#change_error=>{},
 		#changes=>undef,	# For dry_run, any changes found?
+		#verbose=>0,
 		@_};
     
     $self->{filename} or croak "%Error: ->new() requires filename=> argument, stopped";

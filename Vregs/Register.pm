@@ -1,4 +1,4 @@
-# $Id: Register.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Register.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -52,6 +52,7 @@ sub new {
 sub delete {
     my $self = shift;
     $self->{pack} or die;
+    $self->{deleted} = 1;   # So can see in any dangling refs.
     delete $self->{pack}{regs}{$self->{name}};
 }
 
@@ -89,13 +90,15 @@ sub dewildcard {
 	my $typeref = $self->{pack}->find_type($newname) or die;
 	my $addr = $self->{addrtext} ."|". $matchref->{addrtext};
 	print "  Wildcarded $matchref->{name} to $newname\n" if $SystemC::Vregs::Debug;
-	$self->new (name=>$newname,
-		    pack=>$self->{pack},
-		    addrtext => $addr,
-		    spacingtext => $matchref->{spacingtext},
-		    range =>  $matchref->{range},
-		    typeref => $typeref,
-		    );
+	my $newref = $self->new (name=>$newname,
+				 pack=>$self->{pack},
+				 addrtext => $addr,
+				 spacingtext => $matchref->{spacingtext},
+				 range =>  $matchref->{range},
+				 typeref => $typeref,
+				 );
+	$newref->copy_attributes_from($matchref);
+	$newref->copy_attributes_from($self);
     }
     $gotone or $self->warn ("No types matching wildcarded type: ",$self->inherits(),"\n");
     $self->delete();
@@ -203,7 +206,9 @@ sub check {
 
 sub remove_if_mismatch {
     my $self = shift;
-    if ($self->{pack}->is_mismatch($self)) {
+    my $test_cb = shift;
+    if (($self->{typeref} && $self->{typeref}{deleted})
+	|| $test_cb->($self)) {
 	$self->delete;
     }
 }

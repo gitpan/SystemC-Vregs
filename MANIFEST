@@ -5,8 +5,12 @@ include/VregsClass.h
 include/VregsDefs.h
 include/VregsRegInfo.cpp
 include/VregsRegInfo.h
+latex/underscore.sty
+latex/vregs.sty
+latex/vregs_spec_example.tex
 Makefile.PL
 MANIFEST
+MANIFEST.SKIP
 META.yml			Module meta-data (added by MakeMaker)
 README
 readme.texi
@@ -43,6 +47,7 @@ Vregs/Output/Class.pm
 Vregs/Output/Defines.pm
 Vregs/Output/Hash.pm
 Vregs/Output/Info.pm
+Vregs/Output/Latex.pm
 Vregs/Output/Layout.pm
 Vregs/Output/Param.pm
 Vregs/Register.pm

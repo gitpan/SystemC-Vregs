@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: readme.texi 29376 2007-01-02 14:50:38Z wsnyder $
+@c $Id: readme.texi 45090 2007-09-27 12:59:12Z wsnyder $
 @c %**start of header
 @setfilename readme.info
 @settitle Perl SystemC::Vregs Installation
@@ -71,6 +71,10 @@ file, which contains a summary of the extracted information.  This file
 can be examined for errors, or edited standalone.  Vregs also produces
 header fields with #defines for all of the constants and magic numbers in
 the spec.  
+
+Alternatively you can write a .vregs file directly and then have this
+converted to LaTex format for printing.  If you use another text
+language, it is easy to write another output format.
 
 Vregs can be customized to change the code it creates using templates;
 see 'man vreg' for details.

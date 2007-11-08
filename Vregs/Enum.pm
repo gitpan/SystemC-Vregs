@@ -1,4 +1,4 @@
-# $Id: Enum.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Enum.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
 
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 ######################################################################
 ######################################################################
@@ -46,6 +46,7 @@ sub new {
 
 sub delete {
     my $self = shift;
+    $self->{deleted} = 1;   # So can see in any dangling refs.
     if ($self->{pack}) {
 	delete $self->{pack}{enums}{$self->{name}};
     }
@@ -98,12 +99,13 @@ sub check {
 
 sub remove_if_mismatch {
     my $self = shift;
+    my $test_cb = shift;
     my $rm=0;  my $cnt=0;
     foreach my $fieldref (values %{$self->{fields}}) {
-	$rm++ if $fieldref->remove_if_mismatch();
+	$rm++ if $fieldref->remove_if_mismatch($test_cb);
 	$cnt++;
     }
-    if ($self->{pack}->is_mismatch($self) || ($rm && $rm == $cnt)) {
+    if ($test_cb->($self) || ($rm && $rm == $cnt)) {
 	$self->delete;
     }
 }
@@ -159,6 +161,7 @@ sub new {
 
 sub delete {
     my $self = shift;
+    $self->{deleted} = 1;   # So can see in any dangling refs.
     if ($self->{class}) {
 	delete $self->{class}{fields}{$self->{name}};
     }
@@ -247,12 +250,8 @@ sub expand_subenums {
 		     omit_from_vregs_file => 1,   # Else we'll add it every time we rebuild
 		     );
 		# Clone attributes too; higher ones first, so lower ones can override
-		foreach my $attr (keys %{$self->{attributes}}) {
-		    $valref->{attributes}{$attr} = $self->{attributes}{$attr};
-		}
-		foreach my $attr (keys %{$subfieldref->{attributes}}) {
-		    $valref->{attributes}{$attr} = $subfieldref->{attributes}{$attr};
-		}
+		$valref->copy_attributes_from($subfieldref);  # Overrides whole enum attrs, so do first
+		$valref->copy_attributes_from($self);
 		$valref->check;
 	    }
 	}
@@ -270,7 +269,8 @@ sub check {
 
 sub remove_if_mismatch {
     my $self = shift;
-    if ($self->{pack}->is_mismatch($self)) {
+    my $test_cb = shift;
+    if ($test_cb->($self)) {
 	$self->delete;
 	return 1;
     }

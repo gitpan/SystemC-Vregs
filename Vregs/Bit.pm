@@ -1,4 +1,4 @@
-# $Id: Bit.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Bit.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION %Keywords);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))
@@ -311,7 +311,7 @@ sub dewildcard {
 	my $overlaps = $ibitref->{overlaps};
 	$overlaps = ($bitref->{name}.$overlaps) if $overlaps && $overlaps ne "allowed";
 	my $newref = SystemC::Vregs::Bit->new
-	    (%{$ibitref},
+	    (%{$ibitref},  # Clone attributes, etc
 	     pack=>$bitref->{pack},
 	     name=>$newname,
 	     typeref=>$bitref->{typeref},
@@ -429,7 +429,8 @@ sub check {
 
 sub remove_if_mismatch {
     my $self = shift;
-    if ($self->{pack}->is_mismatch($self)) {
+    my $test_cb = shift;
+    if ($test_cb->($self)) {
 	$self->delete;
 	return 1;
     }

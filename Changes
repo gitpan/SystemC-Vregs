@@ -2,6 +2,16 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.441 11/8/2007
+
+***	Added Latex output, and associated examples.
+
+****	Fix parsing attributes in define sections.
+
+****	Fix propagating attributes across wildcarded types.  [Mat Zeno]
+
+****	Fix deleting registers when related types are deleted. [Brian Cassell]
+
 * Vregs 1.440 4/6/2007
 
 ***	Allow free-form define values such as doubles.  [Larry Stewart]
@@ -286,7 +296,7 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 35449 2007-04-06 13:21:40Z wsnyder $
+$Id: Changes 47203 2007-11-08 15:03:51Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 	

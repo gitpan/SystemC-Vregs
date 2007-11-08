@@ -1,4 +1,4 @@
-# $Id: Define.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Define.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 #Fields:
 #	{name}			Field name (Subclass)
@@ -56,7 +56,8 @@ sub new {
 
 sub delete {
     my $self = shift;
-    print "DEST $self->{name}\n";
+    #print "DEST $self->{name}\n";
+    $self->{deleted} = 1;   # So can see in any dangling refs.
     if ($self->{pack}) {
 	delete $self->{pack}{defines}{$self->{name}};
     }
@@ -149,7 +150,8 @@ sub check {
 
 sub remove_if_mismatch {
     my $self = shift;
-    if ($self->{pack}->is_mismatch($self)) {
+    my $test_cb = shift;
+    if ($test_cb->($self)) {
 	$self->delete;
 	return 1;
     }

@@ -1,4 +1,4 @@
-# $Id: Subclass.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Subclass.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::Subclass;
 
 use strict;use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 $Errors = 0;
 
@@ -27,6 +27,17 @@ sub new {
     defined $self->{name} or croak ("No name=> parameter passed");
     bless $self, $class;
     return $self;
+}
+
+sub copy_attributes_from {
+    my $self = shift;
+    my $from = shift or return;
+
+    foreach my $key (keys %{$from->{attributes}}) {
+	if (!defined $self->{attributes}{$key}) {
+	    $self->{attributes}{$key} = $from->{attributes}{$key}
+	}
+    }
 }
 
 sub at_text {

@@ -1,4 +1,4 @@
-# $Id: Defines.pm 35449 2007-04-06 13:21:40Z wsnyder $
+# $Id: Defines.pm 47203 2007-11-08 15:03:51Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '1.440';
+$VERSION = '1.441';
 
 ######################################################################
 # CONSTRUCTOR
@@ -138,8 +138,9 @@ sub _body {
 	if (($defref->{is_verilog} && $fl->{Verilog})
 	    || ($defref->{is_perl} && $fl->{Perl})
 	    || (!$defref->{is_verilog} && !$defref->{is_perl})) {
-	    $fl->define ($self->{define_prefix}.$define, $value,
-			 ($pack->{comments}?$comment:""));
+	    $comment = "" if !$pack->{comments};
+	    $comment = "" if $pack->{no_trivial_comments} && $defref->{desc_trivial};
+	    $fl->define ($self->{define_prefix}.$define, $value, $comment);
 	}
     }
 
