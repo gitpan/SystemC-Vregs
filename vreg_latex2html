@@ -1,0 +1,332 @@
+#!/usr/bin/perl -w
+#$Id: vreg_latex2html 49197 2008-01-02 20:57:10Z wsnyder $
+######################################################################
+#
+# Copyright 2007-2008 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+######################################################################
+
+require 5.005;
+use Getopt::Long;
+use IO::File;
+use Pod::Usage;
+use HTML::Entities;
+use Carp;
+
+use strict;
+use vars qw($Debug);
+
+#======================================================================
+
+#======================================================================
+# main
+
+autoflush STDOUT 1;
+autoflush STDERR 1;
+
+my $opt_output;
+my @opt_files;
+my @opt_incdirs = (".", split(':',$ENV{TEXINPUTS}||""));
+
+if (! GetOptions (
+		  "help"	=> \&usage,
+		  "debug"	=> \&debug,
+		  "<>"		=> \&parameter,
+		  "o|output=s"	=> \$opt_output,
+		  "-I=s"	=> sub { push @opt_incdirs, split(':',$_[1]); },
+		  )) {
+    die "%Error: Bad usage, try 'vreg_latex2html --help'\n";
+}
+
+defined $opt_output or die "%Error: Need -o option\n";
+
+tohtml();
+
+#----------------------------------------------------------------------
+
+sub usage {
+    print '$Id: vreg_latex2html 49197 2008-01-02 20:57:10Z wsnyder $ ', "\n";
+    pod2usage(-verbose=>2, -exitval => 2);
+    exit (1);
+}
+
+sub debug {
+    $Debug = 1;
+}
+
+sub parameter {
+    my $param = shift;
+    if ($#opt_files == -1 && $param !~ /^-/) {
+	push @opt_files, $param;
+    } else {
+	die "%Error: Unknown parameter: $param\n";
+    }
+}
+ 
+#######################################################################
+
+sub tohtml {
+    my $fhw = IO::File->new(">$opt_output") or die "%Error: $! $opt_output\n";
+
+    my $self = {left => '',
+		level => 0,
+		argc => [0],
+		args => [],
+		fhw => $fhw,
+	    };
+
+    $self->{fhw}->print("<html><body>\n");
+    $fhw->print("<!-- Created by vreg_latex2html -->\n");
+
+    foreach my $filename (@opt_files) {
+	proc_file($self, $filename);
+    }
+
+    $self->{fhw}->printf("<h9>Vregs_End_Of_Decl</h9>\n");
+    $self->{fhw}->print("</body></html>\n");
+    $fhw->close;
+}
+
+sub proc_file {
+    my $self = shift;
+    my $filename = shift;
+
+    $self->{filename} = $filename;
+    $self->{fhw}->printf("<!-- line %d \"%s\" -->\n", 1, $self->{filename});
+
+    print "Reading $filename\n" if $Debug;
+    my $fh = IO::File->new("<$filename");
+    if (!$fh) {
+	foreach my $dir (@opt_incdirs) {
+	    print "Try $dir/$filename\n" if $Debug;
+	    $fh = IO::File->new("<$dir/$filename");
+	    if ($fh) {
+		$self->{filename} = "$dir/$filename";
+		last;
+	    }
+	}
+    }
+    $fh or die "%Error: $! $filename\n";
+
+    while (defined(my $line = $fh->getline)) {
+	$self->{line} = $.;
+	chomp $line;
+	$line =~ s/%.*$//;
+	parse($self,$line);
+    }
+    parse($self,'\fake_end_document{}');
+
+    $fh->close();
+}
+
+sub parse {
+    my $self = shift;
+    my $line = shift;
+    print "LN $self->{level} $line\n" if $Debug;
+
+    $line = $self->{left}.$line;
+    while ($line =~ s/^(.*?)(\\[a-zA-Z_]+ | [{}])//x) {
+	my $text = $1;
+	my $tok = $2;
+	#print " PP $self->{level} $text  TOK $tok\n" if $Debug;
+
+	if ($self->{level}) {
+	    my $argc = $self->{argc}[$self->{level} - 1];
+	    $self->{args}[$self->{level} - 1][$argc] .= $text if $argc>=0;
+	}
+
+	if ($tok =~ /^\\/) {
+	    if ($self->{need_call} && $self->{level} <= $self->{need_level}) {
+		call($self,$self->{need_level});
+	    }
+	    #print "  CMD $self->{level} $tok\n" if $Debug;
+	    $self->{cmds}[$self->{level}] = $tok;
+	    $self->{argc}[$self->{level}] = -1;
+	    $self->{args}[$self->{level}] = [];
+	}
+	elsif ($tok eq '{') {
+	    ++$self->{argc}[$self->{level}];
+	    ++$self->{level};
+	}
+	elsif ($tok eq '}') {
+	    if ($self->{need_call} && $self->{level} <= $self->{need_level}) {
+		call($self,$self->{need_level});
+	    }
+	    --$self->{level};
+	    $self->{need_call} = 1;
+	    $self->{need_level} = $self->{level};
+	    #print "  setNC  $self->{level}  NC $self->{need_call} NL $self->{need_level}\n" if $Debug;
+	}
+    }
+
+    $self->{left} = $line;
+}
+
+sub call {
+    my $self = shift;
+    my $lev = shift;
+
+    #print "NC  $self->{level}  NC $self->{need_call} NL $self->{need_level}\n";
+    $self->{need_call} = 0;
+
+    my $call = $self->{cmds}[$lev];
+    my @args = @{$self->{args}[$lev]};
+    if ($Debug) {
+	print "  CALL $lev $call";
+	foreach (@args) {
+	    print "   {$_}";
+	}
+	print "\n";
+    }
+    if ($call eq '\include') {
+	my $oldfn = $self->{filename};
+	my $oldline = $self->{line};
+	proc_file($self, $args[0].".tex");
+	$self->{filename} = $oldfn;
+	$self->{line} = $oldline;
+	$self->{fhw}->printf("<!-- line %d \"%s\" -->\n", $self->{line}, $self->{filename});
+    }
+    # Section begins
+    elsif ($call =~ /^\\vregs(Package|Defines|Enum|Class|Register)/) {
+	my $what = $1;
+	$self->{fhw}->printf("<h9>Vregs_End_Of_Decl</h9>\n");
+	#
+	$self->{fhw}->printf("<!-- line %d \"%s\" -->\n", $self->{line}, $self->{filename});
+	$self->{fhw}->printf("<h2>%s</h2>\n", $args[0]);
+	$self->{fhw}->printf("   <h3>%s</h3>  %s\n", $what, $args[0]);
+    }
+    # Attributes
+    elsif ($call eq '\vregsAttributes') {
+	$self->{fhw}->printf("   <h3>Attributes</h3>  %s\n", $args[0]);
+    }
+    elsif ($call eq '\vregsAddress') {
+	$self->{fhw}->printf("   <h3>Address</h3>  %s\n", $args[0]);
+    }
+    # Table lines
+    elsif ($call =~ /^\\vregs(THead|TLine|LongTHead)/) {
+	my @fields = split ('&', $args[0]);
+	$self->{fhw}->printf("      <tr>\n");
+	my $td = ($call =~ /Head/) ? "th":"td";
+	foreach my $field (@fields) {
+	    $field =~ s/^\s+//;
+	    $field =~ s/\s+$//;
+	    $field = HTML::Entities::encode_entities($field);
+	    $self->{fhw}->printf("\t<$td>%s</$td>\n", $field);
+	}
+	$self->{fhw}->printf("      </tr>\n");
+    }
+    # ** All BEGINS **
+    elsif ($call eq '\begin') {
+	if ($args[0] eq 'vregsTable'
+	    || $args[0] eq 'vregsLongTable') {
+	    $self->{fhw}->printf("   <table border=1>\n");
+	    !$self->{in_table} or complain($self, "table inside another table, perhaps missing \end{vregsTable}?\n");
+	    $self->{in_table} = 1;
+	}
+	elsif ($args[0] =~ /^vregs/) {
+	    complain($self,"%Error: Unknown vregs macro call: \\begin{$args[0]}\n");
+	}
+    }
+    # ** ALL ENDS **
+    elsif ($call eq '\end') {
+	if ($args[0] eq 'vregsTable'
+	    || $args[0] eq 'vregsLongTable') {
+	    $self->{fhw}->printf("   </table>\n");
+	    $self->{in_table} = 0;
+	}
+	elsif ($args[0] =~ /^vregs/) {
+	    complain($self,"Unknown vregs macro call: \\end{$args[0]}\n");
+	}
+    }
+    #
+    elsif ($call =~ /^\\vregs/) {
+	complain($self,"Unknown vregs macro call: $call\n");
+    }
+}
+
+sub complain {
+    my $self = shift;
+    Carp::croak "%Error: $self->{filename}:$self->{line}: ".join('',@_);
+}
+
+#######################################################################
+__END__
+
+=pod
+
+=head1 NAME
+
+vreg_latex2html - Register configuration utility
+
+=head1 SYNOPSIS
+
+  vreg_latex2html --help
+  vreg_latex2html {filename}.tex
+
+=head1 DESCRIPTION
+
+Vreg_latex2html is a simple script to read LaTex documents that use
+the vregs Latex definitions and write out HTML code that can then
+be parsed by the Vreg program.
+
+An alternative path is to use the regular latex2html program to convert the
+entire document to HTML format, then run vregs on that.  Using this package
+is much more restricted in how you write the definitions, but doesn't cause
+latex2html errors with unknown packages and such as they are simply
+ignored.
+
+=head1 ARGUMENTS
+
+=over 4
+
+=item --output
+
+Specifies the output filename.
+
+=item -I
+
+Specifies path to include files.
+
+=back
+
+=head1 ENVIRONMENT
+
+=over 4
+
+=item TEXINPUTS
+
+If set, colon separated directory names are used as -I include paths.
+
+=back
+
+=head1 DISTRIBUTION
+
+Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+suite.  The latest version is available from CPAN and from
+L<http://www.veripool.com/vregs.html>.
+
+Copyright 2007-2008 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
+
+=head1 AUTHORS
+
+Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<SystemC::Vregs>, L<vreg>.
+
+=cut
+
+######################################################################
+### Local Variables:
+### compile-command: "cd latex && ../vreg_latex2html -o vregs_spec_example_alt.html vregs_spec_example.tex && cat vregs_spec_example_alt.html"
+### End:

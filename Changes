@@ -2,7 +2,19 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
-* Vregs 1.441 11/8/2007
+* Vregs 1.450 2008/1/3
+
+***	Added vreg_latex2html program.
+
+****	Update Latex example to use tablex and environments.
+
+****	When HTML errors are found, report line numbers instead of char#.
+
+****	Fix HTML::Parser missing occasional characters.
+
+****	Fix tests under 32bit GCC 4.1.2 systems.  [Bernd Weber]
+
+* Vregs 1.441 2007/11/8
 
 ***	Added Latex output, and associated examples.
 
@@ -12,7 +24,7 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Fix deleting registers when related types are deleted. [Brian Cassell]
 
-* Vregs 1.440 4/6/2007
+* Vregs 1.440 2007/4/6
 
 ***	Allow free-form define values such as doubles.  [Larry Stewart]
 
@@ -20,7 +32,7 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Fix --help to use Pod::Usage instead of depreciated pod2text.
 
-* Vregs 1.430 1/2/2007
+* Vregs 1.430 2007/1/2
 
 ***	Add vreg --if-product option and Product column.
 	This allows the same specification to be used for multiple revisions
@@ -30,7 +42,7 @@ The contributors that suggested a given feature are shown in [].
 
 ***	Add vreg --filename-* options for changing output filenames.
 
-* Vregs 1.421 10/17/2006
+* Vregs 1.421 2006/10/17
 
 ***	Warn if specified ending addresses are incorrect.  [Peter Holmes]
 
@@ -38,7 +50,7 @@ The contributors that suggested a given feature are shown in [].
 
 ***	Add CBitFields example outputter.  [Igor]
 
-* Vregs 1.420 5/19/2006
+* Vregs 1.420 2006/5/19
 
 ***	Add vreg -dry-run option.
 
@@ -47,7 +59,7 @@ The contributors that suggested a given feature are shown in [].
 	other outputters.  For backward compatibility, the regs_write
 	function still works.
 
-* Vregs 1.410 4/18/2006
+* Vregs 1.410 2006/4/18
 
 **	Change all VregsRegInfo classes to support 64 bit registers.
 
@@ -59,7 +71,7 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Tabify all output files.
 
-* Vregs 1.400 3/6/2006
+* Vregs 1.400 2006/3/6
 
 **	The package SystemC::Vregs::Outputs has been removed, and split
 	into independent package for each output file type.  This makes it
@@ -69,7 +81,7 @@ The contributors that suggested a given feature are shown in [].
 ***	Vderegs now uses host byte order by default.
 	Use "netorder" and "hostorder" commands to flip this mode.
 
-* Vregs 1.320 1/16/2006
+* Vregs 1.320 2006/1/16
 
 **	Lowercase first letter of _struct.h accessor functions.
 
@@ -84,7 +96,7 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Fix uint8_t shift deposit problems.  [Bryce Denney]
 
-* Vregs 1.310 9/20/2005
+* Vregs 1.310 2005/9/20
 
 **	Add _struct.h files for C (not C++) use.  [Larry Stewart]
 
@@ -94,13 +106,13 @@ The contributors that suggested a given feature are shown in [].
 
 ***	Add SystemC::Language::CPP, now separate from SystemC::Language::C.
 
-* Vregs 1.301 7/27/2005 
+* Vregs 1.301 2005/7/27 
 
 ***	Create parameters for 'define's to allow bit extraction. [Bryce Denney]
 
 ***	Fix wBitMaskWritable() with > 32 bit registers.
 
-* Vregs 1.300 6/17/2005
+* Vregs 1.300 2005/6/17
 
 **	Added vderegs program, for dumping structures.  
 
@@ -115,7 +127,7 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Fix Latex2html documents getting mismerged register attributes.
 
-* Vregs 1.261 5/23/2005
+* Vregs 1.261 2005/5/23
 
 ***	In classes, support h# and d# for 16 & 64-bit words. [Jud Leonard]
 
@@ -125,13 +137,13 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Better use of tabs in .vregs output file.
 
-* Vregs 1.260 3/1/2005
+* Vregs 1.260 2005/3/1
 
 ***	With -v2k attribute, use localparam instead of parameter.
 
 ***	Add Doxygen comments to C++ sources.
 
-* Vregs 1.250 1/13/2005
+* Vregs 1.250 2005/1/13
 
 **	NEWS is now renamed Changes, to support CPAN indexing. [Offer Kaye]
 
@@ -141,27 +153,27 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Fix 64-bit compile warnings.
 
-* Vregs 1.246 10/23/2004
+* Vregs 1.246 2004/10/23
 
 ***	Support Star Office documents.
 
-* Vregs 1.245 7/22/2004
+* Vregs 1.245 2004/7/22
 
 ***	Add operator!= to enum classes for GCC 3.0
 
 ***	Support parsing of Netscape Composer documents.  [Reed Lawson]
 
-* Vregs 1.244 1/27/2004
+* Vregs 1.244 2004/1/27
 
 ****	Documentation fixes.
 
-* Vregs 1.243 10/30/2003
+* Vregs 1.243 2003/10/30
 
 ***	Add before_any_file rule.  
 
 ****	Documentation fixes.  [Mike Castle]
 
-* Vregs 1.242 9/4/2003
+* Vregs 1.242 2003/9/4
 
 **	Allow classes to have fields which are expanded from other classes.
 	For an example, see "ExClass" in vregs_spec.doc. [John DeRoo]
@@ -169,9 +181,9 @@ The contributors that suggested a given feature are shown in [].
 ***	Add CRESET_ defines for the default values of non-zero, non-bool fields.
 	[John DeRoo]
 
-* Vregs 1.241 6/9/2003
+* Vregs 1.241 2003/6/9
 
-***	Added error if a derived class is extended to more words then its base
+***	Added error if a derived class is extended to more words than its base
 	class.  Use the '-stretchable' attribute on the base class to disable this.
 	Also check at runtime the word set methods, unless -stretchable is used.
 
@@ -190,7 +202,7 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Add/drop leading 0s in define values to make correctly widthed numbers.
 
-* Vregs 1.240 12/13/2002
+* Vregs 1.240 2002/12/13
 
 **	Added subclassing of enumerations.  
 	A enumeration can now reference another enumeration, and all values under the
@@ -200,7 +212,7 @@ The contributors that suggested a given feature are shown in [].
 	For safety, use it in place of reinterpret_cast<uint8_t*>(&struct)
 	to avoid endian-ness mistakes.
 
-**	Added support for registers wider then 32 bits.
+**	Added support for registers wider than 32 bits.
 
 **	Renamed "vregs" executable to "vreg" to avoid Win2K conflict
 	with uppercase directory by the same name.
@@ -214,7 +226,7 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Fixed decimal reset values in VregsRegInfo classes.
 
-* Vregs 1.230 8/8/2002
+* Vregs 1.230 2002/8/8
 
 **	Added --noregtest attribute to registers, for suppressing testing.
 
@@ -227,14 +239,14 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Added dump() methods for internal debugging.
 
-* Vregs 1.210 3/11/2002
+* Vregs 1.210 2002/3/11
 
 ***	Allow duplicate enumeration values.  The ascii() method will
 	print the first sorted enumeration text.
 
 ****	Fix ORing in of ranged addresses.  [Greg Waters]
 
-* Vregs 1.200 11/26/2001
+* Vregs 1.200 2001/11/26
 
 **	Allow replacement of enumeration before/after rules.
 
@@ -260,7 +272,7 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Changed enumeration ascii() default to "?E" instead of "%E"
 
-* Vregs 1.100 10/18/2001
+* Vregs 1.100 2001/10/18
 
 **	Added rules for .cpp files: before_enum_cpp,
 	after_enum_cpp, before_class_cpp, after_class_cpp.
@@ -285,24 +297,24 @@ The contributors that suggested a given feature are shown in [].
 
 ****	Fixed E_ enum defines to be in hex, not decimal.
 
-* Vregs 1.000 9/03/2001
+* Vregs 1.000 2001/9/03
 
 **	First publicized release.
 
 ***	Added ENUM ascii() methods to cpp instead of inlined .h
 
-* Vregs 0.1 6/27/2001
+* Vregs 0.1 2001/6/27
 
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 47203 2007-11-08 15:03:51Z wsnyder $
+$Id: Changes 49231 2008-01-03 16:53:43Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 you can redistribute it and/or modify it under the terms of either the GNU
 General Public License or the Perl Artistic License.
 

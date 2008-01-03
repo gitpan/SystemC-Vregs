@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Id: 60_gcc_vderegs.t 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: 60_gcc_vderegs.t 49231 2008-01-03 16:53:43Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 
@@ -17,12 +17,17 @@ run_system ("cp t/60_gcc_vderegs.cpp test_dir/60_gcc_vderegs.cpp");
 ok(1);
 
 print "Compiling\n";
-run_system ("cd test_dir && ${GCC} 60_gcc_vderegs.cpp -lreadline -o vderegs");
-ok(1);
+system ("cd test_dir && ${GCC} 60_gcc_vderegs.cpp -lreadline -lncurses -o vderegs");
+if ($?) {
+    skip("Compile problem with vderegs; vderegs won't be available.");
+    skip("Compile problem with vderegs; vderegs won't be available.");
+} else {
+    ok(1);
 
-print "Running\n";
-run_system ("cd test_dir && echo 'q' | ./vderegs");
-ok(1);
+    print "Running\n";
+    run_system ("cd test_dir && echo 'q' | ./vderegs");
+    ok(1);
+}
 
 #======================================================================
 # Local Variables:

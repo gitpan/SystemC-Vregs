@@ -1,7 +1,12 @@
-%% $Id: vregs.sty 47202 2007-11-08 15:00:51Z wsnyder $
+%% $Id: vregs.sty 47416 2007-11-14 16:16:45Z wsnyder $
 %% DESCRIPTION: LaTex style file for Vregs register definitions
 %% Note you probably also want
 %%  \usepackage{underscore}
+
+%%============================================================
+%% Constants, may be overridden
+
+\newcommand{\vregsTableLinewidth}{\linewidth}
 
 %%============================================================
 %% Formatting macros used below (not for users)
@@ -12,52 +17,57 @@
 \par
 }
 
+\newcommand{\vregsSubsection}[1]{
+\if#1\empty
+ \relax
+\else
+ \subsection{#1}
+ \index{#1}
+\fi
+}
+
 %%============================================================
 %% Package and other top level types
+%% Call as \vregsPackage{Package_Name}{section_description}
+%% or just \vregsPackage{Package_Name} to skip the section header.
 
 \newcommand{\vregsPackage}[2]{
-\subsection{#2}
+\vregsSubsection{#2}
 \label{#1}
 \indent
 \vregsPropertyBox{Package}{#1}
-\index{#1}
-\index{#2}
 }
 
 \newcommand{\vregsDefines}[2]{
-\subsection{#2}
+\vregsSubsection{#2}
 \label{#1}
+\index{#1}
 \indent
 \vregsPropertyBox{Defines}{#1}
-\index{#1}
-\index{#2}
 }
 
 \newcommand{\vregsEnum}[2]{
-\subsection{#2}
+\vregsSubsection{#2}
 \label{#1}
+\index{#1}
 \indent
 \vregsPropertyBox{Enum}{#1}
-\index{#1}
-\index{#2}
 }
 
 \newcommand{\vregsClass}[2]{
-\subsection{#2}
+\vregsSubsection{#2}
 \label{#1}
+\index{#1}
 \indent
 \vregsPropertyBox{Class}{#1}
-\index{#1}
-\index{#2}
 }
 
 \newcommand{\vregsRegister}[2]{
-\subsection{#2}
+\vregsSubsection{#2}
 \label{#1}
+\index{#1}
 \indent
 \vregsPropertyBox{Register}{#1}
-\index{#1}
-\index{#2}
 }
 
 %%============================================================
@@ -74,10 +84,14 @@
 %%============================================================
 %% Tables
 
-\newcommand{\vregsTable}[1]{
+\newenvironment{vregsTable}[1]{
 \par
 \vspace{10pt}
-\begin{tabular}{#1}
+\tabularx{\vregsTableLinewidth}{#1}
+}
+{
+\endtabularx
+\par
 }
 
 \newcommand{\vregsTHead}[1]{
@@ -89,18 +103,18 @@
 #1 \\
 }
 
-\newcommand{\vregsTableEnd}{
-\end{tabular}
-\par
-}
 
 %%============================================================
 %% Tables
 
-\newcommand{\vregsLongTable}[1]{
+\newenvironment{vregsLongTable}[1]{
 \par
 \vspace{10pt}
 \begin{longtable}{#1}
+}
+{
+\end{longtable}
+\par
 }
 
 \newcommand{\vregsLongTHead}[1]{
@@ -110,10 +124,6 @@
 \hline \endhead
 }
 
-\newcommand{\vregsLongTableEnd}{
-\end{longtable}
-\par
-}
 
 %%============================================================
 %%% Local Variables: 

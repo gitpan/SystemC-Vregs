@@ -1,13 +1,13 @@
-# $Id: test_utils.pl 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: test_utils.pl 49231 2008-01-03 16:53:43Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Common routines required by package tests
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 
 use vars qw($PERL $GCC $GCCC);
 
-$PERL = "$^X -Iblib/arch -Iblib/lib";
+$PERL = "$^X -Iblib/arch -Iblib/lib -I../Verilog/blib/lib -I../Verilog/blib/arch";
 $GCC  = "g++ -Wall -Werror -I. -I../t -I../include ";
 $GCCC = "gcc -Wall -Werror -I. -I../t -I../include ";
 

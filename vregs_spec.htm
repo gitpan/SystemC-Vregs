@@ -529,7 +529,7 @@ Enumeration</h2>
 
 <p class=RegDescHead><b>Description</b></p>
 
-<p class=RegDescBody>This table shows an enumberation that
+<p class=RegDescBody>This table shows an enumeration that
 references another enumeration.  </p>
 
 <p class=RegDescHead><b>Enum</b></p>
@@ -711,9 +711,9 @@ header specifies special actions for the class.<br>
   
   <td valign=top>
   <p class=RegDescBody>For register types, declares the region
-  as consisting of raw bytes, rather then a array of memory.  Thus when asking what the name of a
+  as consisting of raw bytes, rather than a array of memory.  Thus when asking what the name of a
   address within the space is, the return will be something like “Ram+0x10”
-  rather then “Ram[4]”.</p>
+  rather than “Ram[4]”.</p>
   </td>
   
  </tr>
@@ -724,7 +724,7 @@ header specifies special actions for the class.<br>
   
   <td valign=top>
   <p class=RegDescBody>Allow derrived classes to increase the
-  size of the final structure, rather then just overlaying.</p>
+  size of the final structure, rather than just overlaying.</p>
   </td>
   
  </tr>
@@ -738,13 +738,13 @@ the class.  Columns can be in any order.</p>
 <p class=RegDescBody>The bit column defines which bits the
 field occupies.  Bit numbers are then
 expressed in MSB:LSB order.  Bits can be
-of any width; there is no restriction of their being less then 32.  For readability w#[] indicates the bits in
+of any width; there is no restriction of their being less than 32.  For readability w#[] indicates the bits in
 the brackets are in a given 32-bit word, 32 times the # will be added to the
 bit numbers in the brackets.  Likewise
 b# for 8-bit bytes, h# for 16-bit halfwords, and d# for 64-bit doublewords. For
-example w3[10] is bit 10 in longword 3, equivelent to writing [106]  (3*32+10 = 106). Fields may consist of
+example w3[10] is bit 10 in longword 3, equivalent to writing [106]  (3*32+10 = 106). Fields may consist of
 multiple disjoint segments, separated by commas.  (w0[15:13] or w0[15,14,13] or w0[15],w0[14],w0[13] are all
-equivelent.)</p>
+equivalent.)</p>
 
 <p class=RegDescBody>The mnemonic column is the name of this
 field.  The Mnemonic must begin with
@@ -1258,7 +1258,7 @@ have attributes like the Class Declarations.</p>
 using the C++ like “DerrivedReg : BaseReg” format.  This allows a field definition to be shared among many nearly
 identical registers.  If all the fields
 are identical to the base register, the derrived register can completely
-elimintate it’s field table.  As a
+eliminate it’s field table.  As a
 extension of this, you can specify a wildcard “Derrived* : Base*”; which will
 pull all Base registers into the Derrived section; when this is done, the
 address specified is added to the address specified in the Base’s declaration,
@@ -1522,7 +1522,7 @@ Register</h2>
 <p class=RegDescBody>This is another register, but it consists
 of 8 identical arrayed registers.  The
 special optional comment (Add 0x10 per entry) indicates that each entry is 16
-bytes apart, rather then the default dense packing of 4 bytes.</p>
+bytes apart, rather than the default dense packing of 4 bytes.</p>
 
 <p class=RegDescHead><b>Register</b></p>
 
@@ -1591,7 +1591,7 @@ Register, 64 bits</h2>
 <p class=RegDescBody>This is another register, but it consists
 of a 64 bit wide register.  The special
 optional comment (Add 0x8 per entry) indicates that each entry is 8 bytes
-apart, rather then the default dense packing of 4 bytes.</p>
+apart, rather than the default dense packing of 4 bytes.</p>
 
 <p class=RegDescHead><b>Register</b></p>
 

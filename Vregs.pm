@@ -1,8 +1,8 @@
-# $Id: Vregs.pm 47203 2007-11-08 15:03:51Z wsnyder $
+# $Id: Vregs.pm 49231 2008-01-03 16:53:43Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -29,7 +29,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.441';
+$VERSION = '1.450';
 
 ######################################################################
 #### Constants
@@ -581,7 +581,7 @@ sub _choose_columns {
     my @collist;
     my @colused = ();
     my @colheads;
-    # The list is short, so this is faster then forming a hash.
+    # The list is short, so this is faster than forming a hash.
     # If things get wide, this may change
     for (my $h=0; $h<=$#{$headref}; $h++) {
 	$colheads[$h] = $headref->[$h];
@@ -630,7 +630,7 @@ sub _choose_columns {
 sub _cleanup_column {
     my $text = shift;
     return undef if !defined $text;
-    $text =~ s/\s*\([^\)]*\)//;	# Strip (comment)  Leave trailing space "foo (bar) x" becomes "foo x"
+    while ($text =~ s/\s*\([^\(\)]*\)//) {}	# Strip (comment)  Leave trailing space "foo (bar) x" becomes "foo x"
     $text =~ s/\s+$//;
     $text =~ s/^\s+//;
     return $text;
@@ -1392,7 +1392,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
@@ -1403,6 +1403,7 @@ Wilson Snyder <wsnyder@wsnyder.org>
 =head1 SEE ALSO
 
 L<vreg>,
+L<vreg_latex2html>,
 L<SystemC::Vregs::Rules>
 
 Low level objects:

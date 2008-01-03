@@ -1,8 +1,8 @@
-# $Id: Latex.pm 47203 2007-11-08 15:03:51Z wsnyder $
+# $Id: Latex.pm 49231 2008-01-03 16:53:43Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -20,7 +20,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.441';
+$VERSION = '1.450';
 
 ######################################################################
 # CONSTRUCTOR
@@ -97,7 +97,7 @@ sub _print_type {
     foreach my $bitref ($typeref->fields_sorted()) {
 	_attrnames_collect($attrnames, $bitref);
     }
-    $fl->printf("\\vregsTable{l|l|l|l%s|l|l}\n",_attrnames_format($attrnames));
+    $fl->printf("\\vregsTable{l|l|l|l%s|l|X}\n",_attrnames_format($attrnames));
     $fl->printf_tabify("\\vregsTHead{Bit\t& Mnemonic\t& Access \t& %s\t& Type%s\t& Definition }\n",
 		       (($typeref->{name} =~ /^R_/) ? "Reset":"Constant"),
 		       _attrnames_head($attrnames));
@@ -155,7 +155,7 @@ sub write {
 	next if !$fieldref->{is_manual};
 	_attrnames_collect($attrnames, $fieldref);
     }
-    $fl->printf("\\vregsTable{l|l%s|l}\n",_attrnames_format($attrnames));
+    $fl->printf("\\vregsTable{l|l%s|X}\n",_attrnames_format($attrnames));
     $fl->printf_tabify("\\vregsTHead{Constant\t& Mnemonic%s\t& Definition }\n",
 		       _attrnames_head($attrnames));
     foreach my $fieldref ($pack->defines_sorted) {
@@ -182,7 +182,7 @@ sub write {
 	    _attrnames_collect($attrnames, $fieldref);
 	}
 
-	$fl->printf("\\vregsTable{l|l%s|l}\n",_attrnames_format($attrnames));
+	$fl->printf("\\begin{vregsTable}{l|l%s|X}\n",_attrnames_format($attrnames));
 	$fl->printf_tabify("\\vregsTHead{Constant\t& Mnemonic%s\t& Definition }\n",
 			   _attrnames_head($attrnames));
 	foreach my $fieldref ($classref->fields_sorted()) {
@@ -195,7 +195,7 @@ sub write {
 	    $line .= ("\t& ".$fieldref->{desc});
 	    $fl->printf_tabify("%s",$line." }\n");
 	}
-	$fl->printf("\\vregsTableEnd\n");
+	$fl->printf("\\end{vregsTable}\n");
 	$fl->print("\n");
     }
 
@@ -284,7 +284,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

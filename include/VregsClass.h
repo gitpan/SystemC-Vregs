@@ -1,7 +1,7 @@
-// $Id: VregsClass.h 29376 2007-01-02 14:50:38Z wsnyder $ -*- C++ -*-
+// $Id: VregsClass.h 49231 2008-01-03 16:53:43Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2007 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// Copyright 2001-2008 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
 // the terms of either the GNU Lesser General Public License or the Perl
 // Artistic License.
@@ -43,8 +43,8 @@ typedef uint64_t nint64_t;  ///< Uint stored in network order
 #endif
 
 #ifndef _ADDRESS_T
-//typedef uint64_t address_t;
-typedef uint32_t address_t; ///< Register address
+typedef uint64_t address_t; ///< Register address
+//typedef uint32_t address_t;
 #endif
 
 #ifndef	_SIZE64_T

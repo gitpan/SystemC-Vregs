@@ -1,8 +1,8 @@
-# $Id: Subclass.pm 47203 2007-11-08 15:03:51Z wsnyder $
+# $Id: Subclass.pm 49231 2008-01-03 16:53:43Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::Subclass;
 
 use strict;use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.441';
+$VERSION = '1.450';
 
 $Errors = 0;
 
@@ -174,7 +174,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

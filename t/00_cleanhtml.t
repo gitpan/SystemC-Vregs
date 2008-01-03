@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Id: 00_cleanhtml.t 29376 2007-01-02 14:50:38Z wsnyder $
+# $Id: 00_cleanhtml.t 49231 2008-01-03 16:53:43Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 

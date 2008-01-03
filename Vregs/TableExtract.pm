@@ -1,8 +1,8 @@
-# $Id: TableExtract.pm 47203 2007-11-08 15:03:51Z wsnyder $
+# $Id: TableExtract.pm 49231 2008-01-03 16:53:43Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -16,7 +16,7 @@
 package SystemC::Vregs::TableExtract;
 
 use base qw(HTML::TableExtract);
-$VERSION = '1.441';
+$VERSION = '1.450';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);
@@ -42,15 +42,28 @@ use HTML::Entities ();
 sub parse_file {
     my $self = shift;
     my $filename = shift;
+
+    print "parse_file $filename\n" if $Debug;
     my $fh = IO::File->new ($filename) or die "%Error: $! $filename\n";
     $self->{_fh} = $fh;
     $self->{_vregs_filename} = $filename;
     $self->{_vregs_num_tables} = -1;
+    $self->{_vregs_line} = 1;
     $self->{_format} = '';   #latex2html
-    $self->SUPER::parse_file ($fh);
+
+    # Track line numbers
+    $self->handler(start => "start", "self,tagname,attr,attrseq,text,line");
+
+    # I've had lots of problems with parse_file missing stuff and not handling
+    # chunks breaking in the middle of HTML objects.  So, we read it ourself.
+    # $self->SUPER::parse_file ($fh);
+    $self->parse(join('',$fh->getlines()));
+
+    $self->eof();
     $self->start("p");
     $self->text("Vregs_End_Of_Decl");
     $fh->close();
+    print "parse_file DONE\n" if $Debug;
 }
 
 sub clean_html_text {
@@ -104,6 +117,7 @@ sub clean_html_text {
 
 sub start {
     my $self = shift;
+    $self->{_vregs_line} = $_[4] if $_[4] && !$self->{_vregs_forced_line};  # As we have a handler requesting it
     if ($_[0] eq 'p' || $_[0] =~ /^h[0-9]/) {
 	#print "<p>\n" if $Debug;
 	$self->{_vregs_first_word_in_p} = 1;
@@ -118,6 +132,16 @@ sub start {
 	print "Format = latex2html\n" if $Debug;
     }
     $self->SUPER::start (@_);
+}
+
+sub comment {
+    my $self = shift;
+    my $text = shift;
+    if ($text =~ /^\s*line\s+(\d+)\s+"(.*)"/) {
+	$self->{_vregs_forced_line} = $1;
+	$self->{_vregs_line} = $1;
+	$self->{_vregs_filename} = $2;
+    }
 }
 
 sub end {
@@ -140,7 +164,7 @@ sub text {
 	my $text = $_[0];
 	if ($Debug) {
 	    (my $printtext = $text) =~ s/[\n \t]+/ /g;
-	    printf +("Text %s: %s:|%s|\n", $self->{_fh}->tell(),
+	    printf +("Text %s: %s:|%s|\n", $self->{_vregs_line},
 		     ($self->{_vregs_first_word_in_p}?"FW":"  "),$printtext);
 	}
 	$text = clean_html_text($text);
@@ -168,9 +192,7 @@ sub text {
 		    $pack->new_item([], $self->{_vregs_next});  # note no table
 		    $self->{_vregs_next} = undef;
 		}
-		# If anyone knows how to get line #, do tell.
-		$self->{_vregs_next}{at} = ($self->{_vregs_filename}
-					    .":char#".$self->{_fh}->tell());
+		$self->{_vregs_next}{at} = ($self->{_vregs_filename}.":".$self->{_vregs_line});
 		$self->{_vregs_next_tag} = $text;
                 $self->{_vregs_next}{$self->{_vregs_next_tag}} = "";
                 $self->{_vregs_first_endp} = 0;
@@ -275,7 +297,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

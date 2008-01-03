@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-#$Id: vreg 45091 2007-09-27 13:50:15Z wsnyder $
+#$Id: vreg 49231 2008-01-03 16:53:43Z wsnyder $
 ######################################################################
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -78,7 +78,8 @@ my $opten_latex = 0;
 
 if (! GetOptions (
 		  "help"	=> \&usage,
-		  "debug"	=> \&debug,
+		  "debug"	=> sub { debug(1); },
+		  "debugi=i"	=> sub { debug($_[1]); },
 		  "<>"		=> \&parameter,
 		  "address_bits=i" => \$opt_address_bits,
 		  "change-diff=s" => \$opt_change_diff,
@@ -284,14 +285,14 @@ END {
 }
 
 sub usage {
-    print '$Id: vreg 45091 2007-09-27 13:50:15Z wsnyder $ ', "\n";
+    print '$Id: vreg 49231 2008-01-03 16:53:43Z wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
 
 sub debug {
-    $Debug = 1;
-    #$SystemC::Vregs::TableExtract::Debug = 1;
+    $Debug = shift || 1;
+    $SystemC::Vregs::TableExtract::Debug = 1 if $Debug>1;
     $SystemC::Vregs::Debug = 1;
 }
 
@@ -496,7 +497,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.
 
-Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

@@ -1,7 +1,7 @@
-// $Id: vderegs.cpp 31337 2007-02-02 18:21:34Z wsnyder $  -*- C++ -*-
+// $Id: vderegs.cpp 49231 2008-01-03 16:53:43Z wsnyder $  -*- C++ -*-
 //====================================================================
 //
-// Copyright 2002-2007 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// Copyright 2002-2008 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
 // the terms of either the GNU Lesser General Public License or the Perl
 // Artistic License.
@@ -278,7 +278,7 @@ static struct option long_options[] = {
 };
 
 static void version() {
-    COUT <<"vderegs: #$Id: vderegs.cpp 31337 2007-02-02 18:21:34Z wsnyder $" <<endl;
+    COUT <<"vderegs: #$Id: vderegs.cpp 49231 2008-01-03 16:53:43Z wsnyder $" <<endl;
 }
 
 static void usage() {

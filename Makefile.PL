@@ -1,7 +1,7 @@
-# $Id: Makefile.PL 46826 2007-10-31 12:57:28Z wsnyder $
+# $Id: Makefile.PL 49231 2008-01-03 16:53:43Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 
@@ -53,7 +53,7 @@ WriteMakefile(
 	      ABSTRACT  => 'Extract C++/Verilog Enum and Classes from html documents',
 	      VERSION_FROM  => 'Vregs.pm',
 	      NO_META	=> 1,
-	      EXE_FILES => [qw( vreg )],
+	      EXE_FILES => [qw( vreg vreg_latex2html )],
 	      PREREQ_PM => {'HTML::TableExtract' => 0,
 			    'HTML::Parser' => 0,   # Also needed by TableExtract
 			    'Bit::Vector' => 0,

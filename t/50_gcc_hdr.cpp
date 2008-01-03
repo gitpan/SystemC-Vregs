@@ -1,8 +1,8 @@
 // -*- C++ -*-
-// $Id: 50_gcc_hdr.cpp 30873 2007-01-25 21:48:16Z wsnyder $
+// $Id: 50_gcc_hdr.cpp 49231 2008-01-03 16:53:43Z wsnyder $
 // DESCRIPTION: C++ file compiled as part of test suite
 //
-// Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+// Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 // you can redistribute it and/or modify it under the terms of either the GNU
 // General Public License or the Perl Artistic License.
 
@@ -124,7 +124,7 @@ int main() {
 
     // Check subclassing worked
     ExSuperEnum sen (ExSuperEnum::A_FIVE);
-    COUT << "SuperEnum Desciption = "<<sen.description()<<endl;
+    COUT << "SuperEnum Description = "<<sen.description()<<endl;
 
     return (0);
 }

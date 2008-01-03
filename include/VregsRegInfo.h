@@ -1,7 +1,7 @@
-// $Id: VregsRegInfo.h 35449 2007-04-06 13:21:40Z wsnyder $ -*- C++ -*-
+// $Id: VregsRegInfo.h 49231 2008-01-03 16:53:43Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2007 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// Copyright 2001-2008 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
 // the terms of either the GNU Lesser General Public License or the Perl
 // Artistic License.
@@ -91,7 +91,7 @@ public:
     void* 		userinfo () const { return m_userinfo; }	///< Userdata
 
     // We don't allow visibility to the uint that gives the value of these fields
-    // This allows us to have other then 32 bit registers in the future
+    // This allows us to have other than 32 bit registers in the future
     bool		rdMask(int bit) const { return ((m_rdMask & (VREGS_ULL(1)<<(bit)))!=0); } ///< Is this bit readable
     bool		wrMask(int bit) const { return ((m_wrMask & (VREGS_ULL(1)<<(bit)))!=0); } ///< Is this bit writable
     bool		rstMask(int bit) const { return ((m_rstMask & (VREGS_ULL(1)<<(bit)))!=0); } ///< Is this bit reset
@@ -145,16 +145,16 @@ public:
     void	add_register (address_t addr, size64_t size, const char* name,
 			      uint64_t rdMask, uint64_t wrMask,
 			      uint64_t rstVal, uint64_t rstMask, uint32_t flags) {
-	add_register (addr, size, name, 0, 0, 0,
+	add_register (addr, size, name, VREGS_ULL(0), VREGS_ULL(0), VREGS_ULL(0),
 		      rdMask,wrMask,rstVal,rstMask,flags); }
     void	add_register (address_t addr, size64_t size, const char* name) {
-	add_register (addr, size, name, 0, 0, 0,
-		      ~0,~0,0,0,0); }
+	add_register (addr, size, name, VREGS_ULL(0), VREGS_ULL(0), VREGS_ULL(0),
+		      ~VREGS_ULL(0),~VREGS_ULL(0),VREGS_ULL(0),VREGS_ULL(0),0UL); }
     void	add_register (address_t addr, size64_t size, const char* name,
 			      uint64_t spacing, uint64_t rangelow, uint64_t rangehigh
 			      ) {
 	add_register (addr, size, name, spacing, rangelow, rangehigh,
-		      ~0,~0,0,0,0); }
+		      ~VREGS_ULL(0),~VREGS_ULL(0),VREGS_ULL(0),VREGS_ULL(0),0UL); }
     void	lookup();
     void	dump();
 

@@ -1,14 +1,18 @@
-%% $Id: vregs_spec_example.tex 45290 2007-10-02 13:12:44Z wsnyder $
+%% $Id: vregs_spec_example.tex 47208 2007-11-08 16:28:16Z wsnyder $
 %% DESCRIPTION: LaTex example
 %% You can make a file similar to this one from any vregs file with:
 %%    ./vreg --header --package test_dir/vregs_spec --latex
 
 \documentclass{report}
-\usepackage[left=0.5in,right=0.5in,top=1.0in,bottom=1.0in]{geometry}
+\usepackage[left=1in,right=1in,top=1.0in,bottom=1.0in]{geometry}
+
 %% Should be a use package, but html2latex seems upset
 \usepackage[strings]{underscore}   %% _ is now a literal _
+
 %%\include{underscore.tex}
 %% Should be a use package, but html2latex seems upset
+
+\usepackage{tabularx}
 \usepackage{vregs}
 %%\include{vregs.tex}
 \begin{document}
@@ -30,70 +34,70 @@ extracted into Vregs format.
 %%**********************************************************************
 %% Defines
 \vregsDefines{CMP}{Defines}
-\vregsTable{l|l|p{2.5in}}
+\begin{vregsTable}{l|l|X}
 \vregsTHead{Constant	& Mnemonic	& Definition }
 \vregsTLine{4'd1	& DEFINED_ONE	& Definition One }
 \vregsTLine{48'hfeed	& DEFINED_FOOD	& Definition of Food }
-\vregsTableEnd
+\end{vregsTable}
 
 \vregsDefines{FREE}{Defines}
 \vregsAttributes{-allowlc -freeform}
-\vregsTable{l|l|p{2.5in}}
+\begin{vregsTable}{l|l|X}
 \vregsTHead{Constant	& Mnemonic	& Definition (Comment) }
 \vregsTLine{-1.2345	& DOUBLE	& Definition. }
 \vregsTLine{Foobar	& Stringdef	& Definition. }
-\vregsTableEnd
+\end{vregsTable}
 
 %%**********************************************************************
 %% Enums
 \vregsEnum{ExEnum}{Example Enumeration}
 \vregsAttributes{-descfunc}
-\vregsTable{l|l|p{2.5in}}
+\begin{vregsTable}{l|l|X}
 \vregsTHead{Constant	& Mnemonic	& Definition }
 \vregsTLine{4'b0000	& 		& Reserved. }
 \vregsTLine{4'b0001	& ONE		& Command One. }
 \vregsTLine{4'b0010	& TWO		& Command Two. }
 \vregsTLine{4'd5	& FIVE		& Command Five. }
 \vregsTLine{4'he	& FOURTEEN	& Command Fourteen. }
-\vregsTableEnd
+\end{vregsTable}
 
 \vregsEnum{ExSuperEnum}{Another Enumeration}
 \vregsAttributes{-descfunc}
-\vregsTable{l|l|p{2.5in}}
+\begin{vregsTable}{l|l|X}
 \vregsTHead{Constant	& Mnemonic	& Definition }
 \vregsTLine{8'h2_0	& A		& Sub Enum A ENUM:ExEnum }
 \vregsTLine{8'h3_0	& B		& Sub Enum B ENUM:ExEnum }
 \vregsTLine{8'hF_E	& PRELAST	& Simple values }
-\vregsTableEnd
+\end{vregsTable}
 
 %%**********************************************************************
 %% Classes
 \vregsClass{ExBase}{Example Base Class}
 \vregsAttributes{-netorder -stretchable}
-\vregsTable{l|l|l|l|l|l|p{2.5in}}
-\vregsTHead{Bit		& Mnemonic	& Access& Constant	& Type	& Product& Definition }
-\vregsTLine{w0[31:28]	& Cmd		& RW	& X	& ExEnum	&	& Command Number }
-\vregsTLine{w0[28]	& CmdAck	& RW	& X	& bool		&	& Command Needs Acknowledge.  Overlaps Cmd. }
-\vregsTLine{w0[27:24]	& FiveBits	& RW	& X	& uint32_t	& Chipb+& Five Bits }
-\vregsTLine{w0[15:0],w1[31:0]& Address	& RW	& X	& Address	&	& Address }
-\vregsTableEnd
+\begin{vregsTable}{l|l|l|l|l|X}
+\vregsTHead{Bit		& Mnemonic	& Access& Type	& Product& Definition }
+\vregsTLine{w0[31:28]	& Cmd		& RW	& ExEnum	&	& Command Number }
+\vregsTLine{w0[28]	& CmdAck	& RW	& bool		&	& Command Needs Acknowledge.  Overlaps Cmd. }
+\vregsTLine{w0[27:24]	& FiveBits	& RW	& uint32_t	& Chipb+& Five Bits }
+\vregsTLine{w0[15:0],w1[31:0]& Address	& RW	& Address	&	& Address }
+\end{vregsTable}
 
 \vregsClass{ExClassOne : ExBase}{Example Class}
-\vregsTable{l|l|l|l|l|p{2.5in}}
+\begin{vregsTable}{l|l|l|l|l|X}
 \vregsTHead{Bit		& Mnemonic	& Access& Constant & Type	& Definition }
 \vregsTLine{w0[31:28]	& Cmd		& RW	& ONE	& ExEnum	& Command Number }
-\vregsTableEnd
+\end{vregsTable}
 
 \vregsClass{ExClassTwo : ExBase}{Another Example Class}
-\vregsTable{l|l|l|l|l|p{2.5in}}
+\begin{vregsTable}{l|l|l|l|l|X}
 \vregsTHead{Bit		& Mnemonic	& Access& Constant & Type	& Definition }
 \vregsTLine{w2[31:0]	& Payload	& RW	& X	& uint32_t	& Another field that this message tacks onto the end of the base class }
 \vregsTLine{w0[31:28]	& Cmd		& RW	& TWO	& ExEnum	& Command Number }
 \vregsTLine{w0[27:24]	& FiveBits	& RW	& X	& uint32_t	& Five Bits }
-\vregsTableEnd
+\end{vregsTable}
 
 \vregsClass{ExExpand}{Expanded Class}
-\vregsTable{l|l|l|l|l|l|p{2.5in}}
+\begin{vregsTable}{l|l|l|l|l|l|X}
 \vregsTHead{Bit		& Mnemonic	& Access& Constant & Type	& Product& Definition }
 \vregsTLine{95:92	& Base2Cmd	& RW	& X	& ExEnum	&	& Command Number }
 \vregsTLine{92:92	& Base2CmdAck	& RW	& X	& uint32_t	&	& Command Needs Acknowledge.  Overlaps Base2Cmd. }
@@ -103,35 +107,35 @@ extracted into Vregs format.
 \vregsTLine{28:28	& Base1CmdAck	& RW	& X	& uint32_t	&	& Command Needs Acknowledge.  Overlaps Base1Cmd. }
 \vregsTLine{27:24	& Base1FiveBits	& RW	& X	& uint32_t	& Chipb+& Five Bits }
 \vregsTLine{15:0,63:32	& Base1Address	& RW	& X	& Address	&	& Address }
-\vregsTableEnd
+\end{vregsTable}
 
 %%**********************************************************************
 %% Registers
 \vregsRegister{R_ExReg1}{Example Register}
 \vregsAddress{0x18_ffff_0000}
-\vregsTable{l|l|l|l|l|p{2.5in}}
+\begin{vregsTable}{l|l|l|l|l|X}
 \vregsTHead{Bit		& Mnemonic	& Access& Reset	& Type		& Definition }
 \vregsTLine{31:28	& LastCmd	& RW	& X	& ExEnum	& Enumerated field }
 \vregsTLine{20		& ReadOnly	& R	& X	& bool		& Read Only Bits }
 \vregsTLine{3:0		& LowBits	& RW	& 0	& uint32_t	& Random Low Bits }
-\vregsTableEnd
+\end{vregsTable}
 
 \vregsRegister{R_ExRegTwo[7:0]}{Another Register}
 \vregsAddress{0x18_ffff_1000 - 0x18_ffff_1070 (Add 0x10 per entry)}
-\vregsTable{l|l|l|l|l|p{2.5in}}
+\begin{vregsTable}{l|l|l|l|l|X}
 \vregsTHead{Bit		& Mnemonic	& Access& Reset	& Type		& Definition }
 \vregsTLine{31:0	& WideField	& RW	& 0	& uint32_t	& Wide Field }
-\vregsTableEnd
+\end{vregsTable}
 
 \vregsRegister{R_ExRegQuad[7:0]}{Another Register, 64 bits}
 \vregsAttributes{}
 \vregsAddress{0x18_ffff_2000 - 0x18_ffff_2038 (Add 0x8 per entry)}
-\vregsTable{l|l|l|l|l|p{2.5in}}
+\begin{vregsTable}{l|l|l|l|l|X}
 \vregsTHead{Bit		& Mnemonic	& Access& Reset	& Type		& Definition }
 \vregsTLine{63		& Bit63		& RW	& 0	& bool		& Bit 63 }
 \vregsTLine{w1[30]	& Bit62		& RW	& 0	& bool		& Bit 62 }
 \vregsTLine{31:0	& WideField	& RW	& 0	& uint32_t	& Wide Field }
-\vregsTableEnd
+\end{vregsTable}
 
 %%**********************************************************************
 \end{document}

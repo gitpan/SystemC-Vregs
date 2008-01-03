@@ -1,8 +1,8 @@
-# $Id: Enum.pm 47203 2007-11-08 15:03:51Z wsnyder $
+# $Id: Enum.pm 49231 2008-01-03 16:53:43Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 2001-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -22,7 +22,7 @@ use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
 
-$VERSION = '1.441';
+$VERSION = '1.450';
 
 ######################################################################
 ######################################################################
@@ -95,6 +95,7 @@ sub check {
     foreach my $fieldref (values %{$self->{fields}}) {
 	$fieldref->check();
     }
+    $self->{bits} or $self->warn ("Enum has no entries");
 }
 
 sub remove_if_mismatch {
@@ -206,7 +207,7 @@ sub clean_rst {
     $self->{class}{bits} = $bits;
 
     if ($bits && $bits<32 && ($self->{rst_val}||0) >= (1<<$bits)) {
-	$self->warn ("Enum value wider then width: ".$self->{rst}." > width "
+	$self->warn ("Enum value wider than width: ".$self->{rst}." > width "
 		     .$self->{class}{bits}."\n");
     }
 }
@@ -354,7 +355,7 @@ Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
 
-Copyright 2001-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

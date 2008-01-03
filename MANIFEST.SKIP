@@ -1,6 +1,5 @@
 ^CVS/
 /CVS/
-.cvsignore$
 pm_to_blib$
 test_store$
 ,v$
@@ -13,5 +12,9 @@ test_store$
 ^test_dir/
 /test_dir/
 \.svn/
-latex/vregs_spec_example.html
-latex/vregs_spec_example.pdf
+latex/.*\.html
+latex/.*\.pdf
+latex/.*\.vregs
+latex/images.tex
+
+
