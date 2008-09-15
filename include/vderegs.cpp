@@ -1,4 +1,4 @@
-// $Id: vderegs.cpp 49231 2008-01-03 16:53:43Z wsnyder $  -*- C++ -*-
+// $Id: vderegs.cpp 55774 2008-06-12 14:15:21Z wsnyder $  -*- C++ -*-
 //====================================================================
 //
 // Copyright 2002-2008 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -10,11 +10,11 @@
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-//                                                                           
+//
 //====================================================================
 ///
 /// \file
-/// \brief Vregs Utility: Dump vregs structures from hex info 
+/// \brief Vregs Utility: Dump vregs structures from hex info
 ///
 /// AUTHOR:  Wilson Snyder
 ///
@@ -47,7 +47,7 @@ private:
     }
     static void showName(const char* className) {
 	if (s_col==3) firstCol("");
-	if (s_col==0) COUT<<"    "; 
+	if (s_col==0) COUT<<"    ";
 	++s_col;
 	COUT<<setw(25)<<left<<setfill(' ')<<className;
     }
@@ -58,7 +58,7 @@ public:
 	    VregsSpecInfo* specp = iter;
 	    firstCol(specp->name()); COUT<<":"<<endl;
 
-	    for (int i=0; i<specp->numClassNames(); i++) { 
+	    for (int i=0; i<specp->numClassNames(); i++) {
 		showName(specp->classNames()[i]);
 	    }
 	}
@@ -154,7 +154,7 @@ string VDeregs::getLine(const char* prompt) {
 	else if (string(in)=="hostorder") { m_attrNetOrder = false; }
 	else break;
     }
-    
+
     // Strip [anything_like_a_timestamp]
     const char* cp=in;
     while (isspace(*cp)) cp++;
@@ -278,13 +278,13 @@ static struct option long_options[] = {
 };
 
 static void version() {
-    COUT <<"vderegs: #$Id: vderegs.cpp 49231 2008-01-03 16:53:43Z wsnyder $" <<endl;
+    COUT <<"vderegs: #$Id: vderegs.cpp 55774 2008-06-12 14:15:21Z wsnyder $" <<endl;
 }
 
 static void usage() {
     version();
     COUT <<endl;
-    COUT <<"vderegs is part of SystemC::Vregs, available from http://www.veripool.com/\n" <<endl;
+    COUT <<"vderegs is part of SystemC::Vregs, available from http://www.veripool.org/\n" <<endl;
     COUT << "Usage: dedfa [OPTION]...\n"
 	 << "--multi     \tPrint \"EOM\\n\" to frame each response (for piped I/O)\n"
 	 << "--pretty    \tJust print the message's ostream operator\n"

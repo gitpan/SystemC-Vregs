@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.h 49231 2008-01-03 16:53:43Z wsnyder $ -*- C++ -*-
+// $Id: VregsRegInfo.h 60052 2008-09-03 15:23:07Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2008 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -44,7 +44,9 @@ private:
     address_t		m_address;	///< Address of entry 0, word 0 of register
     size64_t		m_size;		///< Size in bytes of the register
     const char*		m_name;		///< Ascii name of the register
+    const char*		m_attrsp;	///< Ascii attributes
     size64_t		m_entSize;	///< Size of a single entry
+    size64_t		m_entSpacing;	///< Spacing between entries
     uint64_t		m_lowEntNum;	///< Low entry number (for RAMs)
     void*		m_userinfo;	///< Reserved for users (not used here)
 
@@ -59,12 +61,13 @@ public:
     // CREATORS
     friend class VregsRegInfo;
     // Create new register, called by vregs generated headers
-    VregsRegEntry(address_t addr, size64_t size,
-		  const char* name, size64_t entSize, uint64_t lowEntNum,
+    VregsRegEntry(address_t addr, size64_t size, const char* name,
+		  size64_t entSize, size64_t entSpacing, uint64_t lowEntNum,
 		  uint64_t rdMask, uint64_t wrMask,
-		  uint64_t rstVal, uint64_t rstMask, uint32_t flags)
-	: m_address(addr), m_size(size), m_name(name)
-	, m_entSize(entSize), m_lowEntNum(lowEntNum)
+		  uint64_t rstVal, uint64_t rstMask,
+		  uint32_t flags, const char* attrs)
+	: m_address(addr), m_size(size), m_name(name), m_attrsp(attrs)
+	, m_entSize(entSize), m_entSpacing(entSpacing), m_lowEntNum(lowEntNum)
 	, m_userinfo(NULL), m_rdMask(rdMask), m_wrMask(wrMask)
 	, m_rstVal(rstVal), m_rstMask(rstMask), m_flags(flags) {};
     ~VregsRegEntry() {}
@@ -74,8 +77,7 @@ public:
     static const uint32_t REGFL_RDSIDE	= 0x1;	///< Register has read side effects
     static const uint32_t REGFL_WRSIDE	= 0x2;	///< Register has write side effects
     static const uint32_t REGFL_NOBIGTEST = 0x4;	///< Register should be extensively tested
-    static const uint32_t REGFL_NOREGTEST = 0x8;	///< Register should not be tested
-    static const uint32_t REGFL_NOREGDUMP = 0x10;	///< Register should not be dumped
+    static const uint32_t REGFL_PACKHOLES = 0x8;	///< Register's spacing holes do not contain other registers
 
     // MANIPULATORS
     void 		userinfo (void* userinfo) { m_userinfo = userinfo; }
@@ -83,9 +85,12 @@ public:
 
     // ACCESSORS
     address_t		address () const { return m_address; }	///< Starting address
+    bool		addressHit(uint64_t addr) const;  ///< Specified address is within register's address
     const char* 	name () const { return m_name; }	///< Register name
+    const char* 	attributes () const { return m_attrsp; }	///< Attributes
     size64_t	 	size () const { return m_size; }	///< Total size in bytes
     size64_t	 	entSize () const { return m_entSize; }	///< One array entry in bytes
+    size64_t	 	entSpacing () const { return m_entSpacing; }	///< Space between array entries in bytes
     size64_t		accessSize() const { return isRanged() ? entSize() : size(); }
     uint64_t 		lowEntNum () const { return m_lowEntNum; }	///< Low bound of array
     void* 		userinfo () const { return m_userinfo; }	///< Userdata
@@ -105,8 +110,8 @@ public:
     bool		isRstMask() const { return (m_rstMask!=0); }	///< Reset non zero
     bool		isRdSide() const { return ((m_flags & REGFL_RDSIDE)!=0); }	///< Has read side effects
     bool		isWrSide() const { return ((m_flags & REGFL_WRSIDE)!=0); }	///< Has write side effects
-    bool		isRegTest() const { return ((m_flags & REGFL_NOREGTEST)==0); }	///< Register is testable
-    bool		isRegDump() const { return ((m_flags & REGFL_NOREGDUMP)==0); }	///< Register should be dumped
+    bool		isRegTest() const { return !attribute_value("noregtest"); }	///< Register is testable
+    bool		isRegDump() const { return !attribute_value("noregdump"); }	///< Register should be dumped
     bool		isBigTest() const { return ((m_flags & REGFL_NOBIGTEST)!=0); }	///< Register too big for testing
 
     // ACCESSORS - Derived from above functions
@@ -115,9 +120,11 @@ public:
     /// Return number of entries (array elements)
     size64_t		entries() const {
 				if (!isRanged()) return lowEntNum()+1;
-				return (max ((uint64_t)(size()/entSize()), lowEntNum())+1); }
+				return (max ((uint64_t)(size()/entSpacing()), lowEntNum())+1); }
     /// Ending address of the register + 1
     address_t		addressEnd() const { return address() + size(); }
+    /// Value of an attribute; return default if not defined.
+    uint64_t		attribute_value(const char* attr, uint64_t defValue=0) const;
 };
 
 //======================================================================
@@ -141,20 +148,22 @@ public:
     void	add_register (address_t addr, size64_t size, const char* name,
 			      uint64_t spacing, uint64_t rangelow, uint64_t rangehigh,
 			      uint64_t rdMask, uint64_t wrMask,
-			      uint64_t rstVal, uint64_t rstMask, uint32_t flags);
+			      uint64_t rstVal, uint64_t rstMask,
+			      uint32_t flags, const char* attrs);
     void	add_register (address_t addr, size64_t size, const char* name,
 			      uint64_t rdMask, uint64_t wrMask,
-			      uint64_t rstVal, uint64_t rstMask, uint32_t flags) {
+			      uint64_t rstVal, uint64_t rstMask,
+			      uint32_t flags, const char* attrs) {
 	add_register (addr, size, name, VREGS_ULL(0), VREGS_ULL(0), VREGS_ULL(0),
-		      rdMask,wrMask,rstVal,rstMask,flags); }
+		      rdMask,wrMask,rstVal,rstMask,flags,attrs); }
     void	add_register (address_t addr, size64_t size, const char* name) {
 	add_register (addr, size, name, VREGS_ULL(0), VREGS_ULL(0), VREGS_ULL(0),
-		      ~VREGS_ULL(0),~VREGS_ULL(0),VREGS_ULL(0),VREGS_ULL(0),0UL); }
+		      ~VREGS_ULL(0),~VREGS_ULL(0),VREGS_ULL(0),VREGS_ULL(0),0UL,""); }
     void	add_register (address_t addr, size64_t size, const char* name,
 			      uint64_t spacing, uint64_t rangelow, uint64_t rangehigh
 			      ) {
 	add_register (addr, size, name, spacing, rangelow, rangehigh,
-		      ~VREGS_ULL(0),~VREGS_ULL(0),VREGS_ULL(0),VREGS_ULL(0),0UL); }
+		      ~VREGS_ULL(0),~VREGS_ULL(0),VREGS_ULL(0),VREGS_ULL(0),0UL,""); }
     void	lookup();
     void	dump();
 

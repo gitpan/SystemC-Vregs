@@ -1,4 +1,4 @@
-// $Id: vregs_enums.v 49231 2008-01-03 16:53:43Z wsnyder $ -*- Verilog -*-
+// $Id: vregs_enums.v 55774 2008-06-12 14:15:21Z wsnyder $ -*- Verilog -*-
 //====================================================================
 // DESCRIPTION: Manual test case showing use of AUTOASCII
 //
@@ -12,7 +12,7 @@
 module vregs_enums (/*AUTOARG*/);
 
 `include "vregs_spec_param.v"
-   
+
    reg [3:0] 	  	// synopsys enum En_ExEnum
      m_exenum_r;
 

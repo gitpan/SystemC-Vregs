@@ -1,16 +1,16 @@
-# $Id: CBitFields.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: CBitFields.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
 # Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 ######################################################################
 
 package SystemC::Vregs::Output::CBitFields;
@@ -21,7 +21,7 @@ use strict;
 use vars qw($VERSION);
 use base qw(SystemC::Vregs::Output::Class);   # So we get enum_struct_write
 
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 ######################################################################
 # CONSTRUCTOR
@@ -223,9 +223,9 @@ Creates a C header file with structs for class definitions.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

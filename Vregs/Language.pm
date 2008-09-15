@@ -1,26 +1,30 @@
-# $Id: Language.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Language.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
 # Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 ######################################################################
 
 package SystemC::Vregs::Language;
 
 use strict;
-use vars qw($VERSION);
+use vars qw($VERSION $Global_Change_Error);
 use Carp;
 use IO::File;
 
-$VERSION = '1.450';
+$VERSION = '1.460';
+
+# Set to globally report if any files change;
+# for local usage, use new(change_error => ...) instead.
+#$Global_Change_Error = undef;
 
 ######################################################################
 #### Implementation
@@ -39,7 +43,7 @@ sub new {
 		#changes=>undef,	# For dry_run, any changes found?
 		#verbose=>0,
 		@_};
-    
+
     $self->{filename} or croak "%Error: ->new() requires filename=> argument, stopped";
     $self->{modulename} = $self->{filename};
     $self->{modulename} =~ s/.*[\/\\]//;
@@ -89,7 +93,7 @@ sub close {
     my $self = shift;
     return if $self->{_closing};  # Don't recurse in close if we die() here.
     $self->{_closing} = 1;
-    
+
     $self->close_prep();
 
     my @oldtext;	# Old file contents
@@ -103,14 +107,17 @@ sub close {
 	    $keepstamp = 0;
 	}
     }
-    
+
     if (!$keepstamp
 	|| (join ('',@oldtext) ne join ('',@{$self->{text}}))) {
 	$self->{changes} = 1;
-	if ($self->{change_error}{ $self->language }
+	my $diff = describe_diff (join ('',@oldtext), join ('',@{$self->{text}}));
+	if ($Global_Change_Error) {
+	    die "%Error: Changes needed to $self->{filename}, but globally not allowed to change files\n$diff\n";
+	} elsif ($self->{change_error}{ $self->language }
 	    || $self->{change_error}{ALL}) {
 	    if ($self->_close_change_diff()) {
-		die "%Error: Changes needed to $self->{filename}, but not allowed to change ".$self->language." files\n";
+		die "%Error: Changes needed to $self->{filename}, but not allowed to change ".$self->language." files\n$diff\n";
 	    }
 
 	}
@@ -128,6 +135,23 @@ sub close {
 
     $self->{text} = [];
     delete $self->{_closing};
+}
+
+sub describe_diff {
+    my $text1 = shift;
+    my $text2 = shift;
+    my @l1 = split(/\n/, $text1);
+    my @l2 = split(/\n/, $text2);
+
+    my $diffs = "";
+    my $nl = $#l1;  $nl = $#l2 if ($#l2 > $nl);
+    for (my $l=0; $l<=$nl; $l++) {
+	if (($l1[$l]||"") ne ($l2[$l]||"")) {
+	    $diffs .= "- ".$l1[$l]."\n" if defined $l1[$l];
+	    $diffs .= "+ ".$l2[$l]."\n" if defined $l2[$l];
+	}
+    }
+    return $diffs;
 }
 
 our $_CloseUnlink;  END { unlink($_CloseUnlink) if $_CloseUnlink; }
@@ -167,7 +191,7 @@ sub is_keyword {
 	    || SystemC::Vregs::Language::Assembler::is_keyword($sym) && "Assembler"
 	    || SystemC::Vregs::Language::Tcl::is_keyword($sym) && "Tcl"
 	    # XML keywords can't conflict as they all have <'s
-	    ); 
+	    );
 }
 
 ######################################################################
@@ -263,7 +287,7 @@ sub include_guard {
 	$self->preproc ("ifndef $cmt\n");
     }
     $self->preproc ("define $cmt 1\n");
-    
+
     $self->print_at_close("\n", $self->preproc_char(), "endif /*$cmt*/\n");
 }
 
@@ -437,7 +461,7 @@ sub comment {
 
 sub preproc {
     my $self = shift;
-    warn 'No preprocessor for Perl Language'; 
+    warn 'No preprocessor for Perl Language';
 }
 
 sub define {
@@ -447,7 +471,7 @@ sub define {
     } else {
 	$self->printf ("use constant %-26s\t=> %16s;\n", @_);
     }
-}    
+}
 
 sub sprint_hex_value {
     my ($self,$value,$bits) = @_;
@@ -700,9 +724,9 @@ Output printf text.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

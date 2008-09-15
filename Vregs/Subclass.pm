@@ -1,4 +1,4 @@
-# $Id: Subclass.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Subclass.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -17,7 +17,7 @@ package SystemC::Vregs::Subclass;
 
 use strict;use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 $Errors = 0;
 
@@ -29,6 +29,20 @@ sub new {
     return $self;
 }
 
+sub attributes_string {
+    my $self = shift;
+    my $text = "";
+    foreach my $var (sort keys %{$self->{attributes}}) {
+	my $val = $self->{attributes}{$var};
+	$text .= " " if $text ne "";
+	if ($val eq '1') {
+	    $text .= "-$var";
+	} else {
+	    $text .= "-$var=$val";
+	}
+    }
+    return $text;
+}
 sub copy_attributes_from {
     my $self = shift;
     my $from = shift or return;
@@ -65,7 +79,7 @@ sub at_text {
 }
 
 sub substchar {
-    my $c = shift; 
+    my $c = shift;
     my $n = ord $c;
     if ($n >= 33 && $n <= 126) {
 	return "\\\'" if ($c eq "'");
@@ -170,9 +184,9 @@ lines from the description columns.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 25_vregshdrs.t 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: 25_vregshdrs.t 59640 2008-08-25 13:46:26Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2001-2008 by Wilson Snyder.  This program is free software;
@@ -10,19 +10,32 @@ use strict;
 use Test;
 use Config;
 
-BEGIN { plan tests => 3 }
+BEGIN { plan tests => 15 }
 BEGIN { require "t/test_utils.pl"; }
 
 use SystemC::Vregs;
 ok(1);
 
 print "Checking vregs...\n";
-run_system ("${PERL} ./vreg --rm --headers"
+run_system ("${PERL} ./vreg --rm --files --headers"
 	    ." --package vregs_spec"
 	    ." --rules vregs_spec__rules.pl"
 	    ." --v2k"
 	    ." --output test_dir");
 ok(1);
+
+ok (-f "test_dir/vregs_spec_defs.v");
+ok (-f "test_dir/vregs_spec_defs.h");
+ok (-f "test_dir/vregs_spec_defs.pm");
+ok (-f "test_dir/vregs_spec_asm.h");
+ok (-f "test_dir/vregs_spec_hash.pm");
+ok (-f "test_dir/vregs_spec_param.v");
+ok (-f "test_dir/vregs_spec_info.cpp");
+ok (-f "test_dir/vregs_spec_info.h");
+ok (-f "test_dir/vregs_spec_class.h");
+ok (-f "test_dir/vregs_spec_class.cpp");
+ok (-f "test_dir/vregs_spec_struct.h");
+ok (-f "test_dir/vregs_spec_latex.tex");
 
 if (!$Config{use64bitint}
     || $Config{use64bitint} eq 'undef') {

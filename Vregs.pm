@@ -1,4 +1,4 @@
-# $Id: Vregs.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Vregs.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -29,7 +29,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 ######################################################################
 #### Constants
@@ -50,7 +50,7 @@ $Bit_Access_Regexp = '^(RS?|)(WS?|W1CS?|)L?'."\$";
 #	{name}			Field name (Subclass)
 #	{at}			File/line number (Subclass)
 #	{address_bits}
-#	{data_bits}
+#	{word_bits}
 #	{rebuild_comment}
 #	{attributes}{<attr>}{<value>}
 #	{libraries}[]		SystemC::Vregs ref
@@ -63,7 +63,7 @@ $Bit_Access_Regexp = '^(RS?|)(WS?|W1CS?|)L?'."\$";
 sub new {
     my $class = shift;
     my $self = {address_bits => 32,
-		data_bits => 32,	# Changing this isn't verified
+		word_bits => 32,	# Changing this isn't verified (change data_bits attribute instead)
 		rebuild_comment => undef,
 		attributes => {
 		    # v2k => 0,		# Use localparam instead of parameter
@@ -74,8 +74,13 @@ sub new {
     bless $self, $class;
     $self->{rules} = new SystemC::Vregs::Rules (package => $self, );
     # Calculations
-    $self->{data_bytes} = $self->{data_bits}/8;
+    $self->{data_bytes} = $self->{word_bits}/8;
     return $self;
+}
+
+sub data_bits {
+    my $self = shift;
+    return $self->attribute_value("data_bits")||32;
 }
 
 sub addr_text_to_vec {
@@ -228,12 +233,9 @@ sub new_package {
     (!$self->{_got_package_decl}) or return $self->warn($flagref, "Multiple Package attribute sections, previous at $self->{_got_package_decl}.\n");
 
     my $attr = $flagref->{Attributes}||"";
-    while ($attr =~ s/-(\w+)//) {
-	$self->{attributes}{$1} = 1;
-	print "PACK ATTR -$1\n" if $Debug;
-	$self->{_got_package_decl} = $flagref->{at};
-    }
-    ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
+    print "PACK ATTR $attr\n" if $Debug;
+    _regs_read_attributes($self, $attr);
+    $self->{_got_package_decl} = $flagref->{at};
 }
 
 sub new_item {
@@ -406,7 +408,7 @@ sub new_register {
     $classname =~ s/\s+$//;
 
     my $is_register = ($flagref->{Register} || $flagref->{Address});
-    
+
     my $inherits = "";
     if ($classname =~ s/\s*:\s*(\S+)$//) {
 	$inherits = $1;
@@ -613,7 +615,7 @@ sub _choose_columns {
     for (my $h=0; $h<=$#{$headref}; $h++) {
 	$ncol = $h+1 if !$colused[$h];
     }
-    
+
     if ($ncol) {
         SystemC::Vregs::Subclass::warn ($flagref, "Column ".($ncol-1)." found with unknown header.\n");
 	print "Desired column headers: '",join("' '",@{$fieldref}),"'\n";
@@ -688,7 +690,7 @@ sub regs_read {
 	elsif ($line =~ /^type\s+(\S+)\s*(.*)$/ ) {
 	    my $typemnem = $1; my $flags = $2;
 	    my $inh = "";
-	    $inh = $1 if ($flags =~ s/:(\S+)//); 
+	    $inh = $1 if ($flags =~ s/:(\S+)//);
 	    $typemnem =~ s/^Vregs//;
 	    $typemnem =~ s/_t$//;
 	    $typeref = new SystemC::Vregs::Type
@@ -911,6 +913,7 @@ sub _valid_mask {
 
 sub SystemC::Vregs::Type::_create_defines {
     my $typeref = shift;
+    return if $typeref->attribute_value("nofielddefines");
 
     # Make size alias
     (my $nor_mnem  = $typeref->{name}) =~ s/^R_//;
@@ -925,19 +928,19 @@ sub SystemC::Vregs::Type::_create_defines {
     if ($typeref->{name} =~ /^R_/) {
 	for (my $word=0; $word<$typeref->{words}; $word++) {
 	    my $wr_mask = 0;
-	    for (my $bit=$word*$typeref->{pack}->{data_bits};
-		 $bit<(($word+1)*$typeref->{pack}->{data_bits});
+	    for (my $bit=$word*$typeref->{pack}->{word_bits};
+		 $bit<(($word+1)*$typeref->{pack}->{word_bits});
 		 $bit++) {
 		my $bitent = $typeref->{bitarray}[$bit];
 		next if !$bitent;
-		$wr_mask  |= (1<<$bit) if ($bitent->{write});
+		$wr_mask  |= (1<<($bit % $typeref->{pack}->{word_bits})) if ($bitent->{write});
 	    }
 	    my $wd=""; $wd=$word if $word;
 	    new_push SystemC::Vregs::Define::Value
 		(pack => $typeref->{pack},
 		 name => "CM${wd}_".$nor_mnem."_WRITABLE",
 		 rst_val  => sprintf("%08X",$wr_mask,),
-		 bits=>$typeref->{pack}->{data_bits},
+		 bits=>$typeref->{pack}->{word_bits},
 		 is_verilog => 1,	# In C++ use Class::BITMASK_WRITABLE
 		 desc => "Writable mask", );
 	}
@@ -1047,7 +1050,8 @@ sub SystemC::Vregs::Bit::_create_defines_range {
 		 desc_trivial => 1,);
 	}
     }
-    if ($bitref->{numbits}>1 && $bitref->{rst_val}) {
+    if (($bitref->{numbits}>1 || $typeref->attribute_value("creset_one_bit"))
+	&& $bitref->{rst_val}) {
 	new_push SystemC::Vregs::Define::Value
 	    (pack => $typeref->{pack},
 	     name => "CRESET_${nor_mnem}_${bit_mnem}",
@@ -1093,6 +1097,9 @@ sub create_defines {
 	my $range_high = $regref->{range_high};
 	my $range_low  = $regref->{range_low};
 
+	my $nofields = ($regref->attribute_value("nofielddefines")
+			|| $regref->{typeref}->attribute_value("nofielddefines"));
+
 	# Make master alias
 	new_push SystemC::Vregs::Define::Value
 	    (pack => $pack,
@@ -1110,16 +1117,20 @@ sub create_defines {
 		 bits => $pack->{address_bits},
 		 desc => "Ending Address of Register + 1",
 		 desc_trivial => 1,);
-	    new_push SystemC::Vregs::Define::Value
-		(pack => $pack,
-		 name => "RAC_".$nor_mnem,
-		 rst_val => $regref->{range_ents},
-		 bits => (($regref->{range_ents}->Lexicompare($bit32) > 0)
-			  ? $pack->{address_bits} : 32),
-		 desc => "Number of entries",
-		 desc_trivial => 1,);
 
-	    if (! $regref->{spacing}->equal($bit4)) {
+	    if (!$nofields) {
+		new_push SystemC::Vregs::Define::Value
+		    (pack => $pack,
+		     name => "RAC_".$nor_mnem,
+		     rst_val => $regref->{range_ents},
+		     bits => (($regref->{range_ents}->Lexicompare($bit32) > 0)
+			      ? $pack->{address_bits} : 32),
+		     desc => "Number of entries",
+		     desc_trivial => 1,);
+	    }
+
+	    if (! $regref->{spacing}->equal($bit4)
+		&& !$nofields) {
 		new_push SystemC::Vregs::Define::Value
 		    (pack => $pack,
 		     name => "RRP_".$nor_mnem,
@@ -1130,7 +1141,10 @@ sub create_defines {
 	    }
 	}
 
-	if ($range ne "" || $regref->{typeref}{words}>1) {
+	if (!$nofields
+	    && ($range ne ""
+		|| ($regref->{typeref}{words}>1
+		    && $regref->{typeref}{words} > ($pack->data_bits / 32)))) {
 	    my $wordspace = $regref->{pack}->addr_const_vec($regref->{typeref}{words}*4);
 	    if ($regref->{spacing}->equal($wordspace)) {
 		my $val = Bit::Vector->new($regref->{pack}{address_bits});
@@ -1174,7 +1188,8 @@ sub create_defines {
 	}
 
 	# If small range, make a alias per range
-	if ($range ne ""
+	if (!$nofields
+	    && $range ne ""
 	    && $regref->{range_ents} < 17) {
 	    for (my $range_val=$range_low; $range_val <= $range_high; $range_val++) {
 		my $range_addr = Bit::Vector->new_Dec($regref->{pack}{address_bits},
@@ -1388,9 +1403,9 @@ Returns list of SystemC::Vregs::Type objects.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

@@ -1,16 +1,16 @@
-# $Id: Latex.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Latex.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
 # Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 ######################################################################
 
 package SystemC::Vregs::Output::Latex;
@@ -20,7 +20,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 ######################################################################
 # CONSTRUCTOR
@@ -97,7 +97,7 @@ sub _print_type {
     foreach my $bitref ($typeref->fields_sorted()) {
 	_attrnames_collect($attrnames, $bitref);
     }
-    $fl->printf("\\vregsTable{l|l|l|l%s|l|X}\n",_attrnames_format($attrnames));
+    $fl->printf("\\begin{vregsTable}{l|l|l|l%s|l|X}\n",_attrnames_format($attrnames));
     $fl->printf_tabify("\\vregsTHead{Bit\t& Mnemonic\t& Access \t& %s\t& Type%s\t& Definition }\n",
 		       (($typeref->{name} =~ /^R_/) ? "Reset":"Constant"),
 		       _attrnames_head($attrnames));
@@ -116,7 +116,7 @@ sub _print_type {
 	$line .= ("\t& ".$bitref->{desc}.$descflags);
 	$fl->printf_tabify("%s",$line." }\n");
     }
-    $fl->printf("\\vregsTableEnd\n");
+    $fl->printf("\\end{vregsTable}\n");
 
     $fl->print("\n");
 }
@@ -280,9 +280,9 @@ Creates the latex file.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

@@ -1,4 +1,4 @@
-.cvsignore
+.gitignore
 Changes
 COPYING
 include/vderegs.cpp
@@ -6,7 +6,7 @@ include/VregsClass.h
 include/VregsDefs.h
 include/VregsRegInfo.cpp
 include/VregsRegInfo.h
-latex/.cvsignore
+latex/.gitignore
 latex/underscore.sty
 latex/vregs.sty
 latex/vregs_spec_example.tex
@@ -20,6 +20,7 @@ t/00_cleanhtml.t
 t/00_pod.t
 t/01_manifest.t
 t/02_help.t
+t/03_spaces.t
 t/05_number.t
 t/10_language.t
 t/20_vregsparse.t

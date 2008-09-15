@@ -1,4 +1,4 @@
-# $Id: Defines.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Defines.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use Carp;
 use vars qw($VERSION);
 
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 ######################################################################
 # CONSTRUCTOR
@@ -77,7 +77,7 @@ sub _print_header {
     my $self = shift;
     my $pack = shift;
     my $fl = shift;
-    
+
     $fl->comment_pre
 	("  General convention:\n"
 	 ."     RA_{regname}     Register beginning address\n"
@@ -106,7 +106,7 @@ sub _body {
     my $self = shift;
     my $pack = shift;
     my $fl = shift;
-    
+
     $fl->print("{\n    no warnings 'portable';\n") if $fl->{Perl};
 
     my $firstauto = 1;
@@ -140,7 +140,10 @@ sub _body {
 	    || (!$defref->{is_verilog} && !$defref->{is_perl})) {
 	    $comment = "" if !$pack->{comments};
 	    $comment = "" if $pack->{no_trivial_comments} && $defref->{desc_trivial};
+	    $fl->printf("#ifndef %s\n",$self->{define_prefix}.$define)
+		if $self->{ifdef_wrap_all};
 	    $fl->define ($self->{define_prefix}.$define, $value, $comment);
+	    $fl->printf("#endif\n") if $self->{ifdef_wrap_all};
 	}
     }
 
@@ -187,9 +190,9 @@ definitions in a language appropriate way.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

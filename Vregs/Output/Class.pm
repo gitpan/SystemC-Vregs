@@ -1,4 +1,4 @@
-# $Id: Class.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Class.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,7 +21,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 ######################################################################
 # CONSTRUCTOR
@@ -325,16 +325,16 @@ sub _class_h_write {
 	my @wr_masks;
 	for (my $word=0; $word<$typeref->{words}; $word++) {
 	    $wr_masks[$word] = 0;
-	    for (my $bit=$word*$typeref->{pack}->{data_bits};
-		 $bit<(($word+1)*$typeref->{pack}->{data_bits});
+	    for (my $bit=$word*$typeref->{pack}->{word_bits};
+		 $bit<(($word+1)*$typeref->{pack}->{word_bits});
 		 $bit++) {
 		my $bitent = $typeref->{bitarray}[$bit];
 		next if !$bitent;
-		$wr_masks[$word] |= (1<<($bit & ($typeref->{pack}->{data_bits}-1)))
+		$wr_masks[$word] |= (1<<($bit & ($typeref->{pack}->{word_bits}-1)))
 		    if ($bitent->{write});
 	    }
 	}
-	if ($typeref->{words}<2 && !$c) {
+	if ($typeref->{words}>0 && $typeref->{words}<2 && !$c) {
 	    $fl->printf("    static const uint32_t BITMASK_WRITABLE = 0x%08x;\n", $wr_masks[0]);
 	    $fl->fn($clname, "", "inline void wWritable(int b, uint32_t val)"
 		    ,"{ ${wset}b,(val&BITMASK_WRITABLE)|(${wget}b)&~BITMASK_WRITABLE)); };\n");
@@ -456,6 +456,8 @@ sub _class_h_write {
 		} else {
 		    $rst = "$bitref->{type}::$rst";
 		}
+	    } elsif ($rst =~ /^0x([0-9a-f_]+)$/i) {  # May need ULLs added
+		$rst = $fl->sprint_hex_value($1,$bitref->{numbits});
 	    }
 	    #$fl->printf("\tstatic const %s %s = %s;\n", $bitref->{type},
 	    #		uc($lc_mnem)."_RST", $rst);
@@ -609,6 +611,7 @@ sub write_class_h {
 
     # Sorted first does base classes, then children
     foreach my $typeref ($pack->types_sorted) {
+	next if $typeref->attribute_value('nofielddefines');
 	_class_h_write($self,$typeref,$pack, $fl);
     }
 
@@ -651,6 +654,7 @@ sub write_struct_h {
 
     # Sorted first does base classes, then children
     foreach my $typeref ($pack->types_sorted) {
+	next if $typeref->attribute_value('nofielddefines');
 	_class_h_write($self,$typeref,$pack, $fl);
     }
 
@@ -681,6 +685,7 @@ sub write_class_cpp {
 
     # Sorted first does base classes, then children
     foreach my $typeref ($pack->types_sorted) {
+	next if $typeref->attribute_value('nofielddefines');
 	$self->_class_cpp_write($typeref,$pack, $fl);
     }
 
@@ -726,9 +731,9 @@ Creates a C header file with structs for class definitions.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

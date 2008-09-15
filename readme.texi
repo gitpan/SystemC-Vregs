@@ -1,5 +1,5 @@
 \input texinfo @c -*-texinfo-*-
-@c $Id: readme.texi 49231 2008-01-03 16:53:43Z wsnyder $
+@c $Id: readme.texi 55774 2008-06-12 14:15:21Z wsnyder $
 @c %**start of header
 @setfilename readme.info
 @settitle Perl SystemC::Vregs Installation
@@ -15,13 +15,13 @@
 This is the SystemC Vregs Package, aka Vregs.
 
 @menu
-* Copyright::                   
-* Summary::                     
-* Description::                 
-* SystemPerl Example::          
-* Obtaining Distribution::      
-* Supported Systems::           
-* Installation::                
+* Copyright::
+* Summary::
+* Description::
+* SystemPerl Example::
+* Obtaining Distribution::
+* Supported Systems::
+* Installation::
 @end menu
 
 @node Copyright, Summary, Top, Top
@@ -45,7 +45,7 @@ then extracts header files for C++, Verilog, and Perl.
 
 Being very object oriented, the program can easily be extended to
 support additional output languages and output files.  You can download
-Vregs from the link off of http://www.veripool.com/vregs.html
+Vregs from the link off of http://www.veripool.org/vregs
 
 Vregs does not require SystemC or C++ to be useful, though some of the
 generated header files are only useful in object oriented languages like
@@ -70,7 +70,7 @@ You then run Vregs, which reads the HTML code and writes out a .vspec
 file, which contains a summary of the extracted information.  This file
 can be examined for errors, or edited standalone.  Vregs also produces
 header fields with #defines for all of the constants and magic numbers in
-the spec.  
+the spec.
 
 Alternatively you can write a .vregs file directly and then have this
 converted to LaTex format for printing.  If you use another text
@@ -82,10 +82,10 @@ see 'man vreg' for details.
 @node Obtaining Distribution, Supported Systems, SystemPerl Example, Top
 @section Obtaining Distribution
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software
+Vregs is part of the L<http://www.veripool.org/> free Verilog software
 tool suite.  The latest version is available from
 @uref{http://www.perl.org/CPAN/}, and from
-@uref{http://www.veripool.com/vregs.html}.
+@uref{http://www.veripool.org/vregs}.
 
 Download the latest package from that site, and decompress.
 @samp{gunzip SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar}

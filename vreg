@@ -1,16 +1,16 @@
 #!/usr/bin/perl -w
-#$Id: vreg 49231 2008-01-03 16:53:43Z wsnyder $
+#$Id: vreg 60834 2008-09-15 15:43:15Z wsnyder $
 ######################################################################
 #
 # Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 ######################################################################
 
 require 5.005;
@@ -33,7 +33,9 @@ use SystemC::Vregs::Output::Param;
 use SystemC::Vregs::TableExtract;
 
 use strict;
-use vars qw($Debug @Opt_Html_Files);
+use vars qw($Debug @Opt_Html_Files $VERSION);
+
+$VERSION = '1.460';
 
 #======================================================================
 
@@ -64,22 +66,23 @@ my $opt_vregs;
 my %opt_change_error;
 our @opt_library_vregs = ();
 
-my $opten_asm_h = 1;
-my $opten_class_h = 1;
-my $opten_class_cpp = 1;
-my $opten_defs_h = 1;
-my $opten_defs_pm = 1;
-my $opten_defs_v = 1;
-my $opten_info_cpp = 1;
-my $opten_param_v = 1;
-my $opten_struct_h = 1;
-my $opten_hash_pm = 1;
+my $opten_asm_h = 0;
+my $opten_class_h = 0;
+my $opten_class_cpp = 0;
+my $opten_defs_h = 0;
+my $opten_defs_pm = 0;
+my $opten_defs_v = 0;
+my $opten_hash_pm = 0;
+my $opten_info_cpp = 0;
 my $opten_latex = 0;
+my $opten_param_v = 0;
+my $opten_struct_h = 0;
 
 if (! GetOptions (
 		  "help"	=> \&usage,
 		  "debug"	=> sub { debug(1); },
 		  "debugi=i"	=> sub { debug($_[1]); },
+		  "version"	=> sub { print "Version $VERSION\n"; exit(0); },
 		  "<>"		=> \&parameter,
 		  "address_bits=i" => \$opt_address_bits,
 		  "change-diff=s" => \$opt_change_diff,
@@ -138,13 +141,13 @@ if (! GetOptions (
 }
 
 $opt_output.="/" if ($opt_output ne "" && $opt_output !~ m!/$!);
-$opt_package or die "%Error: No --package specified\n";
+$opt_package or die "%Error: No --package specified; see --help\n";
 
 $opt_vregs = "${opt_output}${opt_package}.vregs" if !defined $opt_vregs;
 
 my @vr_params = (address_bits=>$opt_address_bits,
 		 comments=>$opt_comments,
- 		 rebuild_comment=>$opt_rebuild_comment,
+		 rebuild_comment=>$opt_rebuild_comment,
 		 attributes=>\%opt_attributes,
 		 if_product=>$opt_if_product,
 		 );
@@ -195,12 +198,13 @@ if ($#Opt_Html_Files >= 0) {
     if ($opt_dry_run) {  # Need to write for below step to read
 	$Dry_Temp_File = ($ENV{TEMP}||$ENV{TMP}||"/tmp")."/.vreg_$$.vregs";
 	SystemC::Vregs::Output::Layout->new->write
-	    (%p, 
+	    (%p,
 	     dry_run=>0,
+	     change_error=>{},  # Don't report errors as temp won't exist
 	     filename=>$Dry_Temp_File);
     }
 }
-	      
+
 if ($opt_headers) {
     my $v2 = new SystemC::Vregs (@vr_params);
     if ($Dry_Temp_File) {
@@ -285,7 +289,7 @@ END {
 }
 
 sub usage {
-    print '$Id: vreg 49231 2008-01-03 16:53:43Z wsnyder $ ', "\n";
+    print "Version $VERSION\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -300,7 +304,7 @@ sub parameter {
     my $param = shift;
     die "%Error: Unknown parameter: $param\n";
 }
- 
+
 #######################################################################
 
 sub _def_fn {
@@ -337,14 +341,14 @@ file.  The file format is described in vregs_spec.doc or vregs_spec.htm.
 
 When saving HTML, be sure to change both the filename to .htm and the
 file format to HTML.  If inside Microsoft Word, exit.
-     
+
 =head1 HEADER CREATION
 
 When the --header switch is used, vreg reads a .vregs file and creates
 definition and class headers in the --output directory.  Vreg can also
 create LaTex tables based on the register layouts.
 
-=head1 ARGUMENTS
+=head1 GENERAL ARGUMENTS
 
 =over 4
 
@@ -382,77 +386,16 @@ Reads the specified filename and creates a .vregs file from the html.
 Only include registers in output with a Product column matching that
 specified.  See the vregs_spec document for more information.
 
-=item --filename-asm-h I<filename>
-
-Specify the output filename for the asm_h file.
-By default this is {--output}{package_name}_asm.h.
-
-Similar options exist for all of the other output files.
-
-=item --latex
-
-Creates latex tables from the vregs definition, suitable for formatting
-into printable documentation.
-
 =item --library I<package>
 
 Specifies a package to be used to resolve subclasses.  The library package
 will only be read, not changed in any way.
-
-=item --noasm_h
-
-Suppresses creating the _asm.h file.
 
 =item --nocomments
 
 Add minimal comment to the header files, to save disk space and time.
 Users of the file will have to then look at the .vregs file to determine
 what bits represent.
-
-=item --noclass_cpp
-
-Suppresses creating the _class.cpp file.
-
-=item --noclass_h
-
-Suppresses creating the _class.h C++ file.
-
-=item --nodefs_h
-
-Suppresses creating the _defs.h file.
-
-=item --nodefs_pm
-
-Suppresses creating the _defs.pl file.
-
-=item --nodefs_v
-
-Suppresses creating the _defs.v file.
-
-=item --nohash_pm
-
-Suppresses creating the _hash.pm file.
-
-=item --noinfo_cpp
-
-Suppresses creating the _info.cpp file.
-
-=item --noparams_v
-
-Suppresses creating the _defs.pm file.
-
-=item --nostruct_h
-
-Suppresses creating the _struct.h C file.
-
-=item --nofiles
-
-Suppresses creating all files. Equivalent to: --noclass_h --noclass_cpp
---nodefs_h --nodefs_pm --nodefs_v --noinfo_cpp --nohash_pm --noparams_v
---nostruct_h
-
-You can then use specific enables after the --nofiles to turn on the
-desired files, for example: --nofiles --class_h --defs_h --hash_pm 
 
 =item --output
 
@@ -479,23 +422,99 @@ useless style tags that make the file less humanly readable.
 Specify the name of the rules file.  (See L<SystemC::Vregs::Rules>.)
 Defaults to the I<out_directory>/I<package>__rules.pl.
 
-=item -v2k
+=item --v2k
 
 Use Verilog-2001 constructs, such as localparam.  Identical to the v2k
 package attribute.
 
-=item -vregs
+=item --version
+
+Displays program version and exits.
+
+=item --vregs
 
 Specify vregs format file to be read or written.  Defaults to be in the
 directory specified by --output with the filename I<package>.vregs.
 
 =back
 
+=head1 OUTPUT FILE TYPE ARGUMENTS
+
+=over 4
+
+=item --asm_h
+
+Create an _asm.h file.
+
+=item --class_cpp
+
+Create a _class.cpp file.
+
+=item --class_h
+
+Create a _class.h C++ file.
+
+=item --defs_h
+
+Create a _defs.h file.
+
+=item --defs_pm
+
+Create a _defs.pl file.
+
+=item --defs_v
+
+Create a _defs.v file.
+
+=item --filename-asm-h I<filename>
+
+Specify the output filename for the asm_h file.
+By default this is {--output}{package_name}_asm.h.
+
+Similar options exist for all of the other output files.
+
+=item --files
+
+Create all files. Equivalent to: --class_h --class_cpp --defs_h --defs_pm
+--defs_v --info_cpp --hash_pm --params_v --struct_h
+
+=item --hash_pm
+
+Create a _hash.pm file.
+
+=item --info_cpp
+
+Create an _info.cpp file.
+
+=item --latex
+
+Creates latex tables from the vregs definition, suitable for formatting
+into printable documentation.
+
+=item --nofiles
+
+Suppresses creating all files. Equivalent to: --noclass_h --noclass_cpp
+--nodefs_h --nodefs_pm --nodefs_v --noinfo_cpp --nohash_pm --noparams_v
+--nostruct_h
+
+You can then use specific enables after the --nofiles to turn on the
+desired files, for example: --nofiles --class_h --defs_h --hash_pm
+
+=item --params_v
+
+Create a _defs.pm file.
+
+=item --struct_h
+
+Create a _struct.h C file.
+
+=back
+
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.
+L<http://www.veripool.org/vregs>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

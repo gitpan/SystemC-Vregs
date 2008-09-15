@@ -1,4 +1,4 @@
-# $Id: Type.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Type.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -21,11 +21,11 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 # Fields:
 #	{name}			Field name (Subclass)
-#	{nor_name}		Field name 
+#	{nor_name}		Field name
 #	{at}			File/line number (Subclass)
 #	{pack}			Parent SystemC::Vregs ref
 #	{bits}			Width of structure
@@ -209,7 +209,7 @@ sub computes {
     my $mnem_vec = "";
     my $last_bitref = 0;
     my $x = 0;
-    for (my $bit=($typeref->{words}*$typeref->{pack}{data_bits})-1; $bit>=0; $bit--) {
+    for (my $bit=($typeref->{words}*$typeref->{pack}{word_bits})-1; $bit>=0; $bit--) {
 	my $bitent = $typeref->{bitarray}[$bit];
 	if (!defined $bitent) {
 	    $x++;
@@ -239,13 +239,11 @@ sub _computes_words {
     my $self = shift;
 
     my $words = 0;
-    my @fields = (values %{$self->{fields}});
-    if ($self->{inherits_typeref}) {
-	push @fields, (values %{$self->{inherits_typeref}->{fields}});
-    }
-    foreach my $bitref (@fields) {
+    foreach my $bitref ($self->fields_sorted_inherited) {
 	foreach my $bit (@{$bitref->{bitlist}}) {
-	    $words = int($bit / 32)+1 if $words < int($bit / 32)+1;
+	    my $bitword = ((int($bit / $self->{pack}->data_bits)+1)
+			   * $self->{pack}->data_bits/32);
+	    $words = $bitword if $words < $bitword;
 	}
     }
     if (my $numbits = $self->attribute_value('numbits')) {
@@ -393,9 +391,9 @@ Checks the object for errors, and parses to create derived fields.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

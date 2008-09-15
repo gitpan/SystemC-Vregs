@@ -1,16 +1,16 @@
-# $Id: Info.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Info.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
 # Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 ######################################################################
 
 package SystemC::Vregs::Output::Info;
@@ -20,7 +20,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 ######################################################################
 # CONSTRUCTOR
@@ -93,7 +93,7 @@ sub write_cpp {
     $fl->print ("#include \"${nameInfo}.h\"\n"
 	        ."\n");
     $fl->print ("#include \"$pack->{name}_class.h\"\n");
-		
+
     $fl->print ("//".('='x68)."\n");
     $fl->print ("// STATICS\n");
 
@@ -113,6 +113,7 @@ sub write_cpp {
     my $nclasses=0;
     foreach my $typeref (sort { $a->{name} cmp $b->{name}}  # Else sorted by need of base classes
 			 $pack->types_sorted) {
+	next if $typeref->attribute_value('nofielddefines');
 	$fl->print ("\t\"$typeref->{name}\",\n");
 	$nclasses++;
     }
@@ -137,14 +138,19 @@ sub write_cpp {
     #$fl->print ("    // Must call .w() functions on each, as each class may have differing endianness\n");
     my $else = "";
     foreach my $typeref ($pack->types_sorted) {
+	next if $typeref->attribute_value('nofielddefines');
 	$fl->print ("    ${else}if (0==strcmp(className,\"$typeref->{name}\")) {\n"
 		    ,"\t$typeref->{name}* p = ($typeref->{name}*)datap; \n"
 		    ,"\tost<<p->dump(pf);\n"
 		    ,"    }\n");
-	$else = "else "; 
+	$else = "else ";
     }
     $fl->print ("}\n\n");
 
+    my %flags;
+    foreach my $regref ($pack->regs_sorted()) {
+	$flags{RFPACK} = 1 if $regref->attribute_value("packholes");
+    }
 
     $fl->print ("//".('='x68)."\n\n");
 
@@ -153,17 +159,14 @@ sub write_cpp {
     $fl->printf ("    // Shorten the register info lines\n");
     $fl->printf ("#   define RFRDSIDE  VregsRegEntry::REGFL_RDSIDE\n");
     $fl->printf ("#   define RFWRSIDE  VregsRegEntry::REGFL_WRSIDE\n");
-    $fl->printf ("#   define RFNORTEST VregsRegEntry::REGFL_NOREGTEST\n");
-    $fl->printf ("#   define RFNORDUMP VregsRegEntry::REGFL_NOREGDUMP\n");
+    $fl->printf ("#   define RFPACK    VregsRegEntry::REGFL_PACKHOLES\n") if $flags{RFPACK};
     $fl->printf ("    //rip->add_register( address,       size,   name,     spacing, rangeLow, rangeHi,\n");
     $fl->printf ("    //  rdMask,     wrMask,     rstVal,     rstMask,\n");
-    $fl->printf ("    //  flags);\n");
+    $fl->printf ("    //  flags, attributes);\n");
 
     foreach my $regref ($pack->regs_sorted()) {
 	my $size = $pack->addr_const_vec($regref->{typeref}{words}*4);
 	my $noarray =  $regref->attribute_value('noarray');
-	my $noregtest = $regref->attribute_value('noregtest');
-	my $noregdump = $regref->attribute_value('noregdump');
 	if ($noarray) {
 	    # User wants to treat it as a bulk region without [] subscripts in info
 	    # This munging should probably be done in Register instead.
@@ -182,7 +185,7 @@ sub write_cpp {
 	    $fl->print (",\n");
 	}
 
-	my $nbits = $pack->{data_bits};
+	my $nbits = $pack->data_bits();
 	$nbits = $size->to_Dec*8 if $size->to_Dec*8 > $nbits;
 
 	my $rd_side = 0;
@@ -213,15 +216,14 @@ sub write_cpp {
 	$fl->printf ("\t0");
 	$fl->printf ("|RFRDSIDE") if $rd_side;
 	$fl->printf ("|RFWRSIDE") if $wr_side;
-	$fl->printf ("|RFNORTEST") if $noregtest;
-	$fl->printf ("|RFNORDUMP") if $noregdump;
+	$fl->printf ("|RFPACK") if $flags{RFPACK} && $regref->attribute_value("packholes");
+	$fl->printf (", \"%s\"", $typeref->attributes_string);
 	$fl->printf (");\n",);
     }
 
     $fl->printf ("#   undef RFRDSIDE\n");
     $fl->printf ("#   undef RFWRSIDE\n");
-    $fl->printf ("#   undef RFNORTEST\n");
-    $fl->printf ("#   undef RFNORDUMP\n");
+    $fl->printf ("#   undef RFPACK\n") if $flags{RFPACK};
     $fl->print ("};\n\n");
 
     $pack->{rules}->execute_rule ('info_cpp_file_after', 'file_body', $pack);
@@ -272,9 +274,9 @@ addresses into names.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

@@ -1,4 +1,4 @@
-# $Id: Bit.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Bit.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -20,7 +20,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION %Keywords);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))
@@ -35,7 +35,7 @@ foreach my $kwd (qw( w dw fieldsZero fieldsReset
 #	{typeref}		Parent SystemC::Vregs::Type ref
 #	{desc}			Description
 #	{bits}			Textlist of bits
-#	{bitlist}[]		Array of each bit being set		
+#	{bitlist}[]		Array of each bit being set
 #	{access}		RW/R/W etc
 #	{overlaps}		What fields can overlap
 #	{type}			C++ type
@@ -43,7 +43,7 @@ foreach my $kwd (qw( w dw fieldsZero fieldsReset
 #	{rst_val}		{rst} as hex
 # After check
 #	{cast_needed}		True if C++ needs a cast to convert
-#	{bitarray}[bit]{...}	Per bit info		
+#	{bitarray}[bit]{...}	Per bit info
 
 ######################################################################
 
@@ -171,7 +171,8 @@ sub check_rst {
     my $typeref = $bitref->{typeref};
     my $field = $bitref->{rst};
     $field =~ s/0X/0x/;
-    if ($field =~ /^0?x?[0-9a-f]+$/i) {
+    if ($field =~ /^0?x?[0-9a-f_]+$/i) {
+	$field =~ s/_//g;
     } elsif ($field =~ /^FW-?0$/i) {
 	$field = "FW0";
     } elsif ($field =~ /^0-?FW$/i) {
@@ -339,6 +340,7 @@ sub computes {
 	$bitref->{access_read_side} = 	 (($access =~ /R[^W]*S/) ? 1:0);
 	$bitref->{access_write} = 	 (($access =~ /W/) ? 1:0);
 	$bitref->{access_write_side} =	 (($access =~ /(W[^R]*S|W1C)/) ? 1:0);
+	$bitref->{access_write_one} =	 (($access =~ /(W1)/) ? 1:0);
     }
 
     $bitref->{fw_reset} = 1 if ($bitref->{rst} =~ /^FW/ && $bitref->{access} =~ /W/);
@@ -378,12 +380,14 @@ sub computes_type {
 	} elsif ($rst eq "0") {
 	    $rstvec = 0;
 	    $bitref->{rst_val} = 0;
-	} elsif ($rst =~ /^0x[0-9a-f]+$/i) {
-	    my $value = hex $rst;
+	} elsif ($rst =~ /^0x[0-9a-f_]+$/i) {
+	    $rst =~ s/_//g;
+	    my $value = eval { no warnings 'portable'; hex $rst; };
 	    $bitref->{rst_val} = $value;
 	    $rstvec = (($value & (1<<($bitsleft))) ? 1:0);
 	} elsif ($rst =~ /^[0-9_]+$/i) {
-	    (my $value = $rst) =~ s/_//g;
+	    $rst =~ s/_//g;
+	    my $value = $rst;
 	    $bitref->{rst_val} = $value;
 	    $rstvec = (($value & (1<<($bitsleft))) ? 1:0);
 	} elsif ($rst =~ /^[A-Z][A-Z0-9_]*$/) {
@@ -533,9 +537,9 @@ Checks the object for errors, and parses to create derived Fields.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

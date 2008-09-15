@@ -1,14 +1,14 @@
 ;; vregs-mode.el --- minor mode for displaying waveform signal values
 ;;
-;; $Id: vregs-mode.el 49231 2008-01-03 16:53:43Z wsnyder $
+;; $Id: vregs-mode.el 55774 2008-06-12 14:15:21Z wsnyder $
 
 ;; Author          : Wilson Snyder <wsnyder@wsnyder.org>
 ;; Keywords        : languages
 
 ;;; Commentary:
-;; 
+;;
 ;; Distributed from the web
-;;	http://www.veripool.com
+;;	http://www.veripool.org
 ;;
 ;; To use this package, simply put it in a file called "vregs-mode.el" in
 ;; a Lisp directory known to Emacs (see `load-path').
@@ -30,19 +30,19 @@
 ;; Copyright 2001-2008 by Wilson Snyder.  This program is free software;
 ;; you can redistribute it and/or modify it under the terms of either the GNU
 ;; General Public License or the Perl Artistic License.
-;; 
+;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the Perl Artistic License
 ;; along with this module; see the file COPYING.  If not, see
 ;; www.cpan.org
-;; 
+;;
 
 ;;; History:
-;; 
+;;
 
 
 ;;; Code:
@@ -110,7 +110,7 @@
 	(list "\\<\\([RC]_[A-Z0-9_]+\\)\\s *="
 	      1 font-lock-variable-name-face)
 	))
-	
+
 ;;;;
 ;;;; Mode stuff
 ;;;;

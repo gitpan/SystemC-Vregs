@@ -1,4 +1,4 @@
-// $Id: VregsRegInfo.cpp 49231 2008-01-03 16:53:43Z wsnyder $ -*- C++ -*-
+// $Id: VregsRegInfo.cpp 60052 2008-09-03 15:23:07Z wsnyder $ -*- C++ -*-
 //======================================================================
 //
 // Copyright 2001-2008 by Wilson Snyder <wsnyder@wsnyder.org>.  This
@@ -21,6 +21,7 @@
 //======================================================================
 
 #include <sstream>
+#include <stdlib.h>
 
 #include "VregsRegInfo.h"
 
@@ -37,6 +38,38 @@ void VregsRegEntry::dump () const {
     COUT << "  Size " << size() << endl;
 }
 
+/// Value of an attribute; return default if not defined.
+uint64_t VregsRegEntry::attribute_value(const char* attr, uint64_t defValue) const {
+    const char* searchp = attributes();
+    while (searchp && NULL != (searchp = strchr(searchp, '-'))) {
+	searchp++;
+	if (0==strncmp(searchp, attr, strlen(attr))) {   // Prefix matches
+	    searchp += strlen(attr);
+	    if (!*searchp || *searchp==' ') { // Attribute set to one
+		return 1;
+	    }
+	    else if (*searchp=='=') {
+		searchp++;
+		if (!searchp) return 1;
+		return strtoll(searchp, NULL, 10);
+	    }
+	    // else it's only a partial match, ie "foobar"!="foo".
+	}
+    }
+    return defValue;
+}
+
+bool VregsRegEntry::addressHit(uint64_t addr) const {
+    if (addr < address() || addr >= addressEnd()) return false;
+    if (!entSpacing()) {
+	if (addr != address()) return false;
+    } else {
+	uint64_t offset = addr - address();
+	if ((offset % entSpacing()) != 0) return false;  // Inside a "hole"
+    }
+    return true;
+}
+
 //======================================================================
 // VregsRegInfo
 
@@ -48,19 +81,21 @@ void VregsRegInfo::add_register (
     address_t addr, size64_t size, const char* name,
     uint64_t spacing, uint64_t rangeLow, uint64_t rangeHigh,
     uint64_t rdMask, uint64_t wrMask,
-    uint64_t rstVal, uint64_t rstMask, uint32_t flags)
+    uint64_t rstVal, uint64_t rstMask,
+    uint32_t flags, const char* attrs)
 {
     if (spacing == 0) {
 	// Single register
-	add_register (new VregsRegEntry (addr, size, name, 0, 0,
+	add_register (new VregsRegEntry (addr, size, name,
+					 0, 0, 0,
 					 rdMask,wrMask,rstVal,rstMask,
-					 flags));
-    } else if (spacing == size) {
+					 flags, attrs));
+    } else if (spacing == size || (flags & VregsRegEntry::REGFL_PACKHOLES)) {
 	// The registers abut one another, so just add them to the range.
-	add_register (new VregsRegEntry (addr, (rangeHigh-rangeLow)*size,
-					 name, spacing, rangeLow,
+	add_register (new VregsRegEntry (addr, (rangeHigh-rangeLow)*spacing, name,
+					 size, spacing, rangeLow,
 					 rdMask,wrMask,rstVal,rstMask,
-					 flags));
+					 flags, attrs));
     } else {
 	for (uint32_t ent=0; ent < (rangeHigh-rangeLow); ent++) {
 	    // Mark the register for test if it's a small region,
@@ -68,10 +103,11 @@ void VregsRegInfo::add_register (
 	    bool test = (ent==0 || ent==(rangeHigh-rangeLow-1)
 			 || ((rangeHigh-rangeLow)<=16));
 	    for (int bit=0; bit<64; bit++) { if (ent==(VREGS_ULL(1)<<bit)) test=true; }
-	    add_register (new VregsRegEntry (addr + ent*spacing, size,
-					     name, size, ent+rangeLow,
+	    add_register (new VregsRegEntry (addr + ent*spacing, size, name,
+					     size, spacing, ent+rangeLow,
 					     rdMask,wrMask,rstVal,rstMask,
-					     flags | (test?0:VregsRegEntry::REGFL_NOBIGTEST)));
+					     flags | (test?0:VregsRegEntry::REGFL_NOBIGTEST),
+					     attrs));
 	}
     }
 }
@@ -111,7 +147,7 @@ VregsRegEntry* VregsRegInfo::find_by_next_addr (address_t addr) {
 VregsRegEntry* VregsRegInfo::find_by_addr (address_t addr) {
     // Return register at given address, or NULL
     VregsRegEntry* rep = find_by_next_addr(addr);
-    if (rep && addr >= rep->address() && addr < rep->addressEnd() ) {
+    if (rep && rep->addressHit(addr)) {
 	return rep;
     }
     return NULL;
@@ -127,9 +163,9 @@ string VregsRegInfo::addr_name (address_t addr) {
 
     ostringstream os;
     if (rep->isRanged()) {
-	long thisent = (long)((addr - rep->address()) / rep->entSize());
+	long thisent = (long)((addr - rep->address()) / rep->entSpacing());
 	os <<rep->name()<<"["<<hex<<thisent + rep->lowEntNum()<<"]";
-	addr -= thisent*  rep->entSize();
+	addr -= thisent * rep->entSpacing();
     } else {
 	os <<rep->name();
     }

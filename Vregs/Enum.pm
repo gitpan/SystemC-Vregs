@@ -1,4 +1,4 @@
-# $Id: Enum.pm 49231 2008-01-03 16:53:43Z wsnyder $
+# $Id: Enum.pm 60834 2008-09-15 15:43:15Z wsnyder $
 # Author: Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -22,7 +22,7 @@ use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
 
-$VERSION = '1.450';
+$VERSION = '1.460';
 
 ######################################################################
 ######################################################################
@@ -351,9 +351,9 @@ Checks the object for errors, and parses to create derived Fields.
 
 =head1 DISTRIBUTION
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software tool
+Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
-L<http://www.veripool.com/vregs.html>.  /www.veripool.com/>.
+L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

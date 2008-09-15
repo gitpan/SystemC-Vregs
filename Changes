@@ -2,6 +2,25 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.460 2008/09/15
+
+**	Vreg now does not create files by default.  Use --files
+	to get all files, or specific flags to enable each output.
+
+***	VregsRegEntry now includes register attribute string.
+
+***	With -nofielddefines attribute, suppress class and field definitions.
+	This avoids the almost duplicate defines for derived registers.
+
+***	With -packholes attribute, reduce VregsRegInfo memory usage
+	on registers with large spacing between entries. [Brian Cassell]
+
+****	Allow package attributes to set values.
+
+****	Fix CM# defines with registers over 32 bits.  [Vasu Arasanipalai]
+
+****	Fix Perl warning when registers have no bits.  [by Vasu Arasanipalai]
+
 * Vregs 1.450 2008/1/3
 
 ***	Added vreg_latex2html program.
@@ -106,7 +125,7 @@ The contributors that suggested a given feature are shown in [].
 
 ***	Add SystemC::Language::CPP, now separate from SystemC::Language::C.
 
-* Vregs 1.301 2005/7/27 
+* Vregs 1.301 2005/7/27
 
 ***	Create parameters for 'define's to allow bit extraction. [Bryce Denney]
 
@@ -114,7 +133,7 @@ The contributors that suggested a given feature are shown in [].
 
 * Vregs 1.300 2005/6/17
 
-**	Added vderegs program, for dumping structures.  
+**	Added vderegs program, for dumping structures.
 
 **	The previous _named.cpp/.h files are now part of the _info.cpp/h files.
 	Any programs which used these needs to modify their include list.
@@ -169,7 +188,7 @@ The contributors that suggested a given feature are shown in [].
 
 * Vregs 1.243 2003/10/30
 
-***	Add before_any_file rule.  
+***	Add before_any_file rule.
 
 ****	Documentation fixes.  [Mike Castle]
 
@@ -204,7 +223,7 @@ The contributors that suggested a given feature are shown in [].
 
 * Vregs 1.240 2002/12/13
 
-**	Added subclassing of enumerations.  
+**	Added subclassing of enumerations.
 	A enumeration can now reference another enumeration, and all values under the
 	lower enumeration will be included in the upper enumeration.
 
@@ -308,10 +327,10 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 49231 2008-01-03 16:53:43Z wsnyder $
+$Id: Changes 60834 2008-09-15 15:43:15Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
-	
+
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 Copyright 2001-2008 by Wilson Snyder.  This program is free software;

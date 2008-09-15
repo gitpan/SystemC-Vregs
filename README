@@ -25,7 +25,7 @@ then extracts header files for C++, Verilog, and Perl.
 
    Being very object oriented, the program can easily be extended to
 support additional output languages and output files.  You can download
-Vregs from the link off of http://www.veripool.com/vregs.html
+Vregs from the link off of http://www.veripool.org/vregs
 
    Vregs does not require SystemC or C++ to be useful, though some of
 the generated header files are only useful in object oriented languages
@@ -62,10 +62,9 @@ templates; see 'man vreg' for details.
 1.4 Obtaining Distribution
 ==========================
 
-Vregs is part of the L<http://www.veripool.com/> free Verilog software
+Vregs is part of the L<http://www.veripool.org/> free Verilog software
 tool suite.  The latest version is available from
-`http://www.perl.org/CPAN/', and from
-`http://www.veripool.com/vregs.html'.
+`http://www.perl.org/CPAN/', and from `http://www.veripool.org/vregs'.
 
    Download the latest package from that site, and decompress.  `gunzip
 SystemC-Vregs_version.tar.gz ; tar xvf SystemC-Vregs_version.tar'
