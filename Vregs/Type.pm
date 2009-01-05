@@ -1,16 +1,4 @@
-# $Id: Type.pm 60834 2008-09-15 15:43:15Z wsnyder $
-# Author: Wilson Snyder <wsnyder@wsnyder.org>
-######################################################################
-#
-# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
-# you can redistribute it and/or modify it under the terms of either the GNU
-# General Public License or the Perl Artistic License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
+# See copyright, etc in below POD section.
 ######################################################################
 
 package SystemC::Vregs::Type;
@@ -21,7 +9,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.460';
+$VERSION = '1.461';
 
 # Fields:
 #	{name}			Field name (Subclass)
@@ -395,7 +383,7 @@ Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
-Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2009 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

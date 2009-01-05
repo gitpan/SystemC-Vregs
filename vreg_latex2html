@@ -1,16 +1,5 @@
 #!/usr/bin/perl -w
-#$Id: vreg_latex2html 60834 2008-09-15 15:43:15Z wsnyder $
-######################################################################
-#
-# Copyright 2007-2008 by Wilson Snyder.  This program is free software;
-# you can redistribute it and/or modify it under the terms of either the GNU
-# General Public License or the Perl Artistic License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
+# See copyright, etc in below POD section.
 ######################################################################
 
 require 5.005;
@@ -23,7 +12,7 @@ use Carp;
 use strict;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.460';
+$VERSION = '1.461';
 
 #======================================================================
 
@@ -131,6 +120,16 @@ sub proc_file {
     $fh->close();
 }
 
+sub _add_text {
+    my $self = shift;
+    my $text = shift;
+
+    if ($self->{level}) {
+	my $argc = $self->{argc}[$self->{level} - 1];
+	$self->{args}[$self->{level} - 1][$argc] .= $text if $argc>=0;
+    }
+}
+
 sub parse {
     my $self = shift;
     my $line = shift;
@@ -142,16 +141,11 @@ sub parse {
 	my $tok = $2;
 	#print " PP $self->{level} $text  TOK $tok\n" if $Debug;
 
-	if ($self->{level}) {
-	    my $argc = $self->{argc}[$self->{level} - 1];
-	    $self->{args}[$self->{level} - 1][$argc] .= $text if $argc>=0;
-	}
+	_add_text($self,$text);
 
 	if ($tok =~ /^\\/) {
-	    if ($self->{need_call} && $self->{level} <= $self->{need_level}) {
-		call($self,$self->{need_level});
-	    }
 	    #print "  CMD $self->{level} $tok\n" if $Debug;
+	    $self->{need_call}[$self->{level}] = 1;
 	    $self->{cmds}[$self->{level}] = $tok;
 	    $self->{argc}[$self->{level}] = -1;
 	    $self->{args}[$self->{level}] = [];
@@ -161,13 +155,11 @@ sub parse {
 	    ++$self->{level};
 	}
 	elsif ($tok eq '}') {
-	    if ($self->{need_call} && $self->{level} <= $self->{need_level}) {
-		call($self,$self->{need_level});
-	    }
 	    --$self->{level};
-	    $self->{need_call} = 1;
-	    $self->{need_level} = $self->{level};
-	    #print "  setNC  $self->{level}  NC $self->{need_call} NL $self->{need_level}\n" if $Debug;
+	    if ($self->{need_call}[$self->{level}]) {
+		call($self,$self->{level});
+		$self->{need_call}[$self->{level}] = 0;
+	    }
 	}
     }
 
@@ -177,9 +169,7 @@ sub parse {
 sub call {
     my $self = shift;
     my $lev = shift;
-
     #print "NC  $self->{level}  NC $self->{need_call} NL $self->{need_level}\n";
-    $self->{need_call} = 0;
 
     my $call = $self->{cmds}[$lev];
     my @args = @{$self->{args}[$lev]};
@@ -216,6 +206,15 @@ sub call {
     }
     elsif ($call eq '\vregsAddress') {
 	$self->{fhw}->printf("   <h3>Address</h3>  %s\n", $args[0]);
+    }
+    # Markup
+    elsif ($call =~ /^\\multiline([a-zA-Z])+/) {
+	foreach my $arg (@args) {
+	    $arg =~ s!\\!!g;
+	    $arg =~ s!\s+! !g;
+	    print "  MLINE $arg\n" if $Debug;
+	    _add_text($self,$arg);
+	}
     }
     # Table lines
     elsif ($call =~ /^\\vregs(THead|TLine|LongTHead)/) {
@@ -325,7 +324,7 @@ Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.org/vregs>.
 
-Copyright 2007-2008 by Wilson Snyder.  This package is free software; you
+Copyright 2007-2009 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

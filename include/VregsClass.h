@@ -1,7 +1,7 @@
-// $Id: VregsClass.h 49231 2008-01-03 16:53:43Z wsnyder $ -*- C++ -*-
+// -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2008 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// Copyright 2001-2009 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
 // the terms of either the GNU Lesser General Public License or the Perl
 // Artistic License.

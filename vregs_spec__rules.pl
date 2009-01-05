@@ -1,4 +1,4 @@
-#// $Id: vregs_spec__rules.pl 47880 2007-11-27 20:27:49Z wsnyder $ -*- C++ -*-
+#// -*- C++ -*-
 #// DESCRIPTION: SystemC::Vregs::Rules file: Perl code Vregs parses to produce .h file
 #// ** This is a PERL file, but highlighted as C++ instead of Perl
 #//    since there's more C++ code here than perl code!

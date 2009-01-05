@@ -1,10 +1,10 @@
-// $Id: vregs_enums.v 55774 2008-06-12 14:15:21Z wsnyder $ -*- Verilog -*-
+// -*- Verilog -*-
 //====================================================================
 // DESCRIPTION: Manual test case showing use of AUTOASCII
 //
-// Copyright 2001-2008 by Wilson Snyder.  This program is free software;
+// Copyright 2001-2009 by Wilson Snyder.  This program is free software;
 // you can redistribute it and/or modify it under the terms of either the GNU
-// General Public License or the Perl Artistic License.
+// Lesser General Public License or the Perl Artistic License.
 //====================================================================
 
 `include "vregs_spec_defs.v"

@@ -1,10 +1,9 @@
 // -*- C++ -*-
-// $Id: 51_gcc_str.c 49231 2008-01-03 16:53:43Z wsnyder $
 // DESCRIPTION: C file compiled as part of test suite
 //
-// Copyright 2005-2008 by Wilson Snyder.  This program is free software;
+// Copyright 2005-2009 by Wilson Snyder.  This program is free software;
 // you can redistribute it and/or modify it under the terms of either the GNU
-// General Public License or the Perl Artistic License.
+// Lesser General Public License or the Perl Artistic License.
 
 #include "gcc_common.h"
 

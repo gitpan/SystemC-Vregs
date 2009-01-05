@@ -1,48 +1,47 @@
-# $Id: Makefile.PL 55774 2008-06-12 14:15:21Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2009 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
-# General Public License or the Perl Artistic License.
+# Lesser General Public License or the Perl Artistic License.
 
 use ExtUtils::MakeMaker;
 use Carp;
 
 sub MY::postamble {
-"
+q{
 README: readme.texi
-	-rm -rf \$@
-	makeinfo \$< --output \$@ --no-headers --no-validate
+	-$(RM_RF) $@
+	makeinfo $< --output $@ --no-headers --no-validate
 
 dist: distcheck README
 
 install::
-	echo \"MANUALLY: cp vregs-mode.el YOUR_SITE_LISP_PATH\"
+	echo "MANUALLY: cp vregs-mode.el YOUR_SITE_LISP_PATH"
 
 install-local: manifypods
-	cp -R blib/man*  \$(DIRPROJECT_PREFIX)/man
-	cp vregs-mode.el \$(DIRPROJECT_PREFIX)/site-lisp
+	cp -R blib/man*  $(DIRPROJECT_PREFIX)/man
+	cp vregs-mode.el $(DIRPROJECT_PREFIX)/site-lisp
 
 clean::
-	-rm -rf test_dir
+	-$(RM_RF) test_dir
 
 ## Maintainer use:
 preexist:
-	svnorcvs nexists \$(DISTNAME)_\$(VERSION_SYM)
+	svnorcvs nexists $(DISTNAME)_$(VERSION_SYM)
 	test -s README
 
 tag:
-	svnorcvs tag  \$(DISTNAME)_\$(VERSION_SYM)
+	svnorcvs tag  $(DISTNAME)_$(VERSION_SYM)
 
 maintainer-diff:
-	svnorcvs diff \$(DISTNAME)_\$(VERSION_SYM)
+	svnorcvs diff $(DISTNAME)_$(VERSION_SYM)
 
 maintainer-clean: distclean
-	-rm -rf README Makefile
+	-$(RM_RF) README Makefile
 
 maintainer-dist: preexist dist tag
-	svnorcvs release \$(DISTVNAME).tar.gz
-";
+	svnorcvs release $(DISTVNAME).tar.gz
+};
 }
 
 WriteMakefile(

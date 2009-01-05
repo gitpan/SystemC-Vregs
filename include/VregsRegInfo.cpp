@@ -1,7 +1,7 @@
-// $Id: VregsRegInfo.cpp 60052 2008-09-03 15:23:07Z wsnyder $ -*- C++ -*-
+// -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2008 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// Copyright 2001-2009 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
 // the terms of either the GNU Lesser General Public License or the Perl
 // Artistic License.

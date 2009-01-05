@@ -1,16 +1,4 @@
-# $Id: Vregs.pm 60834 2008-09-15 15:43:15Z wsnyder $
-# Author: Wilson Snyder <wsnyder@wsnyder.org>
-######################################################################
-#
-# Copyright 2001-2008 by Wilson Snyder.  This program is free software;
-# you can redistribute it and/or modify it under the terms of either the GNU
-# General Public License or the Perl Artistic License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
+# See copyright, etc in below POD section.
 ######################################################################
 
 package SystemC::Vregs;
@@ -29,7 +17,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.460';
+$VERSION = '1.461';
 
 ######################################################################
 #### Constants
@@ -251,7 +239,7 @@ sub new_item {
 	new_register (@_);
     } elsif ($flagref->{Enum}) {
 	new_enum (@_);
-    } elsif ($flagref->{Defines}) {
+    } elsif (defined $flagref->{Defines}) {  # Name not required, so defined.
 	new_define (@_);
     } elsif ($flagref->{Package}) {
 	new_package (@_);
@@ -266,7 +254,8 @@ sub new_define {
     return if $#bittable<0;   # Empty list of defines
 
     #print ::Dumper(\$flagref, $bittableref);
-    ($flagref->{Defines}) or die;
+    (defined $flagref->{Defines}) or die;
+    $flagref->{Defines} ||= "";
     my $defname = _cleanup_column($flagref->{Defines});
     $defname .= "_" if $defname ne "" && $defname !~ /_$/;
     $defname = "" if $defname eq "_";
@@ -1407,7 +1396,7 @@ Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
-Copyright 2001-2008 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2009 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

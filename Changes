@@ -2,6 +2,12 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.461 2009/01/05
+
+****	Support define document sections with empty category names.
+
+****	Allow multilineL/R in descriptions.  [Mat Zeno]
+
 * Vregs 1.460 2008/09/15
 
 **	Vreg now does not create files by default.  Use --files
@@ -327,15 +333,14 @@ The contributors that suggested a given feature are shown in [].
 ****	Package Released as Beta
 
 ----------------------------------------------------------------------
-$Id: Changes 60834 2008-09-15 15:43:15Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 2001-2008 by Wilson Snyder.  This program is free software;
+Copyright 2001-2009 by Wilson Snyder.  This program is free software;
 you can redistribute it and/or modify it under the terms of either the GNU
-General Public License or the Perl Artistic License.
+Lesser General Public License or the Perl Artistic License.
 
 Local variables:
 mode: outline
