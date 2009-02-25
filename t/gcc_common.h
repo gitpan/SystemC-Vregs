@@ -6,7 +6,12 @@
 // Lesser General Public License or the Perl Artistic License.
 
 #include <stdlib.h>
+#include <stdint.h>
+
+#ifndef __uint32_t_defined
 typedef unsigned int uint32_t;
+#endif
+
 #if defined(__WORDSIZE) && (__WORDSIZE == 64)
 typedef unsigned long int uint64_t;
 typedef unsigned long int Address;

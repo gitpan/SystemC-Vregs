@@ -1,6 +1,6 @@
 ;; vregs-mode.el --- minor mode for displaying waveform signal values
 ;;
-;; $VERSION = '1.461';
+;; $VERSION = '1.462';
 
 ;; Author          : Wilson Snyder <wsnyder@wsnyder.org>
 ;; Keywords        : languages

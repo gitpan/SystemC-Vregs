@@ -111,7 +111,7 @@ struct VDeregs {
 	m_attrNetOrder	= true;
 	m_opt_multiMode	= false;
 	m_opt_prettyForm = false;
-    };
+    }
     // METHODS
     void getOptions(int argc, char* argv[]);
     bool chooseStruct();
@@ -278,7 +278,7 @@ static struct option long_options[] = {
 };
 
 static void version() {
-    COUT <<"vderegs: $VERSION = '1.461'" <<endl;
+    COUT <<"vderegs: $VERSION = '1.462'" <<endl;
 }
 
 static void usage() {

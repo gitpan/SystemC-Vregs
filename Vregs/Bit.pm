@@ -8,7 +8,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION %Keywords);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))

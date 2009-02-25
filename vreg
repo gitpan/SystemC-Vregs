@@ -24,7 +24,7 @@ use SystemC::Vregs::TableExtract;
 use strict;
 use vars qw($Debug @Opt_Html_Files $VERSION);
 
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 #======================================================================
 

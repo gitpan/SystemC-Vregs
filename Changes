@@ -2,6 +2,12 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.462 2009/02/25
+
+***	Fix extra semicolons on declarations, rt43629. [Mark Pettigrew]
+
+****	Fix test compile error on cygwin, bug69. [Yoram Stern]
+
 * Vregs 1.461 2009/01/05
 
 ****	Support define document sections with empty category names.

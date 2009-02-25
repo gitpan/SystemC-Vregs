@@ -9,7 +9,7 @@ use Carp;
 use strict;
 use vars qw($VERSION);
 
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 ######################################################################
 # CONSTRUCTOR
@@ -325,7 +325,7 @@ sub _class_h_write {
 	if ($typeref->{words}>0 && $typeref->{words}<2 && !$c) {
 	    $fl->printf("    static const uint32_t BITMASK_WRITABLE = 0x%08x;\n", $wr_masks[0]);
 	    $fl->fn($clname, "", "inline void wWritable(int b, uint32_t val)"
-		    ,"{ ${wset}b,(val&BITMASK_WRITABLE)|(${wget}b)&~BITMASK_WRITABLE)); };\n");
+		    ,"{ ${wset}b,(val&BITMASK_WRITABLE)|(${wget}b)&~BITMASK_WRITABLE)); }\n");
 	} else {
 	    # Grrr, Greenhills Compilers don't allow
 	    # static const uint32_t BITMASK_WRITABLE[] = {...};
@@ -337,7 +337,7 @@ sub _class_h_write {
 	    $fl->printf("\treturn 0; }\n");
 	    my $fwritable = $fl->call_str($clname,"","wBitMaskWritable(b)");
 	    $fl->fn($clname,"","inline void wWritable(int b, uint32_t val)"
-		    ,"{ ${wset}b,(val&${fwritable})|(${wget}b)&~${fwritable})); };\n");
+		    ,"{ ${wset}b,(val&${fwritable})|(${wget}b)&~${fwritable})); }\n");
 	}
     }
 
@@ -472,20 +472,20 @@ sub _class_h_write {
 	}
 	$fl->print("\n");
     }
-    $fl->print("    };\n");
+    $fl->print("    }\n");
 
     $fl->fn($clname,"","inline void fieldsReset()"
 	    ,"{\n"
 	    ,"\t",$fl->call_str($clname,"","fieldsZero();\n")
 	    ,@resets
-	    ,"    };\n");
+	    ,"    }\n");
 
     if (!$c) {
 	$fl->fn($clname,"","inline bool operator== (const ${clname}& rhs) const"
 		,"{\n"
 		,"\t${cForInt}i=0; i<${words}; i++) { if (m_w[i]!=rhs.m_w[i]) return false; }\n"
 		,"\treturn true;\n"
-		,"    };\n");
+		,"    }\n");
 	# The dump functions are in a .cpp file (no inline), as there was too much code
 	# bloat, and it was taking a lot of compile time.
 	$fl->print("    typedef VregsOstream<${clname}> DumpOstream;\n",

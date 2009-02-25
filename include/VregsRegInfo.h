@@ -69,7 +69,7 @@ public:
 	: m_address(addr), m_size(size), m_name(name), m_attrsp(attrs)
 	, m_entSize(entSize), m_entSpacing(entSpacing), m_lowEntNum(lowEntNum)
 	, m_userinfo(NULL), m_rdMask(rdMask), m_wrMask(wrMask)
-	, m_rstVal(rstVal), m_rstMask(rstMask), m_flags(flags) {};
+	, m_rstVal(rstVal), m_rstMask(rstMask), m_flags(flags) {}
     ~VregsRegEntry() {}
 
 public:
@@ -139,8 +139,8 @@ private:
 
 public:
     // CREATORS
-    VregsRegInfo() {};
-    ~VregsRegInfo() {};
+    VregsRegInfo() {}
+    ~VregsRegInfo() {}
 
     // MANIPULATORS
     /// Add a new register, called by vregs classes
@@ -181,9 +181,9 @@ public:
     class iterator {
 	ByAddrMap::iterator   m_addrIt;
     public:
-	iterator(ByAddrMap::iterator addrIt) : m_addrIt(addrIt) {};
-	inline iterator operator++() {++m_addrIt; return *this;};	///< prefix
-	inline operator VregsRegEntry* () const { return (m_addrIt->second); };
+	iterator(ByAddrMap::iterator addrIt) : m_addrIt(addrIt) {}
+	inline iterator operator++() {++m_addrIt; return *this;}	///< prefix
+	inline operator VregsRegEntry* () const { return (m_addrIt->second); }
     };
     iterator	begin() { return m_byAddr.begin(); }	///< Begin iterator across all registers
     iterator	end()   { return m_byAddr.end(); }	///< End iterator across all registers
@@ -227,7 +227,7 @@ private:
 
     static ByNameMap& sByName() {	///< Each specification sorted by its name
 	static ByNameMap singleton; return singleton;
-    };
+    }
 public:
     // MANIPULATORS
     /// Add a new specification, called at init time
@@ -240,9 +240,9 @@ public:
     class iterator {
 	ByNameMap::iterator   s_nameIt;
     public:
-	iterator(ByNameMap::iterator nameIt) : s_nameIt(nameIt) {};
-	inline iterator operator++() {++s_nameIt; return *this;};	///< prefix
-	inline operator VregsSpecInfo* () const { return (s_nameIt->second); };
+	iterator(ByNameMap::iterator nameIt) : s_nameIt(nameIt) {}
+	inline iterator operator++() {++s_nameIt; return *this;}	///< prefix
+	inline operator VregsSpecInfo* () const { return (s_nameIt->second); }
     };
     static iterator	specsBegin() { return sByName().begin(); }	///< Begin iterator across all specs
     static iterator	specsEnd()   { return sByName().end(); }		///< End iterator across all specs

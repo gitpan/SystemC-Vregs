@@ -108,7 +108,7 @@ class VregsOstream {
     const char*	m_prefix;	///< Text to place in front of new lines
 public:
     inline VregsOstream(const void* obj, const char* prefix)
-	: m_obj(obj), m_prefix(prefix) {};
+	: m_obj(obj), m_prefix(prefix) {}
     inline const void* obj() const { return m_obj; }
     inline const char* prefix() const { return m_prefix; }
 };

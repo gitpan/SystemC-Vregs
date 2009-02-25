@@ -8,7 +8,7 @@ use vars qw($VERSION $Global_Change_Error);
 use Carp;
 use IO::File;
 
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 # Set to globally report if any files change;
 # for local usage, use new(change_error => ...) instead.

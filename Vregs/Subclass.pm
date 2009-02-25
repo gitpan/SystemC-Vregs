@@ -5,7 +5,7 @@ package SystemC::Vregs::Subclass;
 
 use strict;use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 $Errors = 0;
 

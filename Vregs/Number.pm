@@ -7,7 +7,7 @@ use Carp;
 use vars qw($VERSION);
 use base qw(Bit::Vector);	# For now, let Bit::Vector do all the work
 
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 ######################################################################
 ######################################################################

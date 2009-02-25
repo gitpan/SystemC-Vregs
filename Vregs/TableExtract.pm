@@ -4,7 +4,7 @@
 package SystemC::Vregs::TableExtract;
 
 use base qw(HTML::TableExtract);
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 use strict;
 use vars qw($Debug %Find_Start_Headers %Find_Headers);

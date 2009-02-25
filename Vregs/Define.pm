@@ -9,7 +9,7 @@ use Verilog::Language;	# For value parsing
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 #Fields:
 #	{name}			Field name (Subclass)

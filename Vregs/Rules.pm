@@ -6,7 +6,7 @@ use vars qw ($Default_Self $VERSION);
 use Carp;
 use strict;
 
-$VERSION = '1.461';
+$VERSION = '1.462';
 
 ######################################################################
 # Default rules
@@ -38,14 +38,14 @@ sub _default_rules {
 			."    operator const char* () const { return ascii(); }\n"
 			."    operator en () const { return m_e; }\n"
 			."    const char* ascii() const;\n"
-			."    inline bool valid() const { return *ascii()!='?'; };\n"
+			."    inline bool valid() const { return *ascii()!='?'; }\n"
 			);
 		if ($self->attribute_value('descfunc')) {
 		    fprint ("    const char* description() const;\n");
 		}
 		fprint ("    class iterator {\n"
 			."	en m_e; public:\n"
-			."	inline iterator(en item) : m_e(item) {};\n"
+			."	inline iterator(en item) : m_e(item) {}\n"
 			."	iterator operator++();\n"
 			."	inline operator ${name} () const { return ${name}(m_e); }\n"
 			."	inline ${name} operator*() const { return ${name}(m_e); }\n"
