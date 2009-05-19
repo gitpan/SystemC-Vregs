@@ -3,8 +3,8 @@
 //
 // Copyright 2002-2009 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
-// the terms of either the GNU Lesser General Public License or the Perl
-// Artistic License.
+// the terms of either the GNU Lesser General Public License Version 3 or
+// the Perl Artistic License Version 2.0.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -278,7 +278,7 @@ static struct option long_options[] = {
 };
 
 static void version() {
-    COUT <<"vderegs: $VERSION = '1.462'" <<endl;
+    COUT <<"vderegs: $VERSION = '1.463'" <<endl;
 }
 
 static void usage() {

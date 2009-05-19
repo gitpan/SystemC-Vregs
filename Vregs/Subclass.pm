@@ -5,7 +5,7 @@ package SystemC::Vregs::Subclass;
 
 use strict;use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.462';
+$VERSION = '1.463';
 
 $Errors = 0;
 
@@ -111,18 +111,19 @@ sub clean_sentence {
     my $field = shift;
 
     # Make it reasonably small, or the first sentence
-    $field =~ s/^\s+//g;
-    $field =~ s/\s*\bthis bit\b//g;
-    $field =~ s/[\"\'\`]+/ /g;
-    $field =~ s/\s+/ /g;
-    $field = substr $field,0,80;
-    if ($field =~ /[.,;]/) {
-	$field =~ s/\..*$//;
+    my $out = $field;
+    $out =~ s/^\s+//g;
+    $out =~ s/\s*\bthis bit\b//g;
+    $out =~ s/[\"\'\`]+/ /g;
+    $out =~ s/\s+/ /g;
+    $out = substr $out,0,80;
+    if ($out =~ /[.,;]/) {
+	$out =~ s/\..*$//;
     }
-    $field = ucfirst $field;
-    $field =~ s/\s+$//;
+    $out = ucfirst $out;
+    $out =~ s/\s+$//;
 
-    return ($field);
+    return $out;
 }
 
 END {
@@ -178,7 +179,7 @@ L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2009 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
-Lesser General Public License or the Perl Artistic License.
+Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
 =head1 AUTHORS
 

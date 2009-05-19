@@ -8,7 +8,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION %Keywords);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.462';
+$VERSION = '1.463';
 
 foreach my $kwd (qw( w dw fieldsZero fieldsReset
 		     ))
@@ -326,6 +326,7 @@ sub computes {
 	$bitref->{access_last} = 	 (($access =~ /L/) ? 1:0);
 	$bitref->{access_read} =     	 (($access =~ /R/) ? 1:0);
 	$bitref->{access_read_side} = 	 (($access =~ /R[^W]*S/) ? 1:0);
+	$bitref->{access_hardwired} = 	 (($access =~ /H/) ? 1:0);
 	$bitref->{access_write} = 	 (($access =~ /W/) ? 1:0);
 	$bitref->{access_write_side} =	 (($access =~ /(W[^R]*S|W1C)/) ? 1:0);
 	$bitref->{access_write_one} =	 (($access =~ /(W1)/) ? 1:0);
@@ -463,7 +464,8 @@ via the self hash: $self->{field}.
 
 =item access
 
-RW/R/W access for the field, from the access column of the field definition.
+RW/R/W/H/S access for the field, from the access column of the field
+definition.
 
 =item bits
 
@@ -531,7 +533,8 @@ L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
 Copyright 2001-2009 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
-Lesser General Public License or the Perl Artistic License.
+Lesser General Public License Version 3 or the Perl Artistic License
+Version 2.0.
 
 =head1 AUTHORS
 
