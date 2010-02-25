@@ -6,7 +6,7 @@ This is the SystemC Vregs Package, aka Vregs.
 1.1 Copyright
 =============
 
-This package is Copyright 2001-2009 by Wilson Snyder
+This package is Copyright 2001-2010 by Wilson Snyder
 <wsnyder@wsnyder.org>.
 
    This program is free software; you can redistribute it and/or modify
@@ -43,12 +43,12 @@ style and font issues; almost any program will do, both Microsoft Word
 and Adobe Framemaker have been used in the past.
 
    When the document is ready for conversion, save the document as
-HTML.  Microsoft Word annoyingly opens the HTML after saving; be sure
+HTML.  Microsoft Word annoyingly opens the HTML after saving; be sure
 to exit the HTML version immediately.
 
    You then run Vregs, which reads the HTML code and writes out a .vspec
-file, which contains a summary of the extracted information.  This file
-can be examined for errors, or edited standalone.  Vregs also produces
+file, which contains a summary of the extracted information.  This file
+can be examined for errors, or edited standalone.  Vregs also produces
 header fields with #defines for all of the constants and magic numbers
 in the spec.
 

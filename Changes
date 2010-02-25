@@ -2,6 +2,12 @@ Revision history for Perl extension SystemC::Vregs
 
 The contributors that suggested a given feature are shown in [].
 
+* Vregs 1.464 2010/02/24
+
+****	Fix Pod::Usage dependency, rt51024.  [Andreas Koenig]
+
+****	Fix GCC 4.3.2 compile issues.
+
 * Vregs 1.463 2009/05/19
 
 **	This package is now licensed under LGPL v3 and/or Artistic v2.0.
@@ -10,7 +16,7 @@ The contributors that suggested a given feature are shown in [].
 
 * Vregs 1.462 2009/02/25
 
-***	Fix extra semicolons on declarations, rt43629. [Mark Pettigrew]
+***	Fix extra semicolons on declarations, bug109. [Mark Pettigrew]
 
 ****	Fix test compile error on cygwin, bug69. [Yoram Stern]
 
@@ -350,7 +356,7 @@ DESCRIPTION: Documentation on change history for this package
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 2001-2009 by Wilson Snyder.  This program is free software; you
+Copyright 2001-2010 by Wilson Snyder.  This program is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License Version 3 or the Perl Artistic License
 Version 2.0.

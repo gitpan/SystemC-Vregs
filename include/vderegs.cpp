@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //====================================================================
 //
-// Copyright 2002-2009 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// Copyright 2002-2010 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
 // the terms of either the GNU Lesser General Public License Version 3 or
 // the Perl Artistic License Version 2.0.
@@ -20,7 +20,7 @@
 ///
 //====================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <getopt.h>
 #include <string>
@@ -278,7 +278,7 @@ static struct option long_options[] = {
 };
 
 static void version() {
-    COUT <<"vderegs: $VERSION = '1.463'" <<endl;
+    COUT <<"vderegs: $VERSION = '1.464'" <<endl;
 }
 
 static void usage() {

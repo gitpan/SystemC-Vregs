@@ -1,7 +1,7 @@
 // -*- C++ -*-
 //======================================================================
 //
-// Copyright 2001-2009 by Wilson Snyder <wsnyder@wsnyder.org>.  This
+// Copyright 2001-2010 by Wilson Snyder <wsnyder@wsnyder.org>.  This
 // program is free software; you can redistribute it and/or modify it under
 // the terms of either the GNU Lesser General Public License Version 3 or
 // the Perl Artistic License Version 2.0.
@@ -24,7 +24,7 @@
 #define _VREGS_REG_INFO_H_
 
 #include <stdint.h>
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <map>
 #include <algorithm>

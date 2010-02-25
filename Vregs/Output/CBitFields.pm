@@ -9,7 +9,7 @@ use strict;
 use vars qw($VERSION);
 use base qw(SystemC::Vregs::Output::Class);   # So we get enum_struct_write
 
-$VERSION = '1.463';
+$VERSION = '1.464';
 
 ######################################################################
 # CONSTRUCTOR
@@ -215,7 +215,7 @@ Vregs is part of the L<http://www.veripool.org/> free Verilog software tool
 suite.  The latest version is available from CPAN and from
 L<http://www.veripool.org/vregs>.  /www.veripool.org/>.
 
-Copyright 2001-2009 by Wilson Snyder.  This package is free software; you
+Copyright 2001-2010 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 

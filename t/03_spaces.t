@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2007-2009 by Wilson Snyder.  This program is free software;
+# Copyright 2007-2010 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
@@ -15,6 +15,10 @@ plan tests => (1 + (keys %{$manifest}));
 ok(1);
 
 foreach my $filename (keys %{$manifest}) {
+    if ($filename =~ /README/) {  # May not even exist
+	skip("File doesn't need check (harmless)",1);
+	next;
+    }
     print "Space test of: $filename\n";
     my $wholefile = wholefile($filename);
     if ($wholefile

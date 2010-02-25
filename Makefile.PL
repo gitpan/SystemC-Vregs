@@ -1,6 +1,6 @@
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 2001-2009 by Wilson Snyder.  This program is free software;
+# Copyright 2001-2010 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
@@ -54,7 +54,7 @@ WriteMakefile(
 	      PREREQ_PM => {'HTML::TableExtract' => 0,
 			    'HTML::Parser' => 0,   # Also needed by TableExtract
 			    'Bit::Vector' => 0,
-			    'Pod::Usage' => 0,
+			    'Pod::Usage' => 1.34,
 			    'Verilog::Language' => 2.100,
 			},
 	      'clean'	=> {FILES => qw ( ),},
