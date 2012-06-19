@@ -5,7 +5,7 @@ package SystemC::Vregs::Subclass;
 
 use strict;use vars qw($Errors $VERSION);
 use Carp;
-$VERSION = '1.464';
+$VERSION = '1.470';
 
 $Errors = 0;
 
@@ -15,6 +15,16 @@ sub new {
     defined $self->{name} or croak ("No name=> parameter passed");
     bless $self, $class;
     return $self;
+}
+
+sub attributes_parse {
+    my $self = shift;
+    my $flags = shift;
+
+    $flags = " $flags ";
+    $self->{attributes}{$1} = $2 while ($flags =~ s/\s-([a-zA-Z][a-zA-Z0-9_]*)=([^ \t]*)\s/ /);
+    $self->{attributes}{$1} = 1  while ($flags =~ s/\s-([a-zA-Z][a-zA-Z0-9_]*)\s/ /);
+    ($flags =~ /^\s*$/) or $self->warn ("Unparsable attributes setting: '$flags'");
 }
 
 sub attributes_string {

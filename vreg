@@ -19,12 +19,12 @@ use SystemC::Vregs::Output::Hash;
 use SystemC::Vregs::Output::Info;
 use SystemC::Vregs::Output::Latex;
 use SystemC::Vregs::Output::Param;
-use SystemC::Vregs::TableExtract;
+use SystemC::Vregs::Input::TableExtract;
 
 use strict;
 use vars qw($Debug @Opt_Html_Files $VERSION);
 
-$VERSION = '1.464';
+$VERSION = '1.470';
 
 #======================================================================
 
@@ -167,7 +167,7 @@ if ($#Opt_Html_Files >= 0) {
 	if ($opt_rm) {
 	    (my $rm = $filename) =~ s/\.html?$/_files/;
 	    system ("rm -rf $rm") if -d $rm;
-	    SystemC::Vregs::TableExtract::clean_html_file($filename);
+	    SystemC::Vregs::Input::TableExtract::clean_html_file($filename);
 	}
 	$vr->html_read ($filename);
     }
@@ -279,13 +279,14 @@ END {
 
 sub usage {
     print "Version $VERSION\n";
-    pod2usage(-verbose=>2, -exitval => 2);
+    pod2usage(-verbose=>2, -exitval=>2, -output=>\*STDOUT, -noperldoc=>1);
     exit (1);
 }
 
 sub debug {
     $Debug = shift || 1;
-    $SystemC::Vregs::TableExtract::Debug = 1 if $Debug>1;
+    $SystemC::Vregs::Input::HTML::Debug = 1 if $Debug>1;
+    $SystemC::Vregs::Input::TableExtract::Debug = 1 if $Debug>1;
     $SystemC::Vregs::Debug = 1;
 }
 

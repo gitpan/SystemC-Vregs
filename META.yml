@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:         SystemC-Vregs
-version:      1.464
+version:      1.470
 version_from: Vregs.pm
 abstract:     Extract C++/Verilog Enum and Classes from html documents
 license:      perl

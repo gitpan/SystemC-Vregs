@@ -278,7 +278,7 @@ static struct option long_options[] = {
 };
 
 static void version() {
-    COUT <<"vderegs: $VERSION = '1.464'" <<endl;
+    COUT <<"vderegs: $VERSION = '1.470'" <<endl;
 }
 
 static void usage() {

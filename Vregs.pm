@@ -4,12 +4,13 @@
 package SystemC::Vregs;
 use SystemC::Vregs::Number;
 
-use SystemC::Vregs::TableExtract;
 use SystemC::Vregs::Enum;
 use SystemC::Vregs::Define;
 use SystemC::Vregs::Register;
 use SystemC::Vregs::Number;
 use SystemC::Vregs::Rules;
+use SystemC::Vregs::Input::Layout;
+use SystemC::Vregs::Input::HTML;
 use SystemC::Vregs::Output::Layout;
 use strict;
 use Carp;
@@ -17,7 +18,7 @@ use vars qw ($Debug $VERSION
 	     $Bit_Access_Regexp %Ignore_Keywords);
 use base qw (SystemC::Vregs::Subclass);	# In Vregs:: so we can get Vregs->warn()
 
-$VERSION = '1.464';
+$VERSION = '1.470';
 
 ######################################################################
 #### Constants
@@ -189,9 +190,9 @@ sub html_read {
     my $self = shift;
     my $filename = shift;
 
-    my $te = new SystemC::Vregs::TableExtract(depth=>0, );
-    $te->{_vregs_pack} = $self;
-    $te->parse_file($filename);
+    SystemC::Vregs::Input::HTML->new()->read
+	(pack => $self,
+	 filename => $filename);
 }
 
 sub three_way_replace {
@@ -209,566 +210,15 @@ sub three_way_replace {
 }
 
 ######################################################################
-#### Declaring registers/enums
-
-sub new_package {
-    my $self = shift;
-    my $bittableref = shift;  my @bittable = @{$bittableref};
-    my $flagref = shift;	# Hash of {heading} = value_of_heading
-    # Create a new package
-
-    ($flagref->{Package}) or die;
-    (!$self->{_got_package_decl}) or return $self->warn($flagref, "Multiple Package attribute sections, previous at $self->{_got_package_decl}.\n");
-
-    my $attr = $flagref->{Attributes}||"";
-    print "PACK ATTR $attr\n" if $Debug;
-    _regs_read_attributes($self, $attr);
-    $self->{_got_package_decl} = $flagref->{at};
-}
-
-sub new_item {
-    my $self = $_[0];
-    my $bittableref = $_[1];
-    my $flagref = $_[2];	# Hash of {heading} = value_of_heading
-    #Create a new register/class/enum, called from the html parser
-    print "new_item:",::Dumper(\$flagref, $bittableref) if $SystemC::Vregs::TableExtract::Debug;
-
-    if ($flagref->{Register}) {
-	new_register (@_);
-    } elsif ($flagref->{Class}) {
-	new_register (@_);
-    } elsif ($flagref->{Enum}) {
-	new_enum (@_);
-    } elsif (defined $flagref->{Defines}) {  # Name not required, so defined.
-	new_define (@_);
-    } elsif ($flagref->{Package}) {
-	new_package (@_);
-    }
-}
-
-sub new_define {
-    my $self = shift;
-    my $bittableref = shift;  my @bittable = @{$bittableref};
-    my $flagref = shift;	# Hash of {heading} = value_of_heading
-    # Create a new enumeration
-    return if $#bittable<0;   # Empty list of defines
-
-    #print ::Dumper(\$flagref, $bittableref);
-    (defined $flagref->{Defines}) or die;
-    $flagref->{Defines} ||= "";
-    my $defname = _cleanup_column($flagref->{Defines});
-    $defname .= "_" if $defname ne "" && $defname !~ /_$/;
-    $defname = "" if $defname eq "_";
-
-    my $whole_table_attr = $flagref->{Attributes}||"";
-
-    my ($const_col, $mnem_col, $def_col)
-	 = _choose_columns ($flagref,
-			    [qw(Constant Mnemonic Definition)],
-			    [qw(Product)],
-			    $bittable[0]);
-    defined $const_col or return $self->warn ($flagref, "Define table is missing column headed 'Constant'\n");
-    defined $mnem_col  or return $self->warn ($flagref, "Define table is missing column headed 'Mnemonic'\n");
-    defined $def_col   or return $self->warn ($flagref, "Define table is missing column headed 'Definition'\n");
-
-    foreach my $row (@bittable) {
-	 print "  Row:\n" if $Debug;
-	 foreach my $col (@$row) {
-	     print "    Ent:$col\n" if $Debug;
-	     if (!defined $col) {
-		 $self->warn ($flagref, "Column ".($col+1)." is empty\n");
-	     }
-	 }
-	 next if $row eq $bittable[0];	# Ignore header
-
-	 my $val_mnem = $row->[$mnem_col];
-	 my $desc     = $row->[$def_col];
-
-	 # Skip blank/reserved values
-	 next if ($val_mnem eq "" && ($desc eq "" || $desc =~ /^reserved/i));
-
-	 # Check for empty field
-	 my $defref = new SystemC::Vregs::Define::Value
-	     (pack => $self,
-	      name => $defname . $val_mnem,
-	      rst  => $row->[$const_col],
-	      desc => $desc,
-	      at   => $flagref->{at},
-	      is_manual => 1,
-	      );
-
-	 # Take special user defined fields and add to table
-	 for (my $colnum=0; $colnum<=$#{$bittable[0]}; $colnum++) {
-	     my $col = $bittable[0][$colnum];
-	     $col =~ s/\s+//;
-	     if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
-		 my $var = $1;
-		 my $val = _cleanup_column($row->[$colnum]||"");
-		 $defref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9+]+)$/;
-	     }
-	 }
-	 _regs_read_attributes($defref, $whole_table_attr);
-    }
-}
-
-sub new_enum {
-    my $self = shift;
-    my $bittableref = shift;  my @bittable = @{$bittableref};
-    my $flagref = shift;	# Hash of {heading} = value_of_heading
-    # Create a new enumeration
-
-    ($flagref->{Enum}) or die;
-    my $classname = _cleanup_column($flagref->{Enum});
-
-    my ($const_col, $mnem_col, $def_col)
-	= _choose_columns ($flagref,
-			   [qw(Constant Mnemonic Definition)],
-			   [qw(Product)],
-			   $bittable[0]);
-    defined $const_col or return $self->warn ($flagref, "Enum table is missing column headed 'Constant'\n");
-    defined $mnem_col  or return $self->warn ($flagref, "Enum table is missing column headed 'Mnemonic'\n");
-    defined $def_col   or return $self->warn ($flagref, "Enum table is missing column headed 'Definition'\n");
-
-    my $classref = new SystemC::Vregs::Enum
-	(pack => $self,
-	 name => $classname,
-	 at => $flagref->{at},
-	 );
-
-    my $attr = $flagref->{Attributes}||"";
-    while ($attr =~ s/-(\w+)//) {
-	$classref->{attributes}{$1} = 1;
-    }
-    ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
-
-    foreach my $row (@bittable) {
-	print "  Row:\n" if $Debug;
-	foreach my $col (@$row) {
-	    print "    Ent:$col\n" if $Debug;
-	    if (!defined $col) {
-		$self->warn ($flagref, "Column ".($col+1)." is empty\n");
-	    }
-	}
-	next if $row eq $bittable[0];	# Ignore header
-
-	my $val_mnem = _cleanup_column($row->[$mnem_col]);
-	my $desc     = _cleanup_column($row->[$def_col]);
-
-	# Skip blank/reserved values
-	next if ($val_mnem eq "" && ($desc eq "" || $desc =~ /^reserved/i));
-
-	# Check for empty field
-	my $valref = new SystemC::Vregs::Enum::Value
-	    (pack => $self,
-	     name => $val_mnem,
-	     class => $classref,
-	     rst  => _cleanup_column($row->[$const_col]),
-	     desc => $desc,
-	     at => $flagref->{at},
-	     );
-
-
-	# Take special user defined fields and add to table
-	for (my $colnum=0; $colnum<=$#{$bittable[0]}; $colnum++) {
-	    my $col = $bittable[0][$colnum];
-	    $col =~ s/\s+//;
-	    if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
-		my $var = $1;
-		my $val = _cleanup_column($row->[$colnum]||"");
-		$valref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9+]+)$/;
-	    }
-	}
-    }
-}
-
-sub new_register {
-    my $self = shift;
-    my $bittableref = shift;  my @bittable = @{$bittableref};
-    my $flagref = shift;	# Hash of {heading} = value_of_heading
-    # Create a new register
-
-    my $classname = _cleanup_column($flagref->{Register} || $flagref->{Class});
-    (defined $classname) or die;
-
-    #print "new_register!\n",::Dumper(\$flagref,\@bittable);
-
-    my $range = "";
-    $range = $1 if ($classname =~ s/(\[[^\]]+])//);
-    $classname =~ s/\s+$//;
-
-    my $is_register = ($flagref->{Register} || $flagref->{Address});
-
-    my $inherits = "";
-    if ($classname =~ s/\s*:\s*(\S+)$//) {
-	$inherits = $1;
-    }
-
-    my $attr = $flagref->{Attributes}||"";
-    return if $attr =~ /noimplementation/;
-
-    my $typeref = new SystemC::Vregs::Type
-	(pack => $self,
-	 name => $classname,
-	 at => $flagref->{at},
-	 is_register => $is_register,	# Ok, perhaps I should have made a superclass
-	 );
-    $typeref->inherits($inherits);
-
-    # See also $typeref->{attributes}{lcfirst}, below.
-    while ($attr =~ s/-([a-zA-Z_0-9]+)\s*=?\s*([a-zA-Z._0-9+]+)?//) {
-	$typeref->{attributes}{$1} = (defined $2 ? $2 : 1);
-    }
-    ($attr =~ /^\s*$/) or $self->warn($flagref, "Strange attributes $attr\n");
-
-    if ($is_register) {
-	# Declare a register
-	($classname =~ /^[R]_/) or return $self->warn($flagref, "Strange mnemonic name, doesn't begin with R_");
-
-	my $addr = $flagref->{Address};  # Don't _cleanup_column, as we have (Add 0x) text
-	my $spacingtext = 0;
-	$spacingtext = $self->{data_bytes} if $range;
-	if (!$addr) {
-	    $self->warn ($flagref, "No 'Address' Heading Found\n");
-	    return;
-	}
-	$addr =~ s/[()]//g;
-	$addr =~ s/\s*plus\s*base\s*address\s*//;
-	$addr =~ s/\s*per\s+entry//g;
-	if ($addr =~ s/\s*Add\s*(0x[a-f0-9_]+)\s*//i) {
-	    $spacingtext = $1;
-	}
-
-	my $regref = new SystemC::Vregs::Register
-	    (pack => $self,
-	     typeref => $typeref,
-	     name => $classname,
-	     at => $flagref->{at},
-	     addrtext => $addr,
-	     spacingtext => $spacingtext,
-	     range => $range,
-	     );
-    }
-
-    if (defined $bittable[0] || !$inherits) {
-	my ($bit_col, $mnem_col, $type_col, $def_col,
-	    $acc_col, $rst_col,
-	    $const_col,
-	    $size_col)
-	    = _choose_columns ($flagref,
-			       [qw(Bit Mnemonic Type Definition),
-				qw(Access Reset),	# Register decls
-				qw(Constant),	# Class declarations
-				qw(Size),	# Ignored Optionals
-				],
-			       [qw(Product)],
-			       $bittable[0]);
-	$rst_col ||= $const_col;
-	defined $bit_col or  return $self->warn ($flagref, "Table is missing column headed 'Bit'\n");
-	defined $mnem_col or return $self->warn ($flagref, "Table is missing column headed 'Mnemonic'\n");
-	defined $def_col or  return $self->warn ($flagref, "Table is missing column headed 'Definition'\n");
-	if ($is_register) {
-	    defined $rst_col or  return $self->warn ($flagref, "Table is missing column headed 'Reset'\n");
-	    defined $acc_col or  return $self->warn ($flagref, "Table is missing column headed 'Access'\n");
-	}
-
-	# Table by table, allow the field mnemonics to be either 'fooFlag'
-	# (per our Coding Conventions) or 'FooFlag' (as in a Vregs ASCII file).
-
-	my $allMnems_LCFirst = (@bittable > 1);
-	foreach my $row (@bittable) {
-	    next if $row eq $bittable[0];	# Ignore header
-	    my $bit_mnem = $row->[$mnem_col] or next;
-	    my $c1 = substr($bit_mnem, 0, 1);
-	    if ($c1 ge 'A' && $c1 le 'Z') { $allMnems_LCFirst = 0; }
-	}
-	if ($allMnems_LCFirst) {
-	    print "  Upcasing first letter of mnemonics.\n" if $Debug;
-	    foreach my $row (@bittable) {
-		next if $row eq $bittable[0];	# Ignore header
-		my $bit_mnem = $row->[$mnem_col] or next;
-		$row->[$mnem_col] = ucfirst $bit_mnem;
-	    }
-	    $typeref->{attributes}{lcfirst} = 1;
-	}
-
-	foreach my $row (@bittable) {
-	    print "  Row:\n" if $Debug;
-	    foreach my $col (@$row) {
-		print "    Ent:$col\n" if $Debug;
-		if (!defined $col) {
-		    $self->warn ($flagref, "Column ".($col+1)." is empty\n");
-		}
-	    }
-	    next if $row eq $bittable[0];	# Ignore header
-
-	    # Check for empty field
-	    my $bit_mnem = $row->[$mnem_col];
-	    $bit_mnem =~ s/^_//;
-	    my $desc = $row->[$def_col];
-
-	    my $overlaps = "";
-	    $overlaps = $1 if ($desc =~ /\boverlaps\s+([a-zA-Z0-9_]+)/i);
-
-	    # Skip empty fields
-	    if (($bit_mnem eq "" || $bit_mnem eq '-')
-		&& ($desc eq "" || $desc =~ /Reserved/ || $desc=~/Hardwired/
-		    || $desc =~ /^(\/\/|\#)/)) {	# Allow //Comment or #Comment
-		next;
-	    }
-	    if ((!defined $bit_col || $row->[$bit_col] eq "")
-		&& (!defined $mnem_col || $row->[$mnem_col] eq "")
-		&& (!defined $rst_col || $row->[$rst_col] eq "")
-		) {
-		next;	# All blank lines (excl comment) are fine.
-	    }
-
-	    my $rst = _cleanup_column(defined $rst_col ? $row->[$rst_col] : "");
-	    $rst = 'X' if ($rst eq "" && !$is_register);
-
-	    my $type = _cleanup_column(defined $type_col && $row->[$type_col]);
-
-	    my $acc = _cleanup_column(defined $acc_col ? $row->[$acc_col] : 'RW');
-
-	    (!$typeref->{fields}{$bit_mnem}) or
-		$self->warn ($typeref->{fields}{$bit_mnem}, "Field defined twice in spec\n");
-	    my $bitref = new SystemC::Vregs::Bit
-		(pack => $self,
-		 name => $bit_mnem,
-		 typeref => $typeref,
-		 bits => $row->[$bit_col],
-		 access => $acc,
-		 overlaps => $overlaps,
-		 rst  => $rst,
-		 desc => $row->[$def_col],
-		 type => $type,
-		 expand => ($type && $desc =~ /expand class/i)?1:undef,
-		 at => $flagref->{at},
-		 );
-
-	    # Take special user defined fields and add to table
-	    for (my $colnum=0; $colnum<=$#{$bittable[0]}; $colnum++) {
-		my $col = $bittable[0][$colnum];
-		$col =~ s/\s+//;
-		if ($col =~ /^\s*\(([a-zA-Z_0-9]+)\)\s*$/) {
-		    my $var = $1;
-		    my $val = _cleanup_column($row->[$colnum]||"");
-		    $bitref->{attributes}{$var} = $val if $val =~ /^([][a-zA-Z._:0-9+]+)$/;
-		}
-	    }
-	}
-    }
-}
-
-######################################################################
-#### Parsing
-
-sub _choose_columns {
-    my $flagref = shift;
-    my $fieldref = shift;
-    my $attrfieldref = shift;
-    my $headref = shift;
-    # Look for the columns with the given headings.  Require them to exist.
-
-    my @collist;
-    my @colused = ();
-    my @colheads;
-    # The list is short, so this is faster than forming a hash.
-    # If things get wide, this may change
-    for (my $h=0; $h<=$#{$headref}; $h++) {
-	$colheads[$h] = $headref->[$h];
-	$colheads[$h] =~ s/\s*\(.*\)\s*//;  # Ignore comments in the header
-	$colused[$h] = 1 if $colheads[$h] eq "";
-    }
-  headchk:
-    foreach my $fld (@{$fieldref}) {
-	for (my $h=0; $h<=$#{$headref}; $h++) {
-	    if ($fld eq $colheads[$h]) {
-		push @collist, $h;
-		$colused[$h] = 1;
-		next headchk;
-	    }
-	}
-	push @collist, undef;
-    }
-    foreach my $fld (@{$attrfieldref}) {
-	for (my $h=0; $h<=$#{$headref}; $h++) {
-	    if ($fld eq $colheads[$h]) {
-		# Convert to a attribute
-		$headref->[$h] = "(".$headref->[$h].")";
-		$colused[$h] = 1;
-	    }
-	}
-    }
-
-    my $ncol = 0;
-    for (my $h=0; $h<=$#{$headref}; $h++) {
-	$ncol = $h+1 if !$colused[$h];
-    }
-
-    if ($ncol) {
-        SystemC::Vregs::Subclass::warn ($flagref, "Column ".($ncol-1)." found with unknown header.\n");
-	print "Desired column headers: '",join("' '",@{$fieldref}),"'\n";
-	print "Found   column headers: '",join("' '",@{$headref}),"'\n";
-	print "Defined:("; foreach (@collist) { print (((defined $_)?$_:'-'),' '); }
-	print ")\n";
-	print "Used:   ("; foreach (@colused) { print ((($_)?'Y':'-'),' '); }
-	print ")\n";
-    }
-
-    return (@collist);
-}
-
-sub _cleanup_column {
-    my $text = shift;
-    return undef if !defined $text;
-    while ($text =~ s/\s*\([^\(\)]*\)//) {}	# Strip (comment)  Leave trailing space "foo (bar) x" becomes "foo x"
-    $text =~ s/\s+$//;
-    $text =~ s/^\s+//;
-    return $text;
-}
-
-######################################################################
 #### Reading files
 
 sub regs_read {
     my $self = shift;
     my $filename = shift;
 
-
-    my $fh = new IO::File ($filename) or die "%Error: $! $filename\n";
-
-    my $line;
-    my $lineno = 0;
-    my $regref;
-    my $typeref;
-    my $classref;
-    my $got_a_line = 0;
-    while (my $line = $fh->getline() ) {
-	chomp $line;
-	$lineno++;
-	$got_a_line=1;
-	if ($line =~ /^\# (\d+) \"([^\"]+)\"[ 0-9]*$/) {  # from cpp: # linenu "file" {level}
-	    $lineno = $1 - 1;
-	    $filename = $2;
-	    print "#FILE '$filename'\n" if $Debug;
-	}
-	$line =~ s/\/\/.*$//;	# Remove C/Verilog style comments
-	$line =~ s/^\s+//;
-	$line =~ s/\s+$//;
-
-	my $fileline = "$filename:$lineno";
-	if ($line eq "") {}
-	elsif ($line =~ /^reg\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)(.*)$/ ) {
-	    my $classname = $1;
-	    my $type = $2;
-	    my $addr = lc $3;
-	    my $spacingtext = $4;
-	    my $flags = $5 || "";
-	    my $range = "";
-	    $range = $1 if $type =~ s/(\[.*\])//;
-	    $regref = new SystemC::Vregs::Register
-		(pack => $self,
-		 name => $classname,
-		 at => "${filename}:$.",
-		 addrtext => $addr,
-		 spacingtext => $spacingtext,
-		 range => $range,
-		 );
-	    _regs_read_attributes($regref, $flags);
-	}
-	elsif ($line =~ /^type\s+(\S+)\s*(.*)$/ ) {
-	    my $typemnem = $1; my $flags = $2;
-	    my $inh = "";
-	    $inh = $1 if ($flags =~ s/:(\S+)//);
-	    $typemnem =~ s/^Vregs//;
-	    $typemnem =~ s/_t$//;
-	    $typeref = new SystemC::Vregs::Type
-		(pack => $self,
-		 name => $typemnem,
-		 at => "${filename}:$.",
-		 );
-	    $typeref->inherits($inh);
-	    _regs_read_attributes($typeref, $flags);
-	    $regref->{typeref} = $typeref if $regref && $typemnem =~ /^R_/;
-	    $regref = undef;
-	}
-	elsif ($line =~ /^bit\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+(\S+)\s+([^\"]*)"(.*)"$/ ) {
-	    if (!$typeref) {
-		die "%Error: $filename:$.: bit without previous type declaration\n";;
-	    }
-	    my $bit_mnem = $1;
-	    my $bits = $2; my $acc = $3; my $type = $4; my $rst = $5; my $flags=$6; my $desc=$7;
-	    my $bitref = new SystemC::Vregs::Bit
-		(pack => $self,
-		 name => $bit_mnem,
-		 typeref => $typeref,
-		 bits => $bits,
-		 access => $acc,
-		 rst  => $rst,
-		 desc => $desc,
-		 type => $type,
-		 at => "${filename}:$.",
-	     );
-	    _regs_read_attributes($bitref, $flags);
-	}
-	elsif ($line =~ /^enum\s+(\S+)\s*(.*)$/) {
-	    my $name = $1; my $flags = $2;
-	    $classref = new SystemC::Vregs::Enum
-		(pack => $self,
-		 name => $name,
-		 at => "${filename}:$.",
-		 );
-	    _regs_read_attributes($classref, $flags);
-	}
-	elsif ($line =~ /^const\s+(\S+)\s+(\S+)\s+([^\"]*)"(.*)"$/ ) {
-	    my $name = $1;  my $rst=$2;  my $flags=$3;  my $desc=$4;
-	    my $bitref = new SystemC::Vregs::Enum::Value
-		(pack => $self,
-		 name => $name,
-		 class => $classref,
-		 rst  => $rst,
-		 desc => $desc,
-		 at => "${filename}:$.",
-		 );
-	    _regs_read_attributes($bitref, $flags);
-	}
-	elsif ($line =~ /^define\s+(\S+)\s+(\S+)\s+([^\"]*)"(.*)"$/ ) {
-	    my $name = $1;  my $rst=$2;  my $flags=$3; my $desc=$4;
-	    $rst = $1 if $rst =~ m/^"(.*)"$/;
-	    my $ref = new SystemC::Vregs::Define::Value
-		(pack => $self,
-		 name => $name,
-		 rst  => $rst,
-		 desc => $desc,
-		 is_manual => 1,
-		 at => "${filename}:$.",
-		 );
-	    _regs_read_attributes($ref, $flags);
-	}
-	elsif ($line =~ /^package\s+(\S+)\s*(.*)$/ ) {
-	    my $flags = $2;
-	    $self->{name} = $1;
-	    $self->{at} = "${filename}:$.";
-	    _regs_read_attributes($self, $flags);
-	}
-	else {
-	    die "%Error: $fileline: Can't parse \"$line\"\n";
-	}
-    }
-
-    ($got_a_line) or die "%Error: File empty or cpp error in $filename\n";
-
-    $fh->close();
-}
-
-sub _regs_read_attributes {
-    my $obj = shift;
-    my $flags = shift;
-
-    $flags = " $flags ";
-    $obj->{attributes}{$1} = $2 while ($flags =~ s/\s-([a-zA-Z][a-zA-Z0-9_]*)=([^ \t]*)\s/ /);
-    $obj->{attributes}{$1} = 1  while ($flags =~ s/\s-([a-zA-Z][a-zA-Z0-9_]*)\s/ /);
-    ($flags =~ /^\s*$/) or $obj->warn ("Unparsable attributes setting: '$flags'");
+    SystemC::Vregs::Input::Layout->new()->read
+	(pack => $self,
+	 filename => $filename);
 }
 
 sub regs_read_check {
@@ -1040,7 +490,9 @@ sub SystemC::Vregs::Bit::_create_defines_range {
 	}
     }
     if (($bitref->{numbits}>1 || $typeref->attribute_value("creset_one_bit"))
-	&& $bitref->{rst_val}) {
+	&& ($bitref->{rst_val}
+	    || ($typeref->attribute_value("creset_zero")
+		&& (defined $bitref->{rst_val})))) {
 	new_push SystemC::Vregs::Define::Value
 	    (pack => $typeref->{pack},
 	     name => "CRESET_${nor_mnem}_${bit_mnem}",
@@ -1420,12 +872,15 @@ L<SystemC::Vregs::Language>,
 L<SystemC::Vregs::Number>,
 L<SystemC::Vregs::Register>,
 L<SystemC::Vregs::Subclass>,
-L<SystemC::Vregs::TableExtract>,
 L<SystemC::Vregs::Type>
+L<SystemC::Vregs::Input::TableExtract>,
+L<SystemC::Vregs::Input::Layout>,
+L<SystemC::Vregs::Input::HTML>,
 L<SystemC::Vregs::Output::Class>,
 L<SystemC::Vregs::Output::Defines>,
 L<SystemC::Vregs::Output::Hash>,
 L<SystemC::Vregs::Output::Info>,
+L<SystemC::Vregs::Output::Layout>,
 L<SystemC::Vregs::Output::Latex>,
 L<SystemC::Vregs::Output::Param>
 

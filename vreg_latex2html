@@ -12,7 +12,7 @@ use Carp;
 use strict;
 use vars qw($Debug $VERSION);
 
-$VERSION = '1.464';
+$VERSION = '1.470';
 
 #======================================================================
 
@@ -45,7 +45,7 @@ tohtml();
 
 sub usage {
     print "Version $VERSION\n";
-    pod2usage(-verbose=>2, -exitval => 2);
+    pod2usage(-verbose=>2, -exitval=>2, -output=>\*STDOUT, -noperldoc=>1);
     exit (1);
 }
 

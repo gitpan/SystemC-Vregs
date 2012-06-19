@@ -17,5 +17,4 @@ latex/.*\.html
 latex/.*\.pdf
 latex/.*\.vregs
 latex/images.tex
-
-
+^(.*/)?MYMETA\..*$

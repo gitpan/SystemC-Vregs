@@ -9,7 +9,7 @@ use strict;
 use vars qw($VERSION);
 use base qw(SystemC::Vregs::Output::Class);   # So we get enum_struct_write
 
-$VERSION = '1.464';
+$VERSION = '1.470';
 
 ######################################################################
 # CONSTRUCTOR

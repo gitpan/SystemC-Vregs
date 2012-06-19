@@ -16,7 +16,7 @@ foreach my $exe (@execs) {
     print "Doc test of: $exe\n";
     ok (-e $exe);
     my $help = `$PERL $exe --help 2>&1`;
-    ok ($help =~ /DISTRIBUTION/);
+    ok ($help =~ /--version/);
     $help = `$PERL $exe --version 2>&1`;
     ok ($help =~ /Version.*[0-9]/);
 }

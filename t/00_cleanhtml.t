@@ -11,9 +11,9 @@ use Test;
 BEGIN { plan tests => 2 }
 BEGIN { require "t/test_utils.pl"; }
 
-use SystemC::Vregs::TableExtract;
+use SystemC::Vregs::Input::TableExtract;
 ok(1);
 
-SystemC::Vregs::TableExtract::clean_html_file
+SystemC::Vregs::Input::TableExtract::clean_html_file
     ("vregs_spec.htm");
 ok(1);

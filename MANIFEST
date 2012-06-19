@@ -45,6 +45,9 @@ Vregs/Bit.pm
 Vregs/Define.pm
 Vregs/Enum.pm
 Vregs/File.pm
+Vregs/Input/HTML.pm
+Vregs/Input/Layout.pm
+Vregs/Input/TableExtract.pm
 Vregs/Language.pm
 Vregs/Number.pm
 Vregs/Output/CBitFields.pm
@@ -58,7 +61,6 @@ Vregs/Output/Param.pm
 Vregs/Register.pm
 Vregs/Rules.pm
 Vregs/Subclass.pm
-Vregs/TableExtract.pm
 Vregs/Type.pm
 vregs_spec.doc
 vregs_spec.htm

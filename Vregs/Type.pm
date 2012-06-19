@@ -9,7 +9,7 @@ use Bit::Vector::Overload;
 use strict;
 use vars qw ($VERSION);
 use base qw (SystemC::Vregs::Subclass);
-$VERSION = '1.464';
+$VERSION = '1.470';
 
 # Fields:
 #	{name}			Field name (Subclass)
